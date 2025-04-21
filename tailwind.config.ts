@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,7 +62,15 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
-				}
+				},
+				ocean: {
+					light: '#D3E4FD',
+					medium: '#33C3F0',
+					dark: '#0EA5E9',
+				},
+				coral: '#FF719A',
+				sand: '#FEF7CD',
+				seaweed: '#6E59A5',
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
@@ -84,11 +93,41 @@ export default {
 					to: {
 						height: '0'
 					}
-				}
+				},
+				'bubble-float': {
+					'0%': { 
+						transform: 'translateY(100%)',
+						opacity: '0' 
+					},
+					'50%': { 
+						opacity: '0.8' 
+					},
+					'100%': { 
+						transform: 'translateY(-100vh)',
+						opacity: '0' 
+					}
+				},
+				'wave': {
+					'0%': { transform: 'translateX(0)' },
+					'50%': { transform: 'translateX(-25%)' },
+					'100%': { transform: 'translateX(-50%)' }
+				},
+				'swim': {
+					'0%, 100%': { transform: 'translateX(0)' },
+					'50%': { transform: 'translateX(10px)' },
+				},
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				'bubble-float-1': 'bubble-float 15s ease-in infinite',
+				'bubble-float-2': 'bubble-float 12s ease-in infinite',
+				'bubble-float-3': 'bubble-float 18s ease-in infinite',
+				'wave': 'wave 15s linear infinite',
+				'swim': 'swim 3s ease-in-out infinite',
+			},
+			backgroundImage: {
+				'ocean-gradient': 'linear-gradient(180deg, #D3E4FD 0%, #33C3F0 50%, #0EA5E9 100%)',
 			}
 		}
 	},
