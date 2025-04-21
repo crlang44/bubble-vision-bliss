@@ -27,6 +27,7 @@ const Canvas: React.FC<CanvasProps> = ({
   const [currentAnnotation, setCurrentAnnotation] = useState<Annotation | null>(null);
   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
   const [scale, setScale] = useState(1);
+  const [isImageLoaded, setIsImageLoaded] = useState(false);
 
   // Colors for different annotation types
   const annotationColors = {
@@ -37,6 +38,7 @@ const Canvas: React.FC<CanvasProps> = ({
 
   // Load the image
   useEffect(() => {
+    setIsImageLoaded(false);
     const img = new Image();
     img.src = imageUrl;
     
@@ -60,20 +62,28 @@ const Canvas: React.FC<CanvasProps> = ({
       setCanvasSize({ width: newWidth, height: newHeight });
       setScale(newScale);
       imageRef.current = img;
+      setIsImageLoaded(true);
       
-      // Draw the initial canvas
-      const canvas = canvasRef.current;
-      if (canvas) {
-        canvas.width = newWidth;
-        canvas.height = newHeight;
+      // Draw the initial canvas immediately after image loads
+      setTimeout(() => {
         redrawCanvas();
-      }
+      }, 0);
     };
     
     img.onerror = () => {
       toast.error('Failed to load image');
     };
   }, [imageUrl]);
+
+  // Initial render of the image when isImageLoaded changes
+  useEffect(() => {
+    if (isImageLoaded && canvasRef.current && imageRef.current) {
+      const canvas = canvasRef.current;
+      canvas.width = canvasSize.width;
+      canvas.height = canvasSize.height;
+      redrawCanvas();
+    }
+  }, [isImageLoaded, canvasSize]);
 
   // Redraw the canvas with the image and all annotations
   const redrawCanvas = () => {
@@ -308,8 +318,10 @@ const Canvas: React.FC<CanvasProps> = ({
 
   // Redraw canvas when annotations change
   useEffect(() => {
-    redrawCanvas();
-  }, [annotations, currentAnnotation]);
+    if (isImageLoaded) {
+      redrawCanvas();
+    }
+  }, [annotations, currentAnnotation, isImageLoaded]);
 
   return (
     <div 
@@ -327,11 +339,15 @@ const Canvas: React.FC<CanvasProps> = ({
         className="cursor-crosshair"
         width={canvasSize.width}
         height={canvasSize.height}
+        style={{ display: isImageLoaded ? 'block' : 'none' }}
       ></canvas>
       
-      {!imageRef.current && (
+      {!isImageLoaded && (
         <div className="absolute inset-0 flex items-center justify-center">
-          <div className="animate-pulse">Loading image...</div>
+          <div className="animate-pulse flex items-center">
+            <div className="w-4 h-4 bg-ocean-medium rounded-full mr-2 animate-bounce"></div>
+            Loading image...
+          </div>
         </div>
       )}
     </div>
