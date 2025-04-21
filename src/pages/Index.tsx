@@ -66,7 +66,11 @@ const Index = () => {
   };
   
   const handleImageSelect = (image: OceanImage) => {
-    setSelectedImage(image);
+    if (image.id !== selectedImage?.id) {
+      setSelectedImage(image);
+      setAnnotations([]);
+      setIsTimerRunning(false);
+    }
   };
   
   const handleTimeUp = () => {
@@ -106,6 +110,7 @@ const Index = () => {
     const currentIndex = oceanImages.findIndex(img => img.id === selectedImage?.id);
     const nextIndex = (currentIndex + 1) % oceanImages.length;
     setSelectedImage(oceanImages[nextIndex]);
+    setAnnotations([]);
   };
   
   return (
