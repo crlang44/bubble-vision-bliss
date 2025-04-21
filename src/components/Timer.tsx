@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, Clock } from 'lucide-react';
 
 interface TimerProps {
   duration: number; // in seconds
@@ -10,6 +10,7 @@ interface TimerProps {
 
 const Timer: React.FC<TimerProps> = ({ duration, onTimeUp, isRunning }) => {
   const [timeLeft, setTimeLeft] = useState(duration);
+  const [isWarning, setIsWarning] = useState(false);
   
   useEffect(() => {
     // Reset timer when duration changes
@@ -21,6 +22,11 @@ const Timer: React.FC<TimerProps> = ({ duration, onTimeUp, isRunning }) => {
     
     const interval = setInterval(() => {
       setTimeLeft(prevTime => {
+        // Add a warning when less than 30 seconds remain
+        if (prevTime <= 30 && !isWarning) {
+          setIsWarning(true);
+        }
+        
         if (prevTime <= 1) {
           clearInterval(interval);
           onTimeUp();
@@ -31,7 +37,7 @@ const Timer: React.FC<TimerProps> = ({ duration, onTimeUp, isRunning }) => {
     }, 1000);
     
     return () => clearInterval(interval);
-  }, [isRunning, onTimeUp]);
+  }, [isRunning, onTimeUp, isWarning]);
   
   const formatTime = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);
@@ -53,9 +59,12 @@ const Timer: React.FC<TimerProps> = ({ duration, onTimeUp, isRunning }) => {
   return (
     <div className="w-full">
       <div className="flex justify-between items-center mb-1">
-        <span className="text-sm font-medium text-gray-700">Time Left</span>
         <span className="text-sm font-medium text-gray-700 flex items-center">
-          {timeLeft <= 10 && <AlertCircle className="w-4 h-4 text-red-500 mr-1 animate-pulse" />}
+          <Clock className="w-4 h-4 mr-1" />
+          Time Left
+        </span>
+        <span className={`text-sm font-medium ${isWarning ? 'text-red-500 animate-pulse' : 'text-gray-700'} flex items-center`}>
+          {isWarning && <AlertCircle className="w-4 h-4 text-red-500 mr-1" />}
           {formatTime(timeLeft)}
         </span>
       </div>

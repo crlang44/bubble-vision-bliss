@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import BubbleBackground from '../components/BubbleBackground';
 import Instructions from '../components/Instructions';
@@ -19,38 +18,32 @@ const Index = () => {
   const [currentLabel, setCurrentLabel] = useState('Whale');
   const [annotations, setAnnotations] = useState<Annotation[]>([]);
   const [selectedImage, setSelectedImage] = useState<OceanImage | null>(null);
-  const [timeBonus, setTimeBonus] = useState(0);
+  const [timeBonus, setTimeBonus] = useState(50);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
   const [gameComplete, setGameComplete] = useState(false);
   const [availableLabels, setAvailableLabels] = useState<string[]>(['Whale', 'Fish', 'Coral']);
   
-  // Select the first image on initial load
   useEffect(() => {
     if (oceanImages.length > 0 && !selectedImage) {
       setSelectedImage(oceanImages[0]);
     }
   }, []);
   
-  // Update available labels when image changes
   useEffect(() => {
     if (!selectedImage) return;
     
     const labels = selectedImage.targetAnnotations.map(annotation => annotation.label);
-    // Add some decoy labels too
     const allLabels = [...new Set([...labels, 'Fish', 'Coral', 'Rock', 'Seaweed', 'Bubbles'])];
     setAvailableLabels(allLabels);
     
-    // Reset the game state
     setAnnotations([]);
     setGameComplete(false);
-    setTimeBonus(50); // Start with maximum time bonus
+    setTimeBonus(100);
     
-    // Choose the first label from the target annotations
     if (labels.length > 0) {
       setCurrentLabel(labels[0]);
     }
     
-    // Start the timer
     setIsTimerRunning(true);
   }, [selectedImage]);
   
@@ -120,7 +113,6 @@ const Index = () => {
       <BubbleBackground bubbleCount={30} />
       
       <div className="container mx-auto py-6 px-4 relative z-10">
-        {/* Header */}
         <header className="flex justify-between items-center mb-6">
           <div className="flex items-center gap-2">
             <Fish className="text-coral h-8 w-8" />
@@ -136,16 +128,13 @@ const Index = () => {
           </Button>
         </header>
         
-        {/* Instructions Modal */}
         {showInstructions && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
             <Instructions onClose={() => setShowInstructions(false)} />
           </div>
         )}
         
-        {/* Game Content */}
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-          {/* Left Sidebar */}
           <div className="lg:col-span-1">
             <ImageSelector 
               images={oceanImages} 
@@ -154,18 +143,15 @@ const Index = () => {
             />
           </div>
           
-          {/* Main Game Area */}
           <div className="lg:col-span-3 space-y-4">
-            {/* Timer */}
             <div className="bg-white rounded-xl p-3 shadow-md">
               <Timer 
-                duration={90} // 90 seconds
+                duration={120}
                 onTimeUp={handleTimeUp}
                 isRunning={isTimerRunning && !gameComplete}
               />
             </div>
             
-            {/* Canvas */}
             <div className="h-[450px] bg-white rounded-xl shadow-lg overflow-hidden">
               {selectedImage ? (
                 <Canvas
@@ -183,7 +169,6 @@ const Index = () => {
               )}
             </div>
             
-            {/* Description and Submit */}
             <div className="bg-white rounded-xl p-4 shadow-md flex justify-between items-center">
               <p className="text-sm text-gray-700">
                 {selectedImage?.description || 'Select an image to get started'}
@@ -216,7 +201,6 @@ const Index = () => {
             </div>
           </div>
           
-          {/* Right Sidebar */}
           <div className="lg:col-span-1">
             {!gameComplete ? (
               <AnnotationTools
@@ -253,7 +237,6 @@ const Index = () => {
           </div>
         </div>
         
-        {/* Footer */}
         <footer className="mt-8 text-center text-white/80 text-sm">
           <p>Ocean Annotation Game - A fun way to learn computer vision annotation techniques</p>
         </footer>
