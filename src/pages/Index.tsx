@@ -166,6 +166,7 @@ const Index = () => {
                   onAnnotationComplete={handleAnnotationComplete}
                   annotations={annotations}
                   onAnnotationUpdate={setAnnotations}
+                  targetAnnotations={selectedImage.targetAnnotations}
                 />
               ) : (
                 <div className="flex items-center justify-center h-full">

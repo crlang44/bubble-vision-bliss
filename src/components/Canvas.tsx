@@ -1,7 +1,7 @@
-
 import React, { useEffect, useRef, useState } from 'react';
-import { Annotation, AnnotationType, Coordinate, generateId } from '../utils/annotationUtils';
+import { Annotation, AnnotationType, Coordinate, generateId, TargetAnnotation } from '../utils/annotationUtils';
 import { toast } from 'sonner';
+import { Eye, EyeOff } from 'lucide-react';
 
 interface CanvasProps {
   imageUrl: string;
@@ -10,6 +10,7 @@ interface CanvasProps {
   onAnnotationComplete: (annotation: Annotation) => void;
   annotations: Annotation[];
   onAnnotationUpdate: (annotations: Annotation[]) => void;
+  targetAnnotations?: TargetAnnotation[]; // New optional prop
 }
 
 const Canvas: React.FC<CanvasProps> = ({
@@ -18,7 +19,8 @@ const Canvas: React.FC<CanvasProps> = ({
   currentLabel,
   onAnnotationComplete,
   annotations,
-  onAnnotationUpdate
+  onAnnotationUpdate,
+  targetAnnotations = [] // Default to empty array
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -28,6 +30,7 @@ const Canvas: React.FC<CanvasProps> = ({
   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
   const [scale, setScale] = useState(1);
   const [isImageLoaded, setIsImageLoaded] = useState(false);
+  const [showGroundTruth, setShowGroundTruth] = useState(false);
 
   // Colors for different annotation types
   const annotationColors = {
@@ -113,17 +116,25 @@ const Canvas: React.FC<CanvasProps> = ({
     if (currentAnnotation) {
       drawAnnotation(ctx, currentAnnotation);
     }
+    
+    // Draw ground truth annotations if showGroundTruth is true
+    if (showGroundTruth) {
+      targetAnnotations.forEach(target => {
+        drawAnnotation(ctx, target, true);
+      });
+    }
   };
 
-  // Draw a single annotation
-  const drawAnnotation = (ctx: CanvasRenderingContext2D, annotation: Annotation) => {
-    const { type, coordinates, color, isComplete } = annotation;
+  // Modified drawAnnotation method to handle target annotations
+  const drawAnnotation = (ctx: CanvasRenderingContext2D, annotation: Annotation | TargetAnnotation, isTarget = false) => {
+    const { type, coordinates, label } = annotation;
     
     if (coordinates.length === 0) return;
     
-    ctx.strokeStyle = color;
-    ctx.fillStyle = isComplete ? `${color}20` : `${color}10`; // More transparent if not complete
+    ctx.strokeStyle = isTarget ? 'rgba(0, 255, 0, 0.7)' : (annotation as Annotation).color;
+    ctx.fillStyle = isTarget ? 'rgba(0, 255, 0, 0.2)' : `${(annotation as Annotation).color}20`;
     ctx.lineWidth = 2;
+    ctx.setLineDash(isTarget ? [5, 5] : []); // Dashed lines for ground truth
     
     switch (type) {
       case 'rectangle':
@@ -148,7 +159,7 @@ const Canvas: React.FC<CanvasProps> = ({
             ctx.lineTo(coordinates[i].x, coordinates[i].y);
           }
           
-          if (isComplete) {
+          if ((annotation as Annotation).isComplete || isTarget) {
             ctx.closePath();
           }
           
@@ -166,7 +177,7 @@ const Canvas: React.FC<CanvasProps> = ({
     }
     
     // Draw label if annotation is complete
-    if (isComplete) {
+    if ((annotation as Annotation).isComplete || isTarget) {
       ctx.font = '12px sans-serif';
       ctx.fillStyle = '#ffffff';
       ctx.strokeStyle = '#000000';
@@ -188,14 +199,15 @@ const Canvas: React.FC<CanvasProps> = ({
       }
       
       // Draw label background
-      const labelWidth = ctx.measureText(annotation.label).width + 6;
-      ctx.fillStyle = color;
+      const labelWidth = ctx.measureText(label).width + 6;
+      ctx.fillStyle = isTarget ? 'rgba(0, 255, 0, 0.7)' : (annotation as Annotation).color;
       ctx.fillRect(x - 3, y - 12, labelWidth, 16);
       
       // Draw label text
       ctx.fillStyle = '#ffffff';
-      ctx.fillText(annotation.label, x, y);
+      ctx.fillText(label, x, y);
     }
+    ctx.setLineDash([]);
   };
 
   // Handle mouse down event
@@ -316,6 +328,13 @@ const Canvas: React.FC<CanvasProps> = ({
     };
   };
 
+  // Add useEffect to redraw when showGroundTruth changes
+  useEffect(() => {
+    if (isImageLoaded) {
+      redrawCanvas();
+    }
+  }, [showGroundTruth, isImageLoaded]);
+
   // Redraw canvas when annotations change
   useEffect(() => {
     if (isImageLoaded) {
@@ -328,6 +347,16 @@ const Canvas: React.FC<CanvasProps> = ({
       ref={containerRef} 
       className="flex items-center justify-center w-full h-full bg-gray-100 rounded-xl overflow-hidden relative"
     >
+      <div className="absolute top-2 right-2 z-10">
+        <button 
+          onClick={() => setShowGroundTruth(!showGroundTruth)}
+          className="bg-white/80 hover:bg-white rounded-full p-2 shadow-md"
+          title={showGroundTruth ? "Hide Ground Truth" : "Show Ground Truth"}
+        >
+          {showGroundTruth ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+        </button>
+      </div>
+      
       <canvas
         ref={canvasRef}
         onClick={handleClick}
