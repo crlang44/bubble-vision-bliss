@@ -14,13 +14,12 @@ import { Fish, CheckCircle, RefreshCcw, Trophy } from 'lucide-react';
 
 const Index = () => {
   const [showInstructions, setShowInstructions] = useState(() => {
-    // Check if user has seen instructions before
     return localStorage.getItem('hasSeenInstructions') !== 'true';
   });
   const [hasSeenInstructions, setHasSeenInstructions] = useState(() => {
     return localStorage.getItem('hasSeenInstructions') === 'true';
   });
-  const [selectedTool, setSelectedTool] = useState<AnnotationType | null>(null);
+  const [selectedTool, setSelectedTool] = useState<AnnotationType | null>('rectangle');
   const [currentLabel, setCurrentLabel] = useState('Whale');
   const [annotations, setAnnotations] = useState<Annotation[]>([]);
   const [selectedImage, setSelectedImage] = useState<OceanImage | null>(null);
@@ -51,7 +50,6 @@ const Index = () => {
       setCurrentLabel(labels[0]);
     }
     
-    // Only start the timer if the user has seen the instructions
     if (!showInstructions) {
       setIsTimerRunning(true);
     }
@@ -93,7 +91,7 @@ const Index = () => {
     
     setIsTimerRunning(false);
     setGameComplete(true);
-    setShowGroundTruth(true); // Show ground truth boxes when user submits
+    setShowGroundTruth(true);
     
     const foundAllTargets = selectedImage.targetAnnotations.every(target => 
       annotations.some(annotation => annotation.label === target.label)
@@ -115,7 +113,7 @@ const Index = () => {
     setAnnotations([]);
     setTimeBonus(50);
     setIsTimerRunning(true);
-    setShowGroundTruth(false); // Hide ground truth boxes when playing again
+    setShowGroundTruth(false);
   };
   
   const handleNewImage = () => {
@@ -123,7 +121,7 @@ const Index = () => {
     const nextIndex = (currentIndex + 1) % oceanImages.length;
     setSelectedImage(oceanImages[nextIndex]);
     setAnnotations([]);
-    setShowGroundTruth(false); // Hide ground truth boxes when changing image
+    setShowGroundTruth(false);
   };
   
   return (
@@ -161,7 +159,6 @@ const Index = () => {
               setShowInstructions(false);
               setHasSeenInstructions(true);
               localStorage.setItem('hasSeenInstructions', 'true');
-              // Start the timer after instructions are closed
               setIsTimerRunning(true);
             }} />
           </div>
