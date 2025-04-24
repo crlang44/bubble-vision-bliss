@@ -9,7 +9,7 @@ interface InstructionsProps {
 
 const Instructions: React.FC<InstructionsProps> = ({ onClose }) => {
   return (
-    <div className="bg-white/90 backdrop-blur-sm rounded-xl p-6 shadow-lg w-full max-w-md mx-auto max-h-[90vh] overflow-y-auto">
+    <div className="bg-white/90 backdrop-blur-sm rounded-xl p-6 shadow-lg w-full max-w-xl mx-auto max-h-[85vh] overflow-y-auto">
       <h2 className="text-2xl font-bold text-ocean-dark mb-4 flex items-center gap-2">
         <Fish className="text-coral" /> Ocean Annotation Game
       </h2>
@@ -58,4 +58,3 @@ const Instructions: React.FC<InstructionsProps> = ({ onClose }) => {
 };
 
 export default Instructions;
-
