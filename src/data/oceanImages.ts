@@ -36,6 +36,8 @@ export interface OceanImage {
   difficulty: 'easy' | 'medium' | 'hard';
   targetAnnotations: TargetAnnotation[];
   description: string;
+  originalWidth?: number;  // Store original width from COCO data
+  originalHeight?: number; // Store original height from COCO data
 }
 
 // Map category IDs to human-readable labels
@@ -52,12 +54,10 @@ const categoryMap: Record<number, string> = {
   10: 'Kayaker'
 };
 
-// Convert COCO format annotations to our app's TargetAnnotation format
-const convertCocoAnnotationsToTargetAnnotations = (imageId: number): TargetAnnotation[] => {
-  const imageAnnotations = annotationsData.annotations.filter(
-    annotation => annotation.image_id === imageId && annotation.bbox && annotation.bbox.length >= 4
-  );
-
+// Convert COCO annotations to our app's format
+const convertAnnotations = (imageId: number): TargetAnnotation[] => {
+  const imageAnnotations = annotationsData.annotations.filter(ann => ann.image_id === imageId);
+  
   return imageAnnotations.map(annotation => {
     // COCO format bbox is [x, y, width, height]
     // Convert to our format which uses two points [top-left, bottom-right]
@@ -67,12 +67,21 @@ const convertCocoAnnotationsToTargetAnnotations = (imageId: number): TargetAnnot
       id: `ann_${annotation.id}`,
       type: 'rectangle',
       coordinates: [
-        { x, y },
-        { x: x + width, y: y + height }
+        { x, y }, // Top left corner
+        { x: x + width, y: y + height } // Bottom right corner
       ],
       label: categoryMap[annotation.category_id] || `Category ${annotation.category_id}`
     };
   });
+};
+
+// Find original dimensions for an image from COCO data
+const getImageDimensions = (imageId: number): { width: number, height: number } => {
+  const imageData = annotationsData.images.find(img => img.id === imageId);
+  return {
+    width: imageData?.width || 2688, // Default width from COCO data
+    height: imageData?.height || 1512 // Default height from COCO data
+  };
 };
 
 // Generate a description based on annotations
@@ -98,22 +107,53 @@ const generateDifficulty = (annotations: TargetAnnotation[]): 'easy' | 'medium' 
 // List of available images in our data/images folder
 const availableImages = Object.keys(imageMap);
 
+// Map filenames to their IDs in the COCO dataset
+const filenameToIdMap: Record<string, number> = {};
+annotationsData.images.forEach(image => {
+  filenameToIdMap[image.file_name] = image.id;
+});
+
 // Generate ocean images from the local data
-export const oceanImages: OceanImage[] = annotationsData.images
-  .filter(image => availableImages.includes(image.file_name))
-  .map(image => {
-    const targetAnnotations = convertCocoAnnotationsToTargetAnnotations(image.id);
-    
-    return {
-      id: `img_${image.id}`,
-      title: `Ocean Image ${image.id}`,
-      // Use the imported image URL
-      imagePath: imageMap[image.file_name],
-      difficulty: generateDifficulty(targetAnnotations),
-      targetAnnotations,
-      description: generateDescription(targetAnnotations)
-    };
-  });
+export const oceanImages: OceanImage[] = availableImages.map((filename) => {
+  // Find the image ID in the COCO dataset
+  const imageId = filenameToIdMap[filename] || 0;
+  
+  // Get annotations for this image
+  const targetAnnotations = imageId ? convertAnnotations(imageId) : [];
+  
+  // Get original image dimensions from COCO dataset
+  const dimensions = imageId ? getImageDimensions(imageId) : { width: 2688, height: 1512 };
+  
+  // Log dimensions and annotation info for debugging
+  console.log(`Image ${filename} - Original dimensions: ${dimensions.width}x${dimensions.height}`);
+  console.log(`Image ${filename} - Annotations count: ${targetAnnotations.length}`);
+  
+  // If no annotations were found, create a dummy annotation for testing
+  if (targetAnnotations.length === 0 && imageId !== 0) {
+    console.warn(`No annotations found for image ${filename} with ID ${imageId}, creating sample annotation`);
+    // Create a sample annotation in the center of the image
+    targetAnnotations.push({
+      id: `ann_sample_${filename}`,
+      type: 'rectangle',
+      coordinates: [
+        { x: Math.round(dimensions.width * 0.4), y: Math.round(dimensions.height * 0.4) },
+        { x: Math.round(dimensions.width * 0.6), y: Math.round(dimensions.height * 0.6) }
+      ],
+      label: 'Sample'
+    });
+  }
+  
+  return {
+    id: `img_${filename.replace('.jpg', '')}`,
+    title: `Ocean Image ${filename}`,
+    imagePath: imageMap[filename],
+    difficulty: generateDifficulty(targetAnnotations),
+    targetAnnotations,
+    description: generateDescription(targetAnnotations),
+    originalWidth: dimensions.width,
+    originalHeight: dimensions.height
+  };
+});
 
 // Default fallback data in case the JSON loading fails
 if (oceanImages.length === 0) {
@@ -141,6 +181,8 @@ if (oceanImages.length === 0) {
         "label": "Whale"
       }
     ],
-    "description": "A majestic ocean scene. Can you annotate the marine life?"
+    "description": "A majestic ocean scene. Can you annotate the marine life?",
+    "originalWidth": 1200,
+    "originalHeight": 800
   });
 }

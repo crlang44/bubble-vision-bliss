@@ -194,6 +194,8 @@ const Index = () => {
                   targetAnnotations={selectedImage.targetAnnotations}
                   showGroundTruth={showGroundTruth}
                   onToggleGroundTruth={() => setShowGroundTruth(!showGroundTruth)}
+                  originalWidth={selectedImage.originalWidth}
+                  originalHeight={selectedImage.originalHeight}
                 />
               ) : (
                 <div className="flex items-center justify-center h-full">

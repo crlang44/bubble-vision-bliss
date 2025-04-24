@@ -13,6 +13,8 @@ interface CanvasProps {
   targetAnnotations?: TargetAnnotation[]; // New optional prop
   showGroundTruth?: boolean; // New prop to control ground truth visibility from parent
   onToggleGroundTruth?: () => void; // New prop to handle toggle from child
+  originalWidth?: number; // Original image width from COCO dataset
+  originalHeight?: number; // Original image height from COCO dataset
 }
 
 const Canvas: React.FC<CanvasProps> = ({
@@ -24,7 +26,9 @@ const Canvas: React.FC<CanvasProps> = ({
   onAnnotationUpdate,
   targetAnnotations = [], // Default to empty array
   showGroundTruth = false, // Default to not showing ground truth
-  onToggleGroundTruth
+  onToggleGroundTruth,
+  originalWidth,
+  originalHeight
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -35,6 +39,7 @@ const Canvas: React.FC<CanvasProps> = ({
   const [scale, setScale] = useState(1);
   const [isImageLoaded, setIsImageLoaded] = useState(false);
   const [localShowGroundTruth, setLocalShowGroundTruth] = useState(showGroundTruth);
+  const [scaledTargetAnnotations, setScaledTargetAnnotations] = useState<TargetAnnotation[]>([]);
 
   // Update local state when prop changes
   useEffect(() => {
@@ -47,6 +52,46 @@ const Canvas: React.FC<CanvasProps> = ({
     polygon: '#6E59A5',   // seaweed
     point: '#0EA5E9'      // ocean
   };
+
+  // Scale coordinates from original image size to displayed size
+  const scaleCoordinates = (coord: Coordinate): Coordinate => {
+    if (!originalWidth || !originalHeight || !canvasSize.width || !canvasSize.height) {
+      return coord; // If we don't have original dimensions, return as is
+    }
+
+    // Calculate scale factors
+    const scaleX = canvasSize.width / originalWidth;
+    const scaleY = canvasSize.height / originalHeight;
+
+    // Apply scaling to coordinates
+    return {
+      x: Math.round(coord.x * scaleX),
+      y: Math.round(coord.y * scaleY)
+    };
+  };
+
+  // Scale target annotations when canvas size or target annotations change
+  useEffect(() => {
+    if (targetAnnotations.length > 0 && canvasSize.width > 0 && canvasSize.height > 0) {
+      const scaled = targetAnnotations.map(annotation => ({
+        ...annotation,
+        coordinates: annotation.coordinates.map(coord => scaleCoordinates(coord))
+      }));
+      setScaledTargetAnnotations(scaled);
+      
+      // Debug log to help diagnose scaling issues
+      console.log('Original target annotations:', targetAnnotations);
+      console.log('Scaled target annotations:', scaled);
+      console.log('Canvas size:', canvasSize);
+      console.log('Original dimensions:', { originalWidth, originalHeight });
+      console.log('Scale factors:', { 
+        scaleX: canvasSize.width / (originalWidth || 1), 
+        scaleY: canvasSize.height / (originalHeight || 1) 
+      });
+    } else {
+      setScaledTargetAnnotations([]);
+    }
+  }, [targetAnnotations, canvasSize, originalWidth, originalHeight]);
 
   // Load the image
   useEffect(() => {
@@ -128,7 +173,7 @@ const Canvas: React.FC<CanvasProps> = ({
     
     // Draw ground truth annotations if localShowGroundTruth is true
     if (localShowGroundTruth) {
-      targetAnnotations.forEach(target => {
+      scaledTargetAnnotations.forEach(target => {
         drawAnnotation(ctx, target, true);
       });
     }
@@ -349,7 +394,7 @@ const Canvas: React.FC<CanvasProps> = ({
     if (isImageLoaded) {
       redrawCanvas();
     }
-  }, [annotations, currentAnnotation, isImageLoaded]);
+  }, [annotations, currentAnnotation, isImageLoaded, scaledTargetAnnotations]);
 
   return (
     <div 

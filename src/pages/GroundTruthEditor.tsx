@@ -2,11 +2,11 @@ import React, { useState, useEffect } from 'react';
 import Canvas from '../components/Canvas';
 import AnnotationTools from '../components/AnnotationTools';
 import ImageSelector from '../components/ImageSelector';
-import { Annotation, AnnotationType, TargetAnnotation } from '../utils/annotationUtils';
+import { Annotation, AnnotationType, TargetAnnotation, calculateScore } from '../utils/annotationUtils';
 import { oceanImages, OceanImage } from '../data/oceanImages';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import { Save, ArrowLeft } from 'lucide-react';
+import { Save, ArrowLeft, Eye, EyeOff } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
@@ -17,6 +17,16 @@ const GroundTruthEditor = () => {
   const [selectedImage, setSelectedImage] = useState<OceanImage | null>(null);
   const [availableLabels, setAvailableLabels] = useState<string[]>(['Whale', 'Fish', 'Coral', 'Bubbles', 'Wave Crest', 'Sea Foam', 'River', 'Mountain']);
   const [customLabel, setCustomLabel] = useState('');
+  const [showGroundTruth, setShowGroundTruth] = useState(true);
+  const [score, setScore] = useState(0);
+  
+  // Debug logging to help identify issues with annotations
+  useEffect(() => {
+    if (selectedImage) {
+      console.log("Selected image:", selectedImage.title);
+      console.log("Target annotations:", selectedImage.targetAnnotations);
+    }
+  }, [selectedImage]);
   
   useEffect(() => {
     if (oceanImages.length > 0 && !selectedImage) {
@@ -27,6 +37,7 @@ const GroundTruthEditor = () => {
   useEffect(() => {
     if (!selectedImage) return;
     
+    // Load existing annotations as user annotations for editing
     const existingAnnotations: Annotation[] = selectedImage.targetAnnotations.map(target => ({
       ...target,
       color: getColorForType(target.type),
@@ -34,6 +45,28 @@ const GroundTruthEditor = () => {
     }));
     
     setAnnotations(existingAnnotations);
+    
+    // Calculate score based on existing annotations against ground truth
+    if (existingAnnotations.length > 0 && selectedImage.targetAnnotations.length > 0) {
+      let totalScore = 0;
+      existingAnnotations.forEach(annotation => {
+        // Find matching target annotation by label
+        const matchingTargets = selectedImage.targetAnnotations.filter(
+          target => target.label === annotation.label
+        );
+        
+        if (matchingTargets.length > 0) {
+          // Find the best score among all possible matches
+          const scores = matchingTargets.map(target => calculateScore(annotation, target));
+          totalScore += Math.max(...scores);
+        }
+      });
+      
+      // Average score
+      setScore(Math.round(totalScore / existingAnnotations.length));
+    } else {
+      setScore(0);
+    }
   }, [selectedImage]);
   
   const getColorForType = (type: AnnotationType): string => {
@@ -51,12 +84,44 @@ const GroundTruthEditor = () => {
   
   const handleClearAnnotations = () => {
     setAnnotations([]);
+    setScore(0);
     toast('All annotations cleared');
   };
   
   const handleAnnotationComplete = (annotation: Annotation) => {
-    setAnnotations([...annotations, annotation]);
+    const newAnnotations = [...annotations, annotation];
+    setAnnotations(newAnnotations);
     toast(`Added ${annotation.label} annotation`);
+    
+    // Recalculate score
+    updateScore(newAnnotations);
+  };
+  
+  const updateScore = (currentAnnotations: Annotation[]) => {
+    if (!selectedImage || !selectedImage.targetAnnotations.length) {
+      setScore(0);
+      return;
+    }
+    
+    let totalScore = 0;
+    let annotationsWithScore = 0;
+    
+    currentAnnotations.forEach(annotation => {
+      // Find matching target annotation by label
+      const matchingTargets = selectedImage.targetAnnotations.filter(
+        target => target.label === annotation.label
+      );
+      
+      if (matchingTargets.length > 0) {
+        // Find the best score among all possible matches
+        const scores = matchingTargets.map(target => calculateScore(annotation, target));
+        totalScore += Math.max(...scores);
+        annotationsWithScore++;
+      }
+    });
+    
+    // Average score (avoid division by zero)
+    setScore(annotationsWithScore ? Math.round(totalScore / annotationsWithScore) : 0);
   };
   
   const handleLabelChange = (label: string) => {
@@ -76,6 +141,11 @@ const GroundTruthEditor = () => {
       setCustomLabel('');
       toast(`Added new label: ${customLabel}`);
     }
+  };
+  
+  const handleAnnotationUpdate = (updatedAnnotations: Annotation[]) => {
+    setAnnotations(updatedAnnotations);
+    updateScore(updatedAnnotations);
   };
   
   const handleSaveGroundTruth = () => {
@@ -121,6 +191,7 @@ export const oceanImages: OceanImage[] = ${JSON.stringify(updatedOceanImages, nu
     downloadLink.click();
     document.body.removeChild(downloadLink);
     
+    // Update oceanImages in memory too
     for (let i = 0; i < oceanImages.length; i++) {
       if (oceanImages[i].id === selectedImage.id) {
         oceanImages[i].targetAnnotations = targetAnnotations;
@@ -221,7 +292,21 @@ export const oceanImages: OceanImage[] = ${JSON.stringify(updatedOceanImages, nu
           <div className="lg:col-span-3 space-y-4">
             <Card>
               <CardHeader className="pb-0">
-                <CardTitle>Draw Ground Truth Annotations</CardTitle>
+                <CardTitle className="flex justify-between items-center">
+                  <span>Draw Ground Truth Annotations</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-normal">Score: {score}</span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setShowGroundTruth(!showGroundTruth)}
+                      title={showGroundTruth ? "Hide Ground Truth" : "Show Ground Truth"}
+                      className="p-1 h-auto"
+                    >
+                      {showGroundTruth ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </Button>
+                  </div>
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-gray-500 mb-4">
@@ -236,7 +321,12 @@ export const oceanImages: OceanImage[] = ${JSON.stringify(updatedOceanImages, nu
                       currentLabel={currentLabel}
                       onAnnotationComplete={handleAnnotationComplete}
                       annotations={annotations}
-                      onAnnotationUpdate={setAnnotations}
+                      onAnnotationUpdate={handleAnnotationUpdate}
+                      showGroundTruth={showGroundTruth}
+                      targetAnnotations={selectedImage.targetAnnotations}
+                      onToggleGroundTruth={() => setShowGroundTruth(!showGroundTruth)}
+                      originalWidth={selectedImage.originalWidth}
+                      originalHeight={selectedImage.originalHeight}
                     />
                   ) : (
                     <div className="flex items-center justify-center h-full">
@@ -306,9 +396,10 @@ export const oceanImages: OceanImage[] = ${JSON.stringify(updatedOceanImages, nu
                   <li>Select or create a label for the annotation</li>
                   <li>Draw on the image to create annotations</li>
                   <li>Click "Save Ground Truth" when finished</li>
+                  <li>Toggle the eye icon to show/hide ground truth</li>
                 </ul>
                 <p className="text-sm mt-4 text-gray-500">
-                  The saved annotations will be displayed as JSON that can be copied and used in your application.
+                  Your score will automatically update based on how well your annotations match the ground truth.
                 </p>
               </CardContent>
             </Card>
