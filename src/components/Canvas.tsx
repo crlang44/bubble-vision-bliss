@@ -11,6 +11,8 @@ interface CanvasProps {
   annotations: Annotation[];
   onAnnotationUpdate: (annotations: Annotation[]) => void;
   targetAnnotations?: TargetAnnotation[]; // New optional prop
+  showGroundTruth?: boolean; // New prop to control ground truth visibility from parent
+  onToggleGroundTruth?: () => void; // New prop to handle toggle from child
 }
 
 const Canvas: React.FC<CanvasProps> = ({
@@ -20,7 +22,9 @@ const Canvas: React.FC<CanvasProps> = ({
   onAnnotationComplete,
   annotations,
   onAnnotationUpdate,
-  targetAnnotations = [] // Default to empty array
+  targetAnnotations = [], // Default to empty array
+  showGroundTruth = false, // Default to not showing ground truth
+  onToggleGroundTruth
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -30,7 +34,12 @@ const Canvas: React.FC<CanvasProps> = ({
   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
   const [scale, setScale] = useState(1);
   const [isImageLoaded, setIsImageLoaded] = useState(false);
-  const [showGroundTruth, setShowGroundTruth] = useState(false);
+  const [localShowGroundTruth, setLocalShowGroundTruth] = useState(showGroundTruth);
+
+  // Update local state when prop changes
+  useEffect(() => {
+    setLocalShowGroundTruth(showGroundTruth);
+  }, [showGroundTruth]);
 
   // Colors for different annotation types
   const annotationColors = {
@@ -117,8 +126,8 @@ const Canvas: React.FC<CanvasProps> = ({
       drawAnnotation(ctx, currentAnnotation);
     }
     
-    // Draw ground truth annotations if showGroundTruth is true
-    if (showGroundTruth) {
+    // Draw ground truth annotations if localShowGroundTruth is true
+    if (localShowGroundTruth) {
       targetAnnotations.forEach(target => {
         drawAnnotation(ctx, target, true);
       });
@@ -328,12 +337,12 @@ const Canvas: React.FC<CanvasProps> = ({
     };
   };
 
-  // Add useEffect to redraw when showGroundTruth changes
+  // Add useEffect to redraw when localShowGroundTruth changes
   useEffect(() => {
     if (isImageLoaded) {
       redrawCanvas();
     }
-  }, [showGroundTruth, isImageLoaded]);
+  }, [localShowGroundTruth, isImageLoaded]);
 
   // Redraw canvas when annotations change
   useEffect(() => {
@@ -349,11 +358,14 @@ const Canvas: React.FC<CanvasProps> = ({
     >
       <div className="absolute top-2 right-2 z-10">
         <button 
-          onClick={() => setShowGroundTruth(!showGroundTruth)}
+          onClick={() => {
+            setLocalShowGroundTruth(!localShowGroundTruth);
+            if (onToggleGroundTruth) onToggleGroundTruth();
+          }}
           className="bg-white/80 hover:bg-white rounded-full p-2 shadow-md"
-          title={showGroundTruth ? "Hide Ground Truth" : "Show Ground Truth"}
+          title={localShowGroundTruth ? "Hide Ground Truth" : "Show Ground Truth"}
         >
-          {showGroundTruth ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+          {localShowGroundTruth ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
         </button>
       </div>
       

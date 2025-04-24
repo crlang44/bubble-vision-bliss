@@ -13,7 +13,13 @@ import { Button } from '@/components/ui/button';
 import { Fish, CheckCircle, RefreshCcw, Trophy } from 'lucide-react';
 
 const Index = () => {
-  const [showInstructions, setShowInstructions] = useState(true);
+  const [showInstructions, setShowInstructions] = useState(() => {
+    // Check if user has seen instructions before
+    return localStorage.getItem('hasSeenInstructions') !== 'true';
+  });
+  const [hasSeenInstructions, setHasSeenInstructions] = useState(() => {
+    return localStorage.getItem('hasSeenInstructions') === 'true';
+  });
   const [selectedTool, setSelectedTool] = useState<AnnotationType | null>(null);
   const [currentLabel, setCurrentLabel] = useState('Whale');
   const [annotations, setAnnotations] = useState<Annotation[]>([]);
@@ -22,6 +28,7 @@ const Index = () => {
   const [isTimerRunning, setIsTimerRunning] = useState(false);
   const [gameComplete, setGameComplete] = useState(false);
   const [availableLabels, setAvailableLabels] = useState<string[]>(['Whale', 'Fish', 'Coral']);
+  const [showGroundTruth, setShowGroundTruth] = useState(false);
   
   useEffect(() => {
     if (oceanImages.length > 0 && !selectedImage) {
@@ -44,8 +51,11 @@ const Index = () => {
       setCurrentLabel(labels[0]);
     }
     
-    setIsTimerRunning(true);
-  }, [selectedImage]);
+    // Only start the timer if the user has seen the instructions
+    if (!showInstructions) {
+      setIsTimerRunning(true);
+    }
+  }, [selectedImage, showInstructions]);
   
   const handleSelectTool = (tool: AnnotationType | null) => {
     setSelectedTool(tool);
@@ -83,6 +93,7 @@ const Index = () => {
     
     setIsTimerRunning(false);
     setGameComplete(true);
+    setShowGroundTruth(true); // Show ground truth boxes when user submits
     
     const foundAllTargets = selectedImage.targetAnnotations.every(target => 
       annotations.some(annotation => annotation.label === target.label)
@@ -104,6 +115,7 @@ const Index = () => {
     setAnnotations([]);
     setTimeBonus(50);
     setIsTimerRunning(true);
+    setShowGroundTruth(false); // Hide ground truth boxes when playing again
   };
   
   const handleNewImage = () => {
@@ -111,6 +123,7 @@ const Index = () => {
     const nextIndex = (currentIndex + 1) % oceanImages.length;
     setSelectedImage(oceanImages[nextIndex]);
     setAnnotations([]);
+    setShowGroundTruth(false); // Hide ground truth boxes when changing image
   };
   
   return (
@@ -124,18 +137,33 @@ const Index = () => {
             <h1 className="text-2xl md:text-3xl font-bold text-white">Ocean Annotation</h1>
           </div>
           
-          <Button
-            variant="outline"
-            onClick={() => setShowInstructions(true)}
-            className="bg-white/80 hover:bg-white"
-          >
-            How to Play
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setShowInstructions(true)}
+              className="bg-white/80 hover:bg-white"
+            >
+              How to Play
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => window.location.href = '/ground-truth-editor'}
+              className="bg-white/80 hover:bg-white"
+            >
+              Ground Truth Editor
+            </Button>
+          </div>
         </header>
         
         {showInstructions && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-            <Instructions onClose={() => setShowInstructions(false)} />
+            <Instructions onClose={() => {
+              setShowInstructions(false);
+              setHasSeenInstructions(true);
+              localStorage.setItem('hasSeenInstructions', 'true');
+              // Start the timer after instructions are closed
+              setIsTimerRunning(true);
+            }} />
           </div>
         )}
         
@@ -167,6 +195,8 @@ const Index = () => {
                   annotations={annotations}
                   onAnnotationUpdate={setAnnotations}
                   targetAnnotations={selectedImage.targetAnnotations}
+                  showGroundTruth={showGroundTruth}
+                  onToggleGroundTruth={() => setShowGroundTruth(!showGroundTruth)}
                 />
               ) : (
                 <div className="flex items-center justify-center h-full">

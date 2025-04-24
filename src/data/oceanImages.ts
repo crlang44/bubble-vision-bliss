@@ -1,4 +1,3 @@
-
 import { TargetAnnotation } from "../utils/annotationUtils";
 
 export interface OceanImage {
@@ -12,83 +11,135 @@ export interface OceanImage {
 
 export const oceanImages: OceanImage[] = [
   {
-    id: "ocean1",
-    title: "Coral Reef",
-    imagePath: "https://images.unsplash.com/photo-1518877593221-1f28583780b4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80",
-    difficulty: "easy",
-    targetAnnotations: [
+    "id": "ocean1",
+    "title": "Coral Reef",
+    "imagePath": "https://images.unsplash.com/photo-1518877593221-1f28583780b4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80",
+    "difficulty": "easy",
+    "targetAnnotations": [
       {
-        id: "whale1",
-        type: "rectangle",
-        coordinates: [
-          { x: 320, y: 180 },
-          { x: 520, y: 280 }
+        "id": "u5l057b",
+        "type": "rectangle",
+        "coordinates": [
+          {
+            "x": 125.515625,
+            "y": 105
+          },
+          {
+            "x": 400.515625,
+            "y": 406
+          }
         ],
-        label: "Whale"
+        "label": "Whale"
       },
       {
-        id: "bubbles1",
-        type: "point",
-        coordinates: [{ x: 450, y: 120 }],
-        label: "Bubbles"
+        "id": "k8vq55b",
+        "type": "rectangle",
+        "coordinates": [
+          {
+            "x": 431.515625,
+            "y": 262
+          },
+          {
+            "x": 651.515625,
+            "y": 337
+          }
+        ],
+        "label": "Bubbles"
+      },
+      {
+        "id": "zyycefq",
+        "type": "rectangle",
+        "coordinates": [
+          {
+            "x": 187.515625,
+            "y": 175
+          },
+          {
+            "x": 273.515625,
+            "y": 271
+          }
+        ],
+        "label": "Bubbles"
       }
     ],
-    description: "A majestic humpback whale jumping out of the water. Can you annotate the whale and the bubbles around it?"
+    "description": "A majestic humpback whale jumping out of the water. Can you annotate the whale and the bubbles around it?"
   },
   {
-    id: "ocean2",
-    title: "Deep Blue",
-    imagePath: "https://images.unsplash.com/photo-1482938289607-e9573fc25ebb?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80",
-    difficulty: "medium",
-    targetAnnotations: [
+    "id": "ocean2",
+    "title": "Deep Blue",
+    "imagePath": "https://images.unsplash.com/photo-1482938289607-e9573fc25ebb?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80",
+    "difficulty": "medium",
+    "targetAnnotations": [
       {
-        id: "river1",
-        type: "polygon",
-        coordinates: [
-          { x: 300, y: 200 },
-          { x: 400, y: 150 },
-          { x: 500, y: 200 },
-          { x: 400, y: 250 }
+        "id": "ld85ad5",
+        "type": "rectangle",
+        "coordinates": [
+          {
+            "x": 0.515625,
+            "y": 38
+          },
+          {
+            "x": 295.515625,
+            "y": 447
+          }
         ],
-        label: "River"
+        "label": "Mountain"
       },
       {
-        id: "mountain1",
-        type: "rectangle",
-        coordinates: [
-          { x: 150, y: 100 },
-          { x: 300, y: 300 }
+        "id": "ky91k7o",
+        "type": "rectangle",
+        "coordinates": [
+          {
+            "x": 40.515625,
+            "y": 192
+          },
+          {
+            "x": 196.515625,
+            "y": 447
+          }
         ],
-        label: "Mountain"
+        "label": "River"
       }
     ],
-    description: "A beautiful river flowing between mountains. Can you identify and annotate the river and mountain?"
+    "description": "A beautiful river flowing between mountains. Can you identify and annotate the river and mountain?"
   },
   {
-    id: "ocean3",
-    title: "Ocean Wave",
-    imagePath: "https://images.unsplash.com/photo-1500375592092-40eb2168fd21?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80",
-    difficulty: "hard",
-    targetAnnotations: [
+    "id": "ocean3",
+    "title": "Ocean Wave",
+    "imagePath": "https://images.unsplash.com/photo-1500375592092-40eb2168fd21?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80",
+    "difficulty": "hard",
+    "targetAnnotations": [
       {
-        id: "wave1",
-        type: "polygon",
-        coordinates: [
-          { x: 200, y: 150 },
-          { x: 300, y: 100 },
-          { x: 400, y: 150 },
-          { x: 350, y: 250 },
-          { x: 250, y: 250 }
+        "id": "x3ks0v1",
+        "type": "rectangle",
+        "coordinates": [
+          {
+            "x": 43.015625,
+            "y": 263
+          },
+          {
+            "x": 179.015625,
+            "y": 353
+          }
         ],
-        label: "Wave Crest"
+        "label": "Wave Crest"
       },
       {
-        id: "foam1",
-        type: "point",
-        coordinates: [{ x: 350, y: 180 }],
-        label: "Sea Foam"
+        "id": "luamo7z",
+        "type": "rectangle",
+        "coordinates": [
+          {
+            "x": 184.015625,
+            "y": 244
+          },
+          {
+            "x": 293.015625,
+            "y": 347
+          }
+        ],
+        "label": "Sea Foam"
       }
     ],
-    description: "A powerful ocean wave at the beach. Try to annotate the wave crest and sea foam correctly!"
+    "description": "A powerful ocean wave at the beach. Try to annotate the wave crest and sea foam correctly!"
   }
 ];
