@@ -11,7 +11,7 @@ import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 const GroundTruthEditor = () => {
-  const [selectedTool, setSelectedTool] = useState<AnnotationType | null>(null);
+  const [selectedTool, setSelectedTool] = useState<AnnotationType | null>('rectangle');
   const [currentLabel, setCurrentLabel] = useState('Whale');
   const [annotations, setAnnotations] = useState<Annotation[]>([]);
   const [selectedImage, setSelectedImage] = useState<OceanImage | null>(null);
@@ -27,7 +27,6 @@ const GroundTruthEditor = () => {
   useEffect(() => {
     if (!selectedImage) return;
     
-    // Load existing ground truth annotations as regular annotations for editing
     const existingAnnotations: Annotation[] = selectedImage.targetAnnotations.map(target => ({
       ...target,
       color: getColorForType(target.type),
@@ -82,7 +81,6 @@ const GroundTruthEditor = () => {
   const handleSaveGroundTruth = () => {
     if (!selectedImage) return;
     
-    // Convert annotations to target annotations format
     const targetAnnotations: TargetAnnotation[] = annotations.map(annotation => ({
       id: annotation.id,
       type: annotation.type,
@@ -90,7 +88,6 @@ const GroundTruthEditor = () => {
       label: annotation.label
     }));
     
-    // Update the oceanImages array in memory
     const updatedOceanImages = oceanImages.map(image => {
       if (image.id === selectedImage.id) {
         return {
@@ -101,7 +98,6 @@ const GroundTruthEditor = () => {
       return image;
     });
     
-    // Generate the updated oceanImages.ts file content
     const fileContent = `import { TargetAnnotation } from "../utils/annotationUtils";
 
 export interface OceanImage {
@@ -113,23 +109,18 @@ export interface OceanImage {
   description: string;
 }
 
-export const oceanImages: OceanImage[] = ${JSON.stringify(updatedOceanImages, null, 2)};`;
+export const oceanImages: OceanImage[] = ${JSON.stringify(updatedOceanImages, null, 2)}`;
     
-    // Create a Blob with the file content
     const blob = new Blob([fileContent], { type: 'text/plain' });
     
-    // Create a download link
     const downloadLink = document.createElement('a');
     downloadLink.href = URL.createObjectURL(blob);
     downloadLink.download = 'oceanImages.ts';
     
-    // Append the link to the body, click it, and remove it
     document.body.appendChild(downloadLink);
     downloadLink.click();
     document.body.removeChild(downloadLink);
     
-    // Update the local oceanImages array to reflect changes immediately
-    // This is a workaround since we can't directly modify the imported module
     for (let i = 0; i < oceanImages.length; i++) {
       if (oceanImages[i].id === selectedImage.id) {
         oceanImages[i].targetAnnotations = targetAnnotations;
@@ -138,7 +129,6 @@ export const oceanImages: OceanImage[] = ${JSON.stringify(updatedOceanImages, nu
     
     toast.success('Ground truth annotations saved! Download the file and replace src/data/oceanImages.ts');
     
-    // Show modal with instructions
     const modal = document.createElement('div');
     modal.style.position = 'fixed';
     modal.style.top = '0';
@@ -209,7 +199,7 @@ export const oceanImages: OceanImage[] = ${JSON.stringify(updatedOceanImages, nu
             Ground Truth Editor
           </h1>
           
-          <div></div> {/* Empty div for flex spacing */}
+          <div></div>
         </header>
         
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
