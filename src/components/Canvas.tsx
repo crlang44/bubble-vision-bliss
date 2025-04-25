@@ -44,7 +44,12 @@ const Canvas: React.FC<CanvasProps> = ({
   // Update local state when prop changes
   useEffect(() => {
     setLocalShowGroundTruth(showGroundTruth);
-  }, [showGroundTruth]);
+    
+    // Force redraw when ground truth visibility changes
+    if (isImageLoaded) {
+      redrawCanvas();
+    }
+  }, [showGroundTruth, isImageLoaded]);
 
   // Colors for different annotation types
   const annotationColors = {
@@ -53,21 +58,34 @@ const Canvas: React.FC<CanvasProps> = ({
     point: '#0EA5E9'      // ocean
   };
 
-  // Scale coordinates from original image size to displayed size
-  const scaleCoordinates = (coord: Coordinate): Coordinate => {
+  // Scale display coordinates (from original image size to canvas size)
+  const scaleToDisplay = (coordinates: Coordinate[]): Coordinate[] => {
     if (!originalWidth || !originalHeight || !canvasSize.width || !canvasSize.height) {
-      return coord; // If we don't have original dimensions, return as is
+      return coordinates;
     }
-
-    // Calculate scale factors
+    
     const scaleX = canvasSize.width / originalWidth;
     const scaleY = canvasSize.height / originalHeight;
-
-    // Apply scaling to coordinates
-    return {
+    
+    return coordinates.map(coord => ({
       x: Math.round(coord.x * scaleX),
       y: Math.round(coord.y * scaleY)
-    };
+    }));
+  };
+
+  // Scale to scoring coordinates (from canvas size to original image size)
+  const scaleToScoring = (coordinates: Coordinate[]): Coordinate[] => {
+    if (!originalWidth || !originalHeight || !canvasSize.width || !canvasSize.height) {
+      return coordinates;
+    }
+    
+    const scaleX = originalWidth / canvasSize.width;
+    const scaleY = originalHeight / canvasSize.height;
+    
+    return coordinates.map(coord => ({
+      x: Math.round(coord.x * scaleX),
+      y: Math.round(coord.y * scaleY)
+    }));
   };
 
   // Scale target annotations when canvas size or target annotations change
@@ -75,19 +93,18 @@ const Canvas: React.FC<CanvasProps> = ({
     if (targetAnnotations.length > 0 && canvasSize.width > 0 && canvasSize.height > 0) {
       const scaled = targetAnnotations.map(annotation => ({
         ...annotation,
-        coordinates: annotation.coordinates.map(coord => scaleCoordinates(coord))
+        coordinates: scaleToDisplay(annotation.coordinates)
       }));
       setScaledTargetAnnotations(scaled);
       
-      // Debug log to help diagnose scaling issues
-      console.log('Original target annotations:', targetAnnotations);
-      console.log('Scaled target annotations:', scaled);
-      console.log('Canvas size:', canvasSize);
-      console.log('Original dimensions:', { originalWidth, originalHeight });
-      console.log('Scale factors:', { 
-        scaleX: canvasSize.width / (originalWidth || 1), 
-        scaleY: canvasSize.height / (originalHeight || 1) 
-      });
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('Scaling target annotations:', {
+          original: targetAnnotations,
+          scaled,
+          canvasSize,
+          originalDimensions: { originalWidth, originalHeight }
+        });
+      }
     } else {
       setScaledTargetAnnotations([]);
     }
@@ -96,6 +113,9 @@ const Canvas: React.FC<CanvasProps> = ({
   // Load the image
   useEffect(() => {
     setIsImageLoaded(false);
+    // Reset local ground truth display when image changes
+    setLocalShowGroundTruth(showGroundTruth);
+    
     const img = new Image();
     img.src = imageUrl;
     
@@ -130,7 +150,7 @@ const Canvas: React.FC<CanvasProps> = ({
     img.onerror = () => {
       toast.error('Failed to load image');
     };
-  }, [imageUrl]);
+  }, [imageUrl, showGroundTruth]);
 
   // Initial render of the image when isImageLoaded changes
   useEffect(() => {
@@ -161,9 +181,25 @@ const Canvas: React.FC<CanvasProps> = ({
       canvas.height
     );
     
-    // Draw all completed annotations
+    // Draw all completed annotations - make sure to scale them for display
     annotations.forEach(annotation => {
-      drawAnnotation(ctx, annotation);
+      // Check if we have stored display coordinates 
+      if (annotation._displayCoordinates) {
+        // Use stored display coordinates
+        const displayAnnotation = {
+          ...annotation,
+          coordinates: annotation._displayCoordinates
+        };
+        drawAnnotation(ctx, displayAnnotation);
+      } else {
+        // Scale the original coordinates for display
+        const displayCoordinates = scaleToDisplay(annotation.coordinates);
+        const displayAnnotation = {
+          ...annotation,
+          coordinates: displayCoordinates
+        };
+        drawAnnotation(ctx, displayAnnotation);
+      }
     });
     
     // Draw the current annotation being created
@@ -172,7 +208,9 @@ const Canvas: React.FC<CanvasProps> = ({
     }
     
     // Draw ground truth annotations if localShowGroundTruth is true
-    if (localShowGroundTruth) {
+    // Use the direct prop value instead of local state for more reliable updates
+    if (showGroundTruth) {
+      console.log('Drawing ground truth annotations:', scaledTargetAnnotations.length);
       scaledTargetAnnotations.forEach(target => {
         drawAnnotation(ctx, target, true);
       });
@@ -289,7 +327,25 @@ const Canvas: React.FC<CanvasProps> = ({
       // For point, we complete it right away
       if (selectedTool === 'point') {
         newAnnotation.isComplete = true;
-        onAnnotationComplete(newAnnotation);
+        
+        // We need to keep the display coordinates for rendering
+        const displayCoordinates = [...newAnnotation.coordinates];
+        
+        // Scale the annotation to original image coordinates for proper scoring
+        const scoringCoordinates = scaleToScoring(newAnnotation.coordinates);
+        const scoringAnnotation = {
+          ...newAnnotation,
+          coordinates: scoringCoordinates,
+          // Add a reference to the display coordinates for future rendering
+          _displayCoordinates: displayCoordinates
+        };
+        
+        console.log('Canvas - Completing point annotation:', {
+          display: displayCoordinates,
+          scoring: scoringCoordinates
+        });
+        
+        onAnnotationComplete(scoringAnnotation);
         setIsDrawing(false);
         setCurrentAnnotation(null);
       }
@@ -323,7 +379,25 @@ const Canvas: React.FC<CanvasProps> = ({
     if (selectedTool === 'rectangle') {
       // Complete the rectangle
       const updatedAnnotation = { ...currentAnnotation, isComplete: true };
-      onAnnotationComplete(updatedAnnotation);
+      
+      // We need to keep the display coordinates for rendering
+      const displayAnnotation = { ...updatedAnnotation };
+      
+      // Scale the annotation to original image coordinates for proper scoring
+      const scoringCoordinates = scaleToScoring(updatedAnnotation.coordinates);
+      const scoringAnnotation = {
+        ...updatedAnnotation,
+        coordinates: scoringCoordinates,
+        // Add a reference to the display coordinates for future rendering
+        _displayCoordinates: updatedAnnotation.coordinates
+      };
+      
+      console.log('Canvas - Completing annotation:', {
+        display: displayAnnotation,
+        scoring: scoringAnnotation
+      });
+      
+      onAnnotationComplete(scoringAnnotation);
       setIsDrawing(false);
       setCurrentAnnotation(null);
     }
@@ -361,7 +435,25 @@ const Canvas: React.FC<CanvasProps> = ({
     
     if (currentAnnotation.coordinates.length >= 3) {
       const updatedAnnotation = { ...currentAnnotation, isComplete: true };
-      onAnnotationComplete(updatedAnnotation);
+      
+      // We need to keep the display coordinates for rendering
+      const displayCoordinates = [...updatedAnnotation.coordinates];
+      
+      // Scale the annotation to original image coordinates for proper scoring
+      const scoringCoordinates = scaleToScoring(updatedAnnotation.coordinates);
+      const scoringAnnotation = {
+        ...updatedAnnotation,
+        coordinates: scoringCoordinates,
+        // Add a reference to the display coordinates for future rendering
+        _displayCoordinates: displayCoordinates
+      };
+      
+      console.log('Canvas - Completing polygon annotation:', {
+        display: displayCoordinates,
+        scoring: scoringCoordinates
+      });
+      
+      onAnnotationComplete(scoringAnnotation);
     } else {
       toast.error('A polygon needs at least 3 points');
     }
@@ -382,19 +474,12 @@ const Canvas: React.FC<CanvasProps> = ({
     };
   };
 
-  // Add useEffect to redraw when localShowGroundTruth changes
-  useEffect(() => {
-    if (isImageLoaded) {
-      redrawCanvas();
-    }
-  }, [localShowGroundTruth, isImageLoaded]);
-
   // Redraw canvas when annotations change
   useEffect(() => {
     if (isImageLoaded) {
       redrawCanvas();
     }
-  }, [annotations, currentAnnotation, isImageLoaded, scaledTargetAnnotations]);
+  }, [annotations, currentAnnotation, isImageLoaded, scaledTargetAnnotations, showGroundTruth]);
 
   return (
     <div 
@@ -404,13 +489,14 @@ const Canvas: React.FC<CanvasProps> = ({
       <div className="absolute top-2 right-2 z-10">
         <button 
           onClick={() => {
-            setLocalShowGroundTruth(!localShowGroundTruth);
+            // When the button is clicked, notify the parent component
             if (onToggleGroundTruth) onToggleGroundTruth();
+            // No need to update local state here, it will be updated via the prop change
           }}
           className="bg-white/80 hover:bg-white rounded-full p-2 shadow-md"
-          title={localShowGroundTruth ? "Hide Ground Truth" : "Show Ground Truth"}
+          title={showGroundTruth ? "Hide Ground Truth" : "Show Ground Truth"}
         >
-          {localShowGroundTruth ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+          {showGroundTruth ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
         </button>
       </div>
       

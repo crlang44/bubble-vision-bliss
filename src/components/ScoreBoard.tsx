@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Annotation, TargetAnnotation, calculateScore } from '../utils/annotationUtils';
 import { Trophy, Target, Clock } from 'lucide-react';
 
@@ -16,13 +15,21 @@ const ScoreBoard: React.FC<ScoreBoardProps> = ({
   timeBonus, 
   isComplete 
 }) => {
+  // Debug output to see what we're working with
+  useEffect(() => {
+    console.log('ScoreBoard - User Annotations:', userAnnotations);
+    console.log('ScoreBoard - Target Annotations:', targetAnnotations);
+  }, [userAnnotations, targetAnnotations]);
+
   // Calculate scores for each annotation
   const annotationScores = targetAnnotations.map(target => {
-    const matchingAnnotation = userAnnotations.find(
+    // Find all possible matching annotations with the same label and type
+    const possibleMatches = userAnnotations.filter(
       user => user.label === target.label && user.type === target.type
     );
     
-    if (!matchingAnnotation) {
+    if (possibleMatches.length === 0) {
+      console.log(`No matches found for target: ${target.label} (${target.type})`);
       return {
         label: target.label,
         score: 0,
@@ -30,11 +37,28 @@ const ScoreBoard: React.FC<ScoreBoardProps> = ({
       };
     }
     
-    const score = calculateScore(matchingAnnotation, target);
+    // Calculate score for each possible match
+    const scoredMatches = possibleMatches.map(match => {
+      const score = calculateScore(match, target);
+      console.log(`Score for ${match.label} (${match.id}):`, score, 'Match coords:', match.coordinates, 'Target coords:', target.coordinates);
+      return {
+        annotation: match,
+        score
+      };
+    });
+    
+    // Choose the match with the highest score
+    const bestMatch = scoredMatches.reduce(
+      (best, current) => current.score > best.score ? current : best,
+      { annotation: possibleMatches[0], score: 0 }
+    );
+    
+    console.log(`Best match for ${target.label}:`, bestMatch.score);
+    
     return {
       label: target.label,
-      score,
-      found: true
+      score: bestMatch.score,
+      found: bestMatch.score > 0
     };
   });
   
@@ -42,6 +66,8 @@ const ScoreBoard: React.FC<ScoreBoardProps> = ({
   const totalAnnotationScore = annotationScores.reduce((sum, item) => sum + item.score, 0);
   const averageScore = targetAnnotations.length ? totalAnnotationScore / targetAnnotations.length : 0;
   const finalScore = Math.round(averageScore + timeBonus);
+  
+  console.log('Final calculated score:', finalScore, 'Average annotation score:', averageScore, 'Time bonus:', timeBonus);
   
   return (
     <div className="bg-white rounded-xl shadow-lg p-4">

@@ -1,4 +1,3 @@
-
 export type AnnotationType = 'rectangle' | 'polygon' | 'point';
 export type Coordinate = { x: number; y: number };
 
@@ -9,6 +8,7 @@ export interface Annotation {
   label: string;
   color: string;
   isComplete: boolean;
+  _displayCoordinates?: Coordinate[]; // Added for tracking display coordinates
 }
 
 export interface TargetAnnotation {
@@ -62,18 +62,24 @@ export const calculateScore = (
     return 0;
   }
 
+  // Debug coordinates
+  console.log('Score calculation - User:', userAnnotation.coordinates);
+  console.log('Score calculation - Target:', targetAnnotation.coordinates);
+
   // Score based on annotation type
   switch (userAnnotation.type) {
     case 'rectangle':
       const overlap = calculateRectOverlap(userAnnotation.coordinates, targetAnnotation.coordinates);
+      console.log('Rectangle overlap calculation:', overlap);
       return Math.round(overlap * 100);
     
     case 'point':
       if (userAnnotation.coordinates.length < 1 || targetAnnotation.coordinates.length < 1) return 0;
       const distance = calculatePointDistance(userAnnotation.coordinates[0], targetAnnotation.coordinates[0]);
       // Convert distance to a score (closer = higher score)
-      const maxDistance = 50; // Pixels
+      const maxDistance = 100; // Pixels - increased for better matching
       const pointScore = Math.max(0, (maxDistance - distance) / maxDistance);
+      console.log('Point distance calculation:', distance, 'Score:', Math.round(pointScore * 100));
       return Math.round(pointScore * 100);
     
     case 'polygon':
@@ -81,12 +87,14 @@ export const calculateScore = (
       const correctVertices = userAnnotation.coordinates.filter((coord, i) => {
         if (i < targetAnnotation.coordinates.length) {
           const distance = calculatePointDistance(coord, targetAnnotation.coordinates[i]);
-          return distance < 20; // Within 20 pixels
+          return distance < 40; // Within 40 pixels - increased tolerance
         }
         return false;
       }).length;
       
-      return Math.round((correctVertices / Math.max(userAnnotation.coordinates.length, targetAnnotation.coordinates.length)) * 100);
+      const polyScore = correctVertices / Math.max(userAnnotation.coordinates.length, targetAnnotation.coordinates.length);
+      console.log('Polygon vertex match calculation:', correctVertices, 'Score:', Math.round(polyScore * 100));
+      return Math.round(polyScore * 100);
     
     default:
       return 0;
