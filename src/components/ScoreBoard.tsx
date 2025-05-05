@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react';
 import { Annotation, TargetAnnotation, calculateScore } from '../utils/annotationUtils';
 import { Trophy, Target, Clock } from 'lucide-react';

@@ -1,5 +1,5 @@
 
-export type AnnotationType = 'rectangle';
+export type AnnotationType = 'rectangle' | 'polygon' | 'point';
 export type Coordinate = { x: number; y: number };
 
 export interface Annotation {
@@ -19,7 +19,7 @@ export interface TargetAnnotation {
   label: string;
 }
 
-// Calculate overlap between two rectangles
+// Calculate overlap between two rectangles with more lenient scoring
 export const calculateRectOverlap = (rect1: Coordinate[], rect2: Coordinate[]): number => {
   if (rect1.length < 2 || rect2.length < 2) return 0;
   
@@ -45,8 +45,37 @@ export const calculateRectOverlap = (rect1: Coordinate[], rect2: Coordinate[]): 
   const area1 = (r1.right - r1.left) * (r1.bottom - r1.top);
   const area2 = (r2.right - r2.left) * (r2.bottom - r2.top);
   
-  // Return overlap percentage (IoU - Intersection over Union)
-  return overlapArea / (area1 + area2 - overlapArea);
+  // Calculate regular IoU (Intersection over Union)
+  const regularIoU = overlapArea / (area1 + area2 - overlapArea);
+  
+  // More lenient scoring - apply a boost to the score
+  // This gives partial credit even for imperfect overlaps
+  const leniencyBoost = 0.3; // Boost factor (30% boost)
+  let boostedScore = regularIoU * (1 + leniencyBoost);
+  
+  // Apply a minimum score if there's any overlap at all
+  if (regularIoU > 0 && boostedScore < 0.2) {
+    boostedScore = 0.2; // Minimum 20% score for any overlap
+  }
+  
+  // Apply a proximity bonus for rectangles that are close but don't overlap
+  if (regularIoU === 0) {
+    // Check if rectangles are close (within 20% of the average size)
+    const avgSize = (Math.sqrt(area1) + Math.sqrt(area2)) / 2;
+    const proximity = 0.2 * avgSize;
+    
+    // Calculate distances between rectangles on each axis
+    const xDistance = Math.max(0, Math.max(r1.left, r2.left) - Math.min(r1.right, r2.right));
+    const yDistance = Math.max(0, Math.max(r1.top, r2.top) - Math.min(r1.bottom, r2.bottom));
+    
+    // If rectangles are close enough, assign a small score
+    if (xDistance < proximity && yDistance < proximity) {
+      boostedScore = 0.1; // 10% score for close proximity
+    }
+  }
+  
+  // Cap at 1.0 maximum
+  return Math.min(boostedScore, 1.0);
 };
 
 // Calculate distance between two points
