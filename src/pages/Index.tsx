@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import BubbleBackground from '../components/BubbleBackground';
 import Instructions from '../components/Instructions';
@@ -7,10 +8,10 @@ import ScoreBoard from '../components/ScoreBoard';
 import Timer from '../components/Timer';
 import ImageSelector from '../components/ImageSelector';
 import { Annotation, AnnotationType } from '../utils/annotationUtils';
-import { oceanImages, OceanImage } from '../data/oceanImages';
+import { oceanImages, OceanImage, getProgressiveImageSet } from '../data/oceanImages';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import { Fish, CheckCircle, RefreshCcw, Trophy } from 'lucide-react';
+import { Fish, CheckCircle, RefreshCcw, Trophy, ArrowRight } from 'lucide-react';
 
 const Index = () => {
   const [showInstructions, setShowInstructions] = useState(() => {
@@ -28,12 +29,18 @@ const Index = () => {
   const [gameComplete, setGameComplete] = useState(false);
   const [availableLabels, setAvailableLabels] = useState<string[]>(['Whale', 'Fish', 'Coral']);
   const [showGroundTruth, setShowGroundTruth] = useState(false);
+  const [currentRound, setCurrentRound] = useState(1);
+  const [currentImages, setCurrentImages] = useState<OceanImage[]>([]);
   
+  // Load initial images based on round
   useEffect(() => {
-    if (oceanImages.length > 0 && !selectedImage) {
-      setSelectedImage(oceanImages[0]);
+    const imageSet = getProgressiveImageSet(currentRound);
+    setCurrentImages(imageSet);
+    
+    if (imageSet.length > 0 && !selectedImage) {
+      setSelectedImage(imageSet[0]);
     }
-  }, []);
+  }, [currentRound]);
   
   useEffect(() => {
     if (!selectedImage) return;
@@ -117,11 +124,27 @@ const Index = () => {
   };
   
   const handleNewImage = () => {
-    const currentIndex = oceanImages.findIndex(img => img.id === selectedImage?.id);
-    const nextIndex = (currentIndex + 1) % oceanImages.length;
-    setSelectedImage(oceanImages[nextIndex]);
+    const currentIndex = currentImages.findIndex(img => img.id === selectedImage?.id);
+    const nextIndex = (currentIndex + 1) % currentImages.length;
+    setSelectedImage(currentImages[nextIndex]);
     setAnnotations([]);
     setShowGroundTruth(false);
+  };
+  
+  const handleNextRound = () => {
+    const nextRound = currentRound + 1;
+    setCurrentRound(nextRound);
+    setAnnotations([]);
+    setShowGroundTruth(false);
+    
+    const newImageSet = getProgressiveImageSet(nextRound);
+    setCurrentImages(newImageSet);
+    
+    if (newImageSet.length > 0) {
+      setSelectedImage(newImageSet[0]);
+    }
+    
+    toast.success(`Starting Round ${nextRound} - Difficulty increased!`);
   };
   
   return (
@@ -135,7 +158,10 @@ const Index = () => {
             <h1 className="text-2xl md:text-3xl font-bold text-white">Ocean Annotation</h1>
           </div>
           
-          <div className="flex gap-2">
+          <div className="flex gap-2 items-center">
+            <div className="bg-white/20 text-white px-3 py-1 rounded-full text-sm font-medium">
+              Round {currentRound}
+            </div>
             <Button
               variant="outline"
               onClick={() => setShowInstructions(true)}
@@ -167,7 +193,7 @@ const Index = () => {
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
           <div className="lg:col-span-1">
             <ImageSelector 
-              images={oceanImages} 
+              images={currentImages} 
               onSelectImage={handleImageSelect} 
               selectedImageId={selectedImage?.id || null}
             />
@@ -263,9 +289,22 @@ const Index = () => {
                   <p className="text-sm text-gray-600 mb-4">
                     Try different images to improve your annotation skills.
                   </p>
-                  <Button className="btn-ocean w-full" onClick={handleNewImage}>
-                    Next Challenge
-                  </Button>
+                  
+                  <div className="flex flex-col gap-2">
+                    <Button className="btn-ocean w-full" onClick={handleNewImage}>
+                      Next Image
+                    </Button>
+                    
+                    <Button 
+                      className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white" 
+                      onClick={handleNextRound}
+                    >
+                      <div className="flex items-center gap-1">
+                        <span>Next Round</span>
+                        <ArrowRight className="h-4 w-4" />
+                      </div>
+                    </Button>
+                  </div>
                 </div>
               </div>
             )}

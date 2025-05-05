@@ -1,3 +1,4 @@
+
 import { TargetAnnotation } from "../utils/annotationUtils";
 import annotationsData from './annotations/instances_default.json';
 
@@ -154,6 +155,39 @@ export const oceanImages: OceanImage[] = availableImages.map((filename) => {
     originalHeight: dimensions.height
   };
 });
+
+// Group images by difficulty
+export const imagesByDifficulty = {
+  easy: oceanImages.filter(img => img.difficulty === 'easy'),
+  medium: oceanImages.filter(img => img.difficulty === 'medium'),
+  hard: oceanImages.filter(img => img.difficulty === 'hard')
+};
+
+// Function to get a progressive subset of images
+export const getProgressiveImageSet = (round: number = 1, imagesPerRound: number = 6): OceanImage[] => {
+  // For early rounds, focus on easier images
+  if (round === 1) {
+    // 4 easy, 2 medium for first round
+    return [
+      ...imagesByDifficulty.easy.slice(0, 4),
+      ...imagesByDifficulty.medium.slice(0, 2)
+    ].slice(0, imagesPerRound);
+  } else if (round === 2) {
+    // 2 easy, 3 medium, 1 hard for second round
+    return [
+      ...imagesByDifficulty.easy.slice(0, 2),
+      ...imagesByDifficulty.medium.slice(0, 3),
+      ...imagesByDifficulty.hard.slice(0, 1)
+    ].slice(0, imagesPerRound);
+  } else {
+    // 1 easy, 2 medium, 3 hard for third+ rounds
+    return [
+      ...imagesByDifficulty.easy.slice(0, 1),
+      ...imagesByDifficulty.medium.slice(0, 2),
+      ...imagesByDifficulty.hard.slice(0, 3)
+    ].slice(0, imagesPerRound);
+  }
+};
 
 // Default fallback data in case the JSON loading fails
 if (oceanImages.length === 0) {
