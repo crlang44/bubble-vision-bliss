@@ -1,4 +1,5 @@
-export type AnnotationType = 'rectangle' | 'polygon' | 'point';
+
+export type AnnotationType = 'rectangle';
 export type Coordinate = { x: number; y: number };
 
 export interface Annotation {
@@ -72,29 +73,6 @@ export const calculateScore = (
       const overlap = calculateRectOverlap(userAnnotation.coordinates, targetAnnotation.coordinates);
       console.log('Rectangle overlap calculation:', overlap);
       return Math.round(overlap * 100);
-    
-    case 'point':
-      if (userAnnotation.coordinates.length < 1 || targetAnnotation.coordinates.length < 1) return 0;
-      const distance = calculatePointDistance(userAnnotation.coordinates[0], targetAnnotation.coordinates[0]);
-      // Convert distance to a score (closer = higher score)
-      const maxDistance = 100; // Pixels - increased for better matching
-      const pointScore = Math.max(0, (maxDistance - distance) / maxDistance);
-      console.log('Point distance calculation:', distance, 'Score:', Math.round(pointScore * 100));
-      return Math.round(pointScore * 100);
-    
-    case 'polygon':
-      // For simplicity, we'll just count matching vertices (in a real app, you'd use a more sophisticated algorithm)
-      const correctVertices = userAnnotation.coordinates.filter((coord, i) => {
-        if (i < targetAnnotation.coordinates.length) {
-          const distance = calculatePointDistance(coord, targetAnnotation.coordinates[i]);
-          return distance < 40; // Within 40 pixels - increased tolerance
-        }
-        return false;
-      }).length;
-      
-      const polyScore = correctVertices / Math.max(userAnnotation.coordinates.length, targetAnnotation.coordinates.length);
-      console.log('Polygon vertex match calculation:', correctVertices, 'Score:', Math.round(polyScore * 100));
-      return Math.round(polyScore * 100);
     
     default:
       return 0;
