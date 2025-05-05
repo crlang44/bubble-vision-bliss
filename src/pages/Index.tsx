@@ -24,13 +24,14 @@ const Index = () => {
   const [currentLabel, setCurrentLabel] = useState('Whale');
   const [annotations, setAnnotations] = useState<Annotation[]>([]);
   const [selectedImage, setSelectedImage] = useState<OceanImage | null>(null);
-  const [timeBonus, setTimeBonus] = useState(50);
+  const [timeBonus, setTimeBonus] = useState(15); // Reduced from 50 to 15
   const [isTimerRunning, setIsTimerRunning] = useState(false);
   const [gameComplete, setGameComplete] = useState(false);
   const [availableLabels, setAvailableLabels] = useState<string[]>(['Whale', 'Fish', 'Coral']);
   const [showGroundTruth, setShowGroundTruth] = useState(false);
   const [currentRound, setCurrentRound] = useState(1);
   const [currentImages, setCurrentImages] = useState<OceanImage[]>([]);
+  const TIMER_DURATION = 120; // 2 minutes in seconds
   
   // Load initial images based on round
   useEffect(() => {
@@ -51,7 +52,7 @@ const Index = () => {
     
     setAnnotations([]);
     setGameComplete(false);
-    setTimeBonus(100);
+    setTimeBonus(25); // Set initial time bonus to a lower value
     
     if (labels.length > 0) {
       setCurrentLabel(labels[0]);
@@ -93,6 +94,14 @@ const Index = () => {
     handleSubmit();
   };
   
+  // Calculate time bonus as a percentage of remaining time
+  const handleTimerUpdate = (timeLeft: number) => {
+    // Calculate bonus as a percentage of time left, capped at 25 points
+    const maxBonus = 25;
+    const calculatedBonus = Math.floor((timeLeft / TIMER_DURATION) * maxBonus);
+    setTimeBonus(calculatedBonus);
+  };
+  
   const handleSubmit = () => {
     if (!selectedImage) return;
     
@@ -118,7 +127,7 @@ const Index = () => {
   const handlePlayAgain = () => {
     setGameComplete(false);
     setAnnotations([]);
-    setTimeBonus(50);
+    setTimeBonus(25); // Reset to a lower initial time bonus
     setIsTimerRunning(true);
     setShowGroundTruth(false);
   };
@@ -202,9 +211,10 @@ const Index = () => {
           <div className="lg:col-span-3 space-y-4">
             <div className="bg-white rounded-xl p-3 shadow-md">
               <Timer 
-                duration={120}
+                duration={TIMER_DURATION}
                 onTimeUp={handleTimeUp}
                 isRunning={isTimerRunning && !gameComplete}
+                onTimerUpdate={handleTimerUpdate}
               />
             </div>
             

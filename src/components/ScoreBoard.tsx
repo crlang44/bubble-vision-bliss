@@ -77,7 +77,7 @@ const ScoreBoard: React.FC<ScoreBoardProps> = ({
         <div className="flex items-center gap-1">
           <Trophy className="text-yellow-500 w-5 h-5" />
           <span className="text-2xl font-bold">{finalScore}</span>
-          <span className="text-gray-500">/150</span>
+          <span className="text-gray-500">/125</span>
         </div>
       </div>
       
@@ -113,17 +113,17 @@ const ScoreBoard: React.FC<ScoreBoardProps> = ({
           <span className="text-xl font-bold text-ocean-dark">{finalScore}</span>
         </div>
         
-        {finalScore >= 120 && (
+        {finalScore >= 100 && (
           <div className="text-center mt-3 text-green-600 font-medium">
             Excellent work! You're an annotation expert!
           </div>
         )}
-        {finalScore >= 80 && finalScore < 120 && (
+        {finalScore >= 70 && finalScore < 100 && (
           <div className="text-center mt-3 text-blue-600 font-medium">
             Good job! Keep practicing to improve!
           </div>
         )}
-        {finalScore < 80 && (
+        {finalScore < 70 && (
           <div className="text-center mt-3 text-amber-600 font-medium">
             Nice try! Practice makes perfect!
           </div>
