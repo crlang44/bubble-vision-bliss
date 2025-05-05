@@ -1,0 +1,48 @@
+/* Ocean Theme Styles for Tailwind */
+
+/* Custom classes for ocean theme */
+.bg-ocean-gradient {
+    @apply bg-gradient-to-b from-blue-900 via-blue-700 to-blue-500;
+  }
+  
+  .text-ocean-dark {
+    @apply text-blue-900;
+  }
+  
+  .text-ocean-medium {
+    @apply text-blue-700;
+  }
+  
+  .text-ocean-light {
+    @apply text-blue-500;
+  }
+  
+  .text-coral {
+    @apply text-red-400;
+  }
+  
+  .bg-ocean-dark {
+    @apply bg-blue-900;
+  }
+  
+  .bg-ocean-medium {
+    @apply bg-blue-700;
+  }
+  
+  .bg-ocean-light {
+    @apply bg-blue-500;
+  }
+  
+  .bg-coral {
+    @apply bg-red-400;
+  }
+  
+  .hover\:bg-ocean-darker:hover {
+    @apply hover:bg-blue-950;
+  }
+  
+  /* Animation for timer */
+  @keyframes shrink {
+    from { width: 100%; }
+    to { width: 0%; }
+  }

@@ -11,6 +11,8 @@ import { oceanImages, OceanImage } from '../data/oceanImages';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Fish, CheckCircle, RefreshCcw, Trophy } from 'lucide-react';
+import { routes, navigateTo } from '../routes'; // Add this import
+
 
 const Index = () => {
   const [showInstructions, setShowInstructions] = useState(() => {
@@ -142,6 +144,13 @@ const Index = () => {
               className="bg-white/80 hover:bg-white"
             >
               How to Play
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => window.location.href = '/quick-id-game'}
+              className="bg-white/80 hover:bg-white"
+            >
+              Quick ID Game
             </Button>
             <Button
               variant="outline"
