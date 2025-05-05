@@ -1,20 +1,24 @@
 
 import React, { useEffect } from 'react';
 import { Annotation, TargetAnnotation, calculateScore } from '../utils/annotationUtils';
-import { Trophy, Target, Clock } from 'lucide-react';
+import { Trophy, Target, Clock, Star } from 'lucide-react';
 
 interface ScoreBoardProps {
   userAnnotations: Annotation[];
   targetAnnotations: TargetAnnotation[];
   timeBonus: number;
   isComplete: boolean;
+  cumulativeScore: number;
+  onScoreChange?: (score: number) => void;
 }
 
 const ScoreBoard: React.FC<ScoreBoardProps> = ({ 
   userAnnotations, 
   targetAnnotations, 
   timeBonus, 
-  isComplete 
+  isComplete,
+  cumulativeScore = 0,
+  onScoreChange
 }) => {
   // Debug output to see what we're working with
   useEffect(() => {
@@ -65,10 +69,22 @@ const ScoreBoard: React.FC<ScoreBoardProps> = ({
   
   // Calculate total score
   const totalAnnotationScore = annotationScores.reduce((sum, item) => sum + item.score, 0);
-  const averageScore = targetAnnotations.length ? totalAnnotationScore / targetAnnotations.length : 0;
-  const finalScore = Math.round(averageScore + timeBonus);
   
-  console.log('Final calculated score:', finalScore, 'Average annotation score:', averageScore, 'Time bonus:', timeBonus);
+  // Normalize score based on number of annotations (0-100 scale)
+  const normalizedScore = targetAnnotations.length 
+    ? Math.round(totalAnnotationScore / targetAnnotations.length) 
+    : 0;
+  
+  const finalScore = Math.round(normalizedScore + timeBonus);
+  
+  // Update parent component with score when complete
+  useEffect(() => {
+    if (isComplete && onScoreChange) {
+      onScoreChange(finalScore);
+    }
+  }, [isComplete, finalScore, onScoreChange]);
+  
+  console.log('Final calculated score:', finalScore, 'Normalized annotation score:', normalizedScore, 'Time bonus:', timeBonus);
   
   return (
     <div className="bg-white rounded-xl shadow-lg p-4">
@@ -111,6 +127,14 @@ const ScoreBoard: React.FC<ScoreBoardProps> = ({
         <div className="flex justify-between items-center">
           <span className="font-medium">Total Score:</span>
           <span className="text-xl font-bold text-ocean-dark">{finalScore}</span>
+        </div>
+        
+        <div className="flex justify-between items-center mt-2">
+          <div className="flex items-center gap-1">
+            <Star className="w-4 h-4 text-amber-500" />
+            <span className="font-medium text-sm">Cumulative Score:</span>
+          </div>
+          <span className="font-bold text-ocean-dark">{cumulativeScore + finalScore}</span>
         </div>
         
         {finalScore >= 100 && (

@@ -7,11 +7,11 @@ import AnnotationTools from '../components/AnnotationTools';
 import ScoreBoard from '../components/ScoreBoard';
 import Timer from '../components/Timer';
 import ImageSelector from '../components/ImageSelector';
-import { Annotation, AnnotationType } from '../utils/annotationUtils';
+import { Annotation, AnnotationType, calculateScore } from '../utils/annotationUtils';
 import { oceanImages, OceanImage, getProgressiveImageSet } from '../data/oceanImages';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import { Fish, CheckCircle, RefreshCcw, Trophy, ArrowRight } from 'lucide-react';
+import { Fish, CheckCircle, RefreshCcw, Trophy, ArrowRight, RotateCcw } from 'lucide-react';
 
 const Index = () => {
   const [showInstructions, setShowInstructions] = useState(() => {
@@ -31,19 +31,27 @@ const Index = () => {
   const [showGroundTruth, setShowGroundTruth] = useState(false);
   const [currentRound, setCurrentRound] = useState(1);
   const [currentImages, setCurrentImages] = useState<OceanImage[]>([]);
+  const [cumulativeScore, setCumulativeScore] = useState(() => {
+    const savedScore = localStorage.getItem('cumulativeScore');
+    return savedScore ? parseInt(savedScore) : 0;
+  });
   const TIMER_DURATION = 120; // 2 minutes in seconds
+  
+  // Save cumulative score to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('cumulativeScore', cumulativeScore.toString());
+  }, [cumulativeScore]);
   
   // Load initial images based on round
   useEffect(() => {
     // Get images for the current round, ensuring they all have annotations
     const imageSet = getProgressiveImageSet(currentRound);
-    setCurrentImages(imageSet);
+    const validImages = imageSet.filter(img => img.targetAnnotations.length > 0);
+    setCurrentImages(validImages);
     
     // Only select an image if we have valid images and no image is currently selected
-    if (imageSet.length > 0 && !selectedImage) {
-      // Make sure we select an image with annotations
-      const validImage = imageSet.find(img => img.targetAnnotations.length > 0) || imageSet[0];
-      setSelectedImage(validImage);
+    if (validImages.length > 0 && !selectedImage) {
+      setSelectedImage(validImages[0]);
     }
   }, [currentRound]);
   
@@ -128,6 +136,15 @@ const Index = () => {
     }
   };
   
+  const handleScoreUpdate = (score: number) => {
+    setCumulativeScore(prevScore => prevScore + score);
+  };
+  
+  const handleResetCumulativeScore = () => {
+    setCumulativeScore(0);
+    toast.success('Cumulative score has been reset to 0');
+  };
+  
   const handlePlayAgain = () => {
     setGameComplete(false);
     setAnnotations([]);
@@ -151,10 +168,11 @@ const Index = () => {
     setShowGroundTruth(false);
     
     const newImageSet = getProgressiveImageSet(nextRound);
-    setCurrentImages(newImageSet);
+    const validImages = newImageSet.filter(img => img.targetAnnotations.length > 0);
+    setCurrentImages(validImages);
     
-    if (newImageSet.length > 0) {
-      setSelectedImage(newImageSet[0]);
+    if (validImages.length > 0) {
+      setSelectedImage(validImages[0]);
     }
     
     toast.success(`Starting Round ${nextRound} - Difficulty increased!`);
@@ -174,6 +192,19 @@ const Index = () => {
           <div className="flex gap-2 items-center">
             <div className="bg-white/20 text-white px-3 py-1 rounded-full text-sm font-medium">
               Round {currentRound}
+            </div>
+            <div className="bg-white/20 text-white px-3 py-1 rounded-full text-sm font-medium flex items-center gap-1">
+              <Trophy className="h-4 w-4" />
+              <span>Score: {cumulativeScore}</span>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-5 w-5 text-white hover:bg-white/20 ml-1" 
+                onClick={handleResetCumulativeScore}
+                title="Reset Score"
+              >
+                <RotateCcw className="h-3 w-3" />
+              </Button>
             </div>
             <Button
               variant="outline"
@@ -293,6 +324,8 @@ const Index = () => {
                   targetAnnotations={selectedImage?.targetAnnotations || []}
                   timeBonus={timeBonus}
                   isComplete={gameComplete}
+                  cumulativeScore={cumulativeScore}
+                  onScoreChange={handleScoreUpdate}
                 />
                 
                 <div className="p-4 bg-white rounded-xl shadow-md text-center">
