@@ -128,21 +128,6 @@ export const oceanImages: OceanImage[] = availableImages.map((filename) => {
   console.log(`Image ${filename} - Original dimensions: ${dimensions.width}x${dimensions.height}`);
   console.log(`Image ${filename} - Annotations count: ${targetAnnotations.length}`);
   
-  // If no annotations were found, create a dummy annotation for testing
-  if (targetAnnotations.length === 0 && imageId !== 0) {
-    console.warn(`No annotations found for image ${filename} with ID ${imageId}, creating sample annotation`);
-    // Create a sample annotation in the center of the image
-    targetAnnotations.push({
-      id: `ann_sample_${filename}`,
-      type: 'rectangle',
-      coordinates: [
-        { x: Math.round(dimensions.width * 0.4), y: Math.round(dimensions.height * 0.4) },
-        { x: Math.round(dimensions.width * 0.6), y: Math.round(dimensions.height * 0.6) }
-      ],
-      label: 'Sample'
-    });
-  }
-  
   return {
     id: `img_${filename.replace('.jpg', '')}`,
     title: `Ocean Image ${filename}`,
@@ -154,6 +139,40 @@ export const oceanImages: OceanImage[] = availableImages.map((filename) => {
     originalHeight: dimensions.height
   };
 });
+
+// Group images by difficulty
+export const imagesByDifficulty = {
+  easy: oceanImages.filter(img => img.difficulty === 'easy' && img.targetAnnotations.length > 0),
+  medium: oceanImages.filter(img => img.difficulty === 'medium' && img.targetAnnotations.length > 0),
+  hard: oceanImages.filter(img => img.difficulty === 'hard' && img.targetAnnotations.length > 0)
+};
+
+// Helper function to get random elements from an array
+const getRandomElements = <T>(array: T[], count: number): T[] => {
+  // Make a copy of the array to avoid modifying the original
+  const shuffled = [...array].sort(() => 0.5 - Math.random());
+  // Return the specified number of elements
+  return shuffled.slice(0, Math.min(count, array.length));
+};
+
+// Function to get a random subset of images with specified difficulty distribution
+export const getProgressiveImageSet = (round: number = 1, imagesPerRound: number = 6): OceanImage[] => {
+  // Filter out images with zero annotations first
+  const imagesWithAnnotations = oceanImages.filter(img => img.targetAnnotations.length > 0);
+  
+  // Group by difficulty (using only images with annotations)
+  const easyImages = imagesWithAnnotations.filter(img => img.difficulty === 'easy');
+  const mediumImages = imagesWithAnnotations.filter(img => img.difficulty === 'medium');
+  const hardImages = imagesWithAnnotations.filter(img => img.difficulty === 'hard');
+  
+  // Always get 3 easy, 2 medium, 1 hard images randomly
+  const selectedEasy = getRandomElements(easyImages, 3);
+  const selectedMedium = getRandomElements(mediumImages, 2);
+  const selectedHard = getRandomElements(hardImages, 1);
+  
+  // Combine images in order of difficulty (easy → medium → hard)
+  return [...selectedEasy, ...selectedMedium, ...selectedHard];
+};
 
 // Default fallback data in case the JSON loading fails
 if (oceanImages.length === 0) {
