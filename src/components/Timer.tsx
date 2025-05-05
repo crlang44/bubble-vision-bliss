@@ -57,6 +57,13 @@ const Timer: React.FC<TimerProps> = ({ duration, onTimeUp, isRunning, onTimerUpd
   // Calculate percentage for progress bar
   const timePercentage = (timeLeft / duration) * 100;
   
+  // Determine the color based on the time percentage
+  const getProgressColor = () => {
+    if (timePercentage > 50) return "bg-green-500";
+    if (timePercentage > 25) return "bg-yellow-500";
+    return "bg-red-500";
+  };
+  
   return (
     <div className="w-full">
       <div className="flex justify-between items-center mb-1">
@@ -69,8 +76,11 @@ const Timer: React.FC<TimerProps> = ({ duration, onTimeUp, isRunning, onTimerUpd
           {formatTime(timeLeft)}
         </span>
       </div>
-      <Progress value={timePercentage} className="h-2" 
-        indicatorClassName={timePercentage > 50 ? "bg-green-500" : timePercentage > 25 ? "bg-yellow-500" : "bg-red-500"} />
+      <Progress 
+        value={timePercentage} 
+        className="h-2" 
+        indicatorClassName={getProgressColor()} 
+      />
     </div>
   );
 };
