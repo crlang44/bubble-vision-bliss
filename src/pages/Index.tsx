@@ -73,7 +73,7 @@ const Index = () => {
   
   const handleAnnotationComplete = (annotation: Annotation) => {
     setAnnotations([...annotations, annotation]);
-    toast(`Added ${annotation.label} annotation`);
+    // Removed toast notification for annotation added
   };
   
   const handleLabelChange = (label: string) => {
