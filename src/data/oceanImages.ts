@@ -163,30 +163,24 @@ export const imagesByDifficulty = {
   hard: oceanImages.filter(img => img.difficulty === 'hard')
 };
 
-// Function to get a progressive subset of images
+// Helper function to get random elements from an array
+const getRandomElements = <T>(array: T[], count: number): T[] => {
+  // Make a copy of the array to avoid modifying the original
+  const shuffled = [...array].sort(() => 0.5 - Math.random());
+  // Return the specified number of elements
+  return shuffled.slice(0, Math.min(count, array.length));
+};
+
+// Function to get a random subset of images with specified difficulty distribution
 export const getProgressiveImageSet = (round: number = 1, imagesPerRound: number = 6): OceanImage[] => {
-  // For early rounds, focus on easier images
-  if (round === 1) {
-    // 4 easy, 2 medium for first round
-    return [
-      ...imagesByDifficulty.easy.slice(0, 4),
-      ...imagesByDifficulty.medium.slice(0, 2)
-    ].slice(0, imagesPerRound);
-  } else if (round === 2) {
-    // 2 easy, 3 medium, 1 hard for second round
-    return [
-      ...imagesByDifficulty.easy.slice(0, 2),
-      ...imagesByDifficulty.medium.slice(0, 3),
-      ...imagesByDifficulty.hard.slice(0, 1)
-    ].slice(0, imagesPerRound);
-  } else {
-    // 1 easy, 2 medium, 3 hard for third+ rounds
-    return [
-      ...imagesByDifficulty.easy.slice(0, 1),
-      ...imagesByDifficulty.medium.slice(0, 2),
-      ...imagesByDifficulty.hard.slice(0, 3)
-    ].slice(0, imagesPerRound);
-  }
+  // Always get 3 easy, 2 medium, 1 hard images randomly
+  const easyImages = getRandomElements(imagesByDifficulty.easy, 3);
+  const mediumImages = getRandomElements(imagesByDifficulty.medium, 2);
+  const hardImages = getRandomElements(imagesByDifficulty.hard, 1);
+  
+  // Combine and shuffle the selected images
+  const combinedImages = [...easyImages, ...mediumImages, ...hardImages];
+  return combinedImages.sort(() => 0.5 - Math.random());
 };
 
 // Default fallback data in case the JSON loading fails
