@@ -129,19 +129,19 @@ export const oceanImages: OceanImage[] = availableImages.map((filename) => {
   console.log(`Image ${filename} - Annotations count: ${targetAnnotations.length}`);
   
   // If no annotations were found, create a dummy annotation for testing
-  if (targetAnnotations.length === 0 && imageId !== 0) {
-    console.warn(`No annotations found for image ${filename} with ID ${imageId}, creating sample annotation`);
-    // Create a sample annotation in the center of the image
-    targetAnnotations.push({
-      id: `ann_sample_${filename}`,
-      type: 'rectangle',
-      coordinates: [
-        { x: Math.round(dimensions.width * 0.4), y: Math.round(dimensions.height * 0.4) },
-        { x: Math.round(dimensions.width * 0.6), y: Math.round(dimensions.height * 0.6) }
-      ],
-      label: 'Sample'
-    });
-  }
+  // if (targetAnnotations.length === 0 && imageId !== 0) {
+  //   console.warn(`No annotations found for image ${filename} with ID ${imageId}, creating sample annotation`);
+  //   // Create a sample annotation in the center of the image
+  //   targetAnnotations.push({
+  //     id: `ann_sample_${filename}`,
+  //     type: 'rectangle',
+  //     coordinates: [
+  //       { x: Math.round(dimensions.width * 0.4), y: Math.round(dimensions.height * 0.4) },
+  //       { x: Math.round(dimensions.width * 0.6), y: Math.round(dimensions.height * 0.6) }
+  //     ],
+  //     label: 'Sample'
+  //   });
+  // }
   
   return {
     id: `img_${filename.replace('.jpg', '')}`,
