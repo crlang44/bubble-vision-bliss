@@ -1,4 +1,3 @@
-
 import { TargetAnnotation } from "../utils/annotationUtils";
 import annotationsData from './annotations/instances_default.json';
 
@@ -178,9 +177,8 @@ export const getProgressiveImageSet = (round: number = 1, imagesPerRound: number
   const mediumImages = getRandomElements(imagesByDifficulty.medium, 2);
   const hardImages = getRandomElements(imagesByDifficulty.hard, 1);
   
-  // Combine and shuffle the selected images
-  const combinedImages = [...easyImages, ...mediumImages, ...hardImages];
-  return combinedImages.sort(() => 0.5 - Math.random());
+  // Combine images in order of difficulty (easy → medium → hard)
+  return [...easyImages, ...mediumImages, ...hardImages];
 };
 
 // Default fallback data in case the JSON loading fails
