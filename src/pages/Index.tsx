@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import BubbleBackground from '../components/BubbleBackground';
 import Instructions from '../components/Instructions';
@@ -7,11 +8,11 @@ import ScoreBoard from '../components/ScoreBoard';
 import Timer from '../components/Timer';
 import ImageSelector from '../components/ImageSelector';
 import { Annotation, AnnotationType } from '../utils/annotationUtils';
-import { oceanImages, OceanImage } from '../data/oceanImages';
+import { oceanImages, OceanImage, getProgressiveImageSet } from '../data/oceanImages';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import { Fish, CheckCircle, RefreshCcw, Trophy } from 'lucide-react';
 import { routes, navigateTo } from '../routes'; // Add this import
+import { Fish, CheckCircle, RefreshCcw, Trophy, ArrowRight, BarChart } from 'lucide-react';
 
 
 const Index = () => {
@@ -25,17 +26,33 @@ const Index = () => {
   const [currentLabel, setCurrentLabel] = useState('Whale');
   const [annotations, setAnnotations] = useState<Annotation[]>([]);
   const [selectedImage, setSelectedImage] = useState<OceanImage | null>(null);
-  const [timeBonus, setTimeBonus] = useState(50);
+  const [timeBonus, setTimeBonus] = useState(15); // Reduced from 50 to 15
   const [isTimerRunning, setIsTimerRunning] = useState(false);
   const [gameComplete, setGameComplete] = useState(false);
   const [availableLabels, setAvailableLabels] = useState<string[]>(['Whale', 'Fish', 'Coral']);
   const [showGroundTruth, setShowGroundTruth] = useState(false);
+  const [currentRound, setCurrentRound] = useState(1);
+  const [currentImages, setCurrentImages] = useState<OceanImage[]>([]);
+  const [cumulativeScore, setCumulativeScore] = useState(() => {
+    const savedScore = localStorage.getItem('cumulativeScore');
+    return savedScore ? parseInt(savedScore, 10) : 0;
+  });
+  const [roundScore, setRoundScore] = useState(0);
+  const TIMER_DURATION = 120; // 2 minutes in seconds
   
+  // Load initial images based on round
   useEffect(() => {
-    if (oceanImages.length > 0 && !selectedImage) {
-      setSelectedImage(oceanImages[0]);
+    // Get images for the current round, ensuring they all have annotations
+    const imageSet = getProgressiveImageSet(currentRound);
+    setCurrentImages(imageSet);
+    
+    // Only select an image if we have valid images and no image is currently selected
+    if (imageSet.length > 0 && !selectedImage) {
+      // Make sure we select an image with annotations
+      const validImage = imageSet.find(img => img.targetAnnotations.length > 0) || imageSet[0];
+      setSelectedImage(validImage);
     }
-  }, []);
+  }, [currentRound]);
   
   useEffect(() => {
     if (!selectedImage) return;
@@ -46,7 +63,7 @@ const Index = () => {
     
     setAnnotations([]);
     setGameComplete(false);
-    setTimeBonus(100);
+    setTimeBonus(25); // Set initial time bonus to a lower value
     
     if (labels.length > 0) {
       setCurrentLabel(labels[0]);
@@ -56,6 +73,11 @@ const Index = () => {
       setIsTimerRunning(true);
     }
   }, [selectedImage, showInstructions]);
+  
+  // Save cumulative score whenever it changes
+  useEffect(() => {
+    localStorage.setItem('cumulativeScore', cumulativeScore.toString());
+  }, [cumulativeScore]);
   
   const handleSelectTool = (tool: AnnotationType | null) => {
     setSelectedTool(tool);
@@ -68,7 +90,7 @@ const Index = () => {
   
   const handleAnnotationComplete = (annotation: Annotation) => {
     setAnnotations([...annotations, annotation]);
-    toast(`Added ${annotation.label} annotation`);
+    // Removed toast notification for annotation added
   };
   
   const handleLabelChange = (label: string) => {
@@ -88,12 +110,52 @@ const Index = () => {
     handleSubmit();
   };
   
+  // Calculate time bonus as a percentage of remaining time
+  const handleTimerUpdate = (timeLeft: number) => {
+    // Calculate bonus as a percentage of time left, capped at 25 points
+    const maxBonus = 25;
+    const calculatedBonus = Math.floor((timeLeft / TIMER_DURATION) * maxBonus);
+    setTimeBonus(calculatedBonus);
+  };
+  
+  // Calculate the current round score
+  const calculateRoundScore = () => {
+    if (!selectedImage) return 0;
+    
+    // This calculates score in the same way as the ScoreBoard component
+    const targetAnnotations = selectedImage.targetAnnotations;
+    
+    // Calculate total annotation score (same logic as in ScoreBoard)
+    const totalAnnotationScore = targetAnnotations.reduce((sum, target) => {
+      const matchingAnnotation = annotations.find(a => a.label === target.label);
+      if (!matchingAnnotation) return sum;
+      
+      const score = calculateScore(matchingAnnotation, target);
+      return sum + score;
+    }, 0);
+    
+    // Normalize to 100 points maximum
+    const normalizedScore = targetAnnotations.length > 0
+      ? Math.round(totalAnnotationScore / targetAnnotations.length)
+      : 0;
+    
+    // Add time bonus
+    return normalizedScore + timeBonus;
+  };
+  
   const handleSubmit = () => {
     if (!selectedImage) return;
     
     setIsTimerRunning(false);
     setGameComplete(true);
     setShowGroundTruth(true);
+    
+    // Calculate and save round score
+    const currentRoundScore = calculateRoundScore();
+    setRoundScore(currentRoundScore);
+    
+    // Add to cumulative score
+    setCumulativeScore(prevScore => prevScore + currentRoundScore);
     
     const foundAllTargets = selectedImage.targetAnnotations.every(target => 
       annotations.some(annotation => annotation.label === target.label)
@@ -113,17 +175,40 @@ const Index = () => {
   const handlePlayAgain = () => {
     setGameComplete(false);
     setAnnotations([]);
-    setTimeBonus(50);
+    setTimeBonus(25); // Reset to a lower initial time bonus
     setIsTimerRunning(true);
     setShowGroundTruth(false);
   };
   
   const handleNewImage = () => {
-    const currentIndex = oceanImages.findIndex(img => img.id === selectedImage?.id);
-    const nextIndex = (currentIndex + 1) % oceanImages.length;
-    setSelectedImage(oceanImages[nextIndex]);
+    const currentIndex = currentImages.findIndex(img => img.id === selectedImage?.id);
+    const nextIndex = (currentIndex + 1) % currentImages.length;
+    setSelectedImage(currentImages[nextIndex]);
     setAnnotations([]);
     setShowGroundTruth(false);
+  };
+  
+  const handleNextRound = () => {
+    const nextRound = currentRound + 1;
+    setCurrentRound(nextRound);
+    setAnnotations([]);
+    setShowGroundTruth(false);
+    
+    const newImageSet = getProgressiveImageSet(nextRound);
+    setCurrentImages(newImageSet);
+    
+    if (newImageSet.length > 0) {
+      setSelectedImage(newImageSet[0]);
+    }
+    
+    toast.success(`Starting Round ${nextRound} - Difficulty increased!`);
+  };
+  
+  const handleResetCumulativeScore = () => {
+    if (window.confirm('Are you sure you want to reset your cumulative score to zero?')) {
+      setCumulativeScore(0);
+      toast.success('Cumulative score has been reset to zero');
+    }
   };
   
   return (
@@ -137,7 +222,14 @@ const Index = () => {
             <h1 className="text-2xl md:text-3xl font-bold text-white">Ocean Annotation</h1>
           </div>
           
-          <div className="flex gap-2">
+          <div className="flex gap-2 items-center">
+            <div className="bg-white/20 text-white px-3 py-1 rounded-full text-sm font-medium">
+              Round {currentRound}
+            </div>
+            <div className="bg-purple-500/80 text-white px-3 py-1 rounded-full text-sm font-medium flex items-center gap-1 cursor-pointer" onClick={handleResetCumulativeScore} title="Click to reset score">
+              <BarChart className="h-3.5 w-3.5" />
+              <span>{cumulativeScore}</span>
+            </div>
             <Button
               variant="outline"
               onClick={() => setShowInstructions(true)}
@@ -176,7 +268,7 @@ const Index = () => {
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
           <div className="lg:col-span-1">
             <ImageSelector 
-              images={oceanImages} 
+              images={currentImages} 
               onSelectImage={handleImageSelect} 
               selectedImageId={selectedImage?.id || null}
             />
@@ -185,9 +277,10 @@ const Index = () => {
           <div className="lg:col-span-3 space-y-4">
             <div className="bg-white rounded-xl p-3 shadow-md">
               <Timer 
-                duration={120}
+                duration={TIMER_DURATION}
                 onTimeUp={handleTimeUp}
                 isRunning={isTimerRunning && !gameComplete}
+                onTimerUpdate={handleTimerUpdate}
               />
             </div>
             
@@ -262,6 +355,7 @@ const Index = () => {
                   targetAnnotations={selectedImage?.targetAnnotations || []}
                   timeBonus={timeBonus}
                   isComplete={gameComplete}
+                  cumulativeScore={cumulativeScore}
                 />
                 
                 <div className="p-4 bg-white rounded-xl shadow-md text-center">
@@ -272,9 +366,22 @@ const Index = () => {
                   <p className="text-sm text-gray-600 mb-4">
                     Try different images to improve your annotation skills.
                   </p>
-                  <Button className="btn-ocean w-full" onClick={handleNewImage}>
-                    Next Challenge
-                  </Button>
+                  
+                  <div className="flex flex-col gap-2">
+                    <Button className="btn-ocean w-full" onClick={handleNewImage}>
+                      Next Image
+                    </Button>
+                    
+                    <Button 
+                      className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white" 
+                      onClick={handleNextRound}
+                    >
+                      <div className="flex items-center gap-1">
+                        <span>Next Round</span>
+                        <ArrowRight className="h-4 w-4" />
+                      </div>
+                    </Button>
+                  </div>
                 </div>
               </div>
             )}

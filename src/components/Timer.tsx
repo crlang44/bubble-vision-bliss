@@ -1,14 +1,16 @@
 
 import React, { useEffect, useState } from 'react';
 import { AlertCircle, Clock } from 'lucide-react';
+import { Progress } from "@/components/ui/progress";
 
 interface TimerProps {
   duration: number; // in seconds
   onTimeUp: () => void;
   isRunning: boolean;
+  onTimerUpdate?: (timeLeft: number) => void;
 }
 
-const Timer: React.FC<TimerProps> = ({ duration, onTimeUp, isRunning }) => {
+const Timer: React.FC<TimerProps> = ({ duration, onTimeUp, isRunning, onTimerUpdate }) => {
   const [timeLeft, setTimeLeft] = useState(duration);
   const [isWarning, setIsWarning] = useState(false);
   
@@ -22,22 +24,29 @@ const Timer: React.FC<TimerProps> = ({ duration, onTimeUp, isRunning }) => {
     
     const interval = setInterval(() => {
       setTimeLeft(prevTime => {
+        const newTime = prevTime <= 1 ? 0 : prevTime - 1;
+        
         // Add a warning when less than 30 seconds remain
-        if (prevTime <= 30 && !isWarning) {
+        if (newTime <= 30 && !isWarning) {
           setIsWarning(true);
         }
         
-        if (prevTime <= 1) {
+        // Notify parent component about time update (for time bonus calculation)
+        if (onTimerUpdate) {
+          onTimerUpdate(newTime);
+        }
+        
+        if (newTime <= 0) {
           clearInterval(interval);
           onTimeUp();
           return 0;
         }
-        return prevTime - 1;
+        return newTime;
       });
     }, 1000);
     
     return () => clearInterval(interval);
-  }, [isRunning, onTimeUp, isWarning]);
+  }, [isRunning, onTimeUp, isWarning, onTimerUpdate]);
   
   const formatTime = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);
@@ -48,13 +57,12 @@ const Timer: React.FC<TimerProps> = ({ duration, onTimeUp, isRunning }) => {
   // Calculate percentage for progress bar
   const timePercentage = (timeLeft / duration) * 100;
   
-  // Determine color based on time left
-  let colorClass = 'bg-green-500';
-  if (timePercentage <= 50 && timePercentage > 25) {
-    colorClass = 'bg-yellow-500';
-  } else if (timePercentage <= 25) {
-    colorClass = 'bg-red-500';
-  }
+  // Determine the color based on the time percentage
+  const getProgressColor = () => {
+    if (timePercentage > 50) return "bg-green-500";
+    if (timePercentage > 25) return "bg-yellow-500";
+    return "bg-red-500";
+  };
   
   return (
     <div className="w-full">
@@ -68,12 +76,11 @@ const Timer: React.FC<TimerProps> = ({ duration, onTimeUp, isRunning }) => {
           {formatTime(timeLeft)}
         </span>
       </div>
-      <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
-        <div 
-          className={`h-full ${colorClass} transition-all duration-500 ease-linear`}
-          style={{ width: `${timePercentage}%` }}
-        ></div>
-      </div>
+      <Progress 
+        value={timePercentage} 
+        className="h-2" 
+        indicatorClassName={getProgressColor()} 
+      />
     </div>
   );
 };
