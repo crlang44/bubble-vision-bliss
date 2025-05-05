@@ -35,11 +35,15 @@ const Index = () => {
   
   // Load initial images based on round
   useEffect(() => {
+    // Get images for the current round, ensuring they all have annotations
     const imageSet = getProgressiveImageSet(currentRound);
     setCurrentImages(imageSet);
     
+    // Only select an image if we have valid images and no image is currently selected
     if (imageSet.length > 0 && !selectedImage) {
-      setSelectedImage(imageSet[0]);
+      // Make sure we select an image with annotations
+      const validImage = imageSet.find(img => img.targetAnnotations.length > 0) || imageSet[0];
+      setSelectedImage(validImage);
     }
   }, [currentRound]);
   
