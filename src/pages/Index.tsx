@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import BubbleBackground from '../components/BubbleBackground';
 import Instructions from '../components/Instructions';
@@ -6,12 +7,20 @@ import AnnotationTools from '../components/AnnotationTools';
 import ScoreBoard from '../components/ScoreBoard';
 import Timer from '../components/Timer';
 import ImageSelector from '../components/ImageSelector';
-import { Annotation, AnnotationType, calculateScore } from '../utils/annotationUtils';
+import { Annotation, AnnotationType } from '../utils/annotationUtils';
 import { oceanImages, OceanImage, getProgressiveImageSet } from '../data/oceanImages';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import { routes, navigateTo } from '../routes'; // Add this import
-import { Fish, CheckCircle, RefreshCcw, Trophy, ArrowRight, BarChart, RotateCcw } from 'lucide-react';
+import { routes, navigateTo } from '../routes';
+import { Fish, CheckCircle, RefreshCcw, Trophy, Zap } from 'lucide-react';
+import { 
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogFooter,
+  DialogTitle,
+  DialogDescription
+} from '@/components/ui/dialog';
 
 const Index = () => {
   const [showInstructions, setShowInstructions] = useState(() => {
@@ -24,18 +33,17 @@ const Index = () => {
   const [currentLabel, setCurrentLabel] = useState('Whale');
   const [annotations, setAnnotations] = useState<Annotation[]>([]);
   const [selectedImage, setSelectedImage] = useState<OceanImage | null>(null);
-  const [timeBonus, setTimeBonus] = useState(15); // Reduced from 50 to 15
+  const [timeBonus, setTimeBonus] = useState(15);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
   const [gameComplete, setGameComplete] = useState(false);
   const [availableLabels, setAvailableLabels] = useState<string[]>(['Whale', 'Fish', 'Coral']);
   const [showGroundTruth, setShowGroundTruth] = useState(false);
   const [currentRound, setCurrentRound] = useState(1);
   const [currentImages, setCurrentImages] = useState<OceanImage[]>([]);
-  // Initialize cumulative score to 0 instead of from localStorage
   const [cumulativeScore, setCumulativeScore] = useState(0);
+  const [showCompletionDialog, setShowCompletionDialog] = useState(false);
+  const [finalScore, setFinalScore] = useState(0);
   const TIMER_DURATION = 120; // 2 minutes in seconds
-  
-  // Remove the localStorage effect for cumulative score
   
   // Load initial images based on round
   useEffect(() => {
@@ -81,7 +89,6 @@ const Index = () => {
   
   const handleAnnotationComplete = (annotation: Annotation) => {
     setAnnotations([...annotations, annotation]);
-    // Removed toast notification for annotation added
   };
   
   const handleLabelChange = (label: string) => {
@@ -129,9 +136,15 @@ const Index = () => {
       
       toast.error(`You missed ${missingCount} target${missingCount > 1 ? 's' : ''}!`);
     }
+
+    // Show completion dialog after a short delay to allow animations to complete
+    setTimeout(() => {
+      setShowCompletionDialog(true);
+    }, 1500);
   };
   
   const handleScoreUpdate = (score: number) => {
+    setFinalScore(score);
     setCumulativeScore(prevScore => prevScore + score);
   };
   
@@ -146,6 +159,7 @@ const Index = () => {
     setTimeBonus(25); // Reset to a lower initial time bonus
     setIsTimerRunning(true);
     setShowGroundTruth(false);
+    setShowCompletionDialog(false);
   };
   
   const handleNewImage = () => {
@@ -154,23 +168,11 @@ const Index = () => {
     setSelectedImage(currentImages[nextIndex]);
     setAnnotations([]);
     setShowGroundTruth(false);
+    setShowCompletionDialog(false);
   };
   
-  const handleNextRound = () => {
-    const nextRound = currentRound + 1;
-    setCurrentRound(nextRound);
-    setAnnotations([]);
-    setShowGroundTruth(false);
-    
-    const newImageSet = getProgressiveImageSet(nextRound);
-    const validImages = newImageSet.filter(img => img.targetAnnotations.length > 0);
-    setCurrentImages(validImages);
-    
-    if (validImages.length > 0) {
-      setSelectedImage(validImages[0]);
-    }
-    
-    toast.success(`Starting Round ${nextRound} - Difficulty increased!`);
+  const handleGoToQuickIDGame = () => {
+    window.location.href = routes.quickIdGame;
   };
   
   return (
@@ -185,9 +187,6 @@ const Index = () => {
           </div>
           
           <div className="flex gap-2 items-center">
-            <div className="bg-white/20 text-white px-3 py-1 rounded-full text-sm font-medium">
-              Round {currentRound}
-            </div>
             <div className="bg-white/20 text-white px-3 py-1 rounded-full text-sm font-medium flex items-center gap-1">
               <Trophy className="h-4 w-4" />
               <span>Score: {cumulativeScore}</span>
@@ -198,7 +197,7 @@ const Index = () => {
                 onClick={handleResetCumulativeScore}
                 title="Reset Score"
               >
-                <RotateCcw className="h-3 w-3" />
+                <RefreshCcw className="h-3 w-3" />
               </Button>
             </div>
             <Button
@@ -214,13 +213,6 @@ const Index = () => {
               className="bg-white/80 hover:bg-white"
             >
               Quick ID Game
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => window.location.href = '/ground-truth-editor'}
-              className="bg-white/80 hover:bg-white"
-            >
-              Ground Truth Editor
             </Button>
           </div>
         </header>
@@ -329,32 +321,6 @@ const Index = () => {
                   cumulativeScore={cumulativeScore}
                   onScoreChange={handleScoreUpdate}
                 />
-                
-                <div className="p-4 bg-white rounded-xl shadow-md text-center">
-                  <div className="flex items-center justify-center gap-2 mb-2">
-                    <Trophy className="text-yellow-500" />
-                    <h3 className="font-bold text-ocean-dark">Keep Playing!</h3>
-                  </div>
-                  <p className="text-sm text-gray-600 mb-4">
-                    Try different images to improve your annotation skills.
-                  </p>
-                  
-                  <div className="flex flex-col gap-2">
-                    <Button className="btn-ocean w-full" onClick={handleNewImage}>
-                      Next Image
-                    </Button>
-                    
-                    <Button 
-                      className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white" 
-                      onClick={handleNextRound}
-                    >
-                      <div className="flex items-center gap-1">
-                        <span>Next Round</span>
-                        <ArrowRight className="h-4 w-4" />
-                      </div>
-                    </Button>
-                  </div>
-                </div>
               </div>
             )}
           </div>
@@ -364,6 +330,55 @@ const Index = () => {
           <p>Ocean Annotation Game - A fun way to learn computer vision annotation techniques</p>
         </footer>
       </div>
+
+      {/* Game Completion Dialog */}
+      <Dialog open={showCompletionDialog} onOpenChange={setShowCompletionDialog}>
+        <DialogContent className="bg-gradient-to-b from-blue-50 to-white border-blue-200 max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-2xl text-center flex items-center justify-center gap-2">
+              <Trophy className="text-yellow-500 h-6 w-6" /> 
+              Game Complete!
+            </DialogTitle>
+            <DialogDescription className="text-center text-gray-700 mt-2">
+              You completed the ocean annotation challenge!
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="py-4 flex flex-col items-center">
+            <div className="bg-ocean-gradient p-6 rounded-lg shadow-inner w-full mb-4">
+              <div className="text-center">
+                <div className="text-white/80 mb-1">Your score</div>
+                <div className="text-4xl font-bold text-white mb-2">{finalScore}</div>
+                <div className="text-white/80 text-sm">Added to your total score</div>
+              </div>
+            </div>
+            
+            {finalScore >= 100 ? (
+              <p className="text-green-600 font-medium">Amazing job! You're an annotation expert!</p>
+            ) : finalScore >= 70 ? (
+              <p className="text-blue-600 font-medium">Good work! Keep practicing to improve!</p>
+            ) : (
+              <p className="text-amber-600 font-medium">Nice try! Practice makes perfect!</p>
+            )}
+          </div>
+          
+          <DialogFooter className="flex flex-col gap-2 sm:flex-row">
+            <Button 
+              className="w-full sm:w-auto" 
+              variant="outline" 
+              onClick={handlePlayAgain}
+            >
+              <RefreshCcw className="h-4 w-4 mr-2" /> Try Again
+            </Button>
+            <Button 
+              className="w-full sm:w-auto bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white" 
+              onClick={handleGoToQuickIDGame}
+            >
+              <Zap className="h-4 w-4 mr-2" /> Try Quick ID Game
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

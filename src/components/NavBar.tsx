@@ -1,5 +1,6 @@
+
 import React from 'react';
-import { Fish, Edit, Zap } from 'lucide-react';
+import { Fish, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { routes, routeLabels, getCurrentRoute } from '../routes';
 
@@ -33,16 +34,6 @@ const Navbar: React.FC = () => {
           }`}
         >
           <Zap className="h-4 w-4 mr-1" /> {routeLabels[routes.quickIdGame]}
-        </Button>
-        
-        <Button
-          variant="outline"
-          onClick={() => window.location.href = routes.groundTruthEditor}
-          className={`bg-white/80 hover:bg-white ${
-            currentPath === routes.groundTruthEditor ? 'border-2 border-coral' : ''
-          }`}
-        >
-          <Edit className="h-4 w-4 mr-1" /> {routeLabels[routes.groundTruthEditor]}
         </Button>
       </div>
     </header>
