@@ -43,6 +43,7 @@ const Index = () => {
   const [cumulativeScore, setCumulativeScore] = useState(0);
   const [showCompletionDialog, setShowCompletionDialog] = useState(false);
   const [finalScore, setFinalScore] = useState(0);
+  const [annotatedImages, setAnnotatedImages] = useState<Set<string>>(new Set());
   const TIMER_DURATION = 120; // 2 minutes in seconds
   
   // Load initial images based on round
@@ -77,6 +78,14 @@ const Index = () => {
       setIsTimerRunning(true);
     }
   }, [selectedImage, showInstructions]);
+  
+  // Check if all images have been annotated
+  useEffect(() => {
+    if (currentImages.length > 0 && annotatedImages.size >= currentImages.length) {
+      // All images have been annotated, show the completion dialog
+      setShowCompletionDialog(true);
+    }
+  }, [annotatedImages, currentImages]);
   
   const handleSelectTool = (tool: AnnotationType | null) => {
     setSelectedTool(tool);
@@ -123,6 +132,11 @@ const Index = () => {
     setGameComplete(true);
     setShowGroundTruth(true);
     
+    // Mark this image as annotated
+    if (selectedImage.id) {
+      setAnnotatedImages(prev => new Set([...prev, selectedImage.id]));
+    }
+    
     const foundAllTargets = selectedImage.targetAnnotations.every(target => 
       annotations.some(annotation => annotation.label === target.label)
     );
@@ -136,11 +150,6 @@ const Index = () => {
       
       toast.error(`You missed ${missingCount} target${missingCount > 1 ? 's' : ''}!`);
     }
-
-    // Show completion dialog after a short delay to allow animations to complete
-    setTimeout(() => {
-      setShowCompletionDialog(true);
-    }, 1500);
   };
   
   const handleScoreUpdate = (score: number) => {
