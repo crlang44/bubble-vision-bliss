@@ -1,7 +1,7 @@
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Annotation, TargetAnnotation, calculateScore } from '../utils/annotationUtils';
-import { Trophy, Target, Clock, Star } from 'lucide-react';
+import { Trophy, Target, Clock, Award } from 'lucide-react';
 
 interface ScoreBoardProps {
   userAnnotations: Annotation[];
@@ -22,6 +22,10 @@ const ScoreBoard: React.FC<ScoreBoardProps> = ({
 }) => {
   // Use a ref to track if we've already updated the score for this round
   const hasUpdatedScore = useRef(false);
+  // Track the animated cumulative score
+  const [displayCumulativeScore, setDisplayCumulativeScore] = useState(cumulativeScore);
+  // Track if animation is in progress
+  const [isAnimating, setIsAnimating] = useState(false);
   
   // Debug output to see what we're working with
   useEffect(() => {
@@ -80,28 +84,70 @@ const ScoreBoard: React.FC<ScoreBoardProps> = ({
   
   const finalScore = Math.round(normalizedScore + timeBonus);
   
+  // Animation function for cumulative score
+  const animateScore = (from, to, duration) => {
+    setIsAnimating(true);
+    const startTime = performance.now();
+    const updateScore = (timestamp) => {
+      const elapsed = timestamp - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const currentValue = Math.floor(from + (to - from) * progress);
+      setDisplayCumulativeScore(currentValue);
+      
+      if (progress < 1) {
+        requestAnimationFrame(updateScore);
+      } else {
+        setDisplayCumulativeScore(to);
+        setIsAnimating(false);
+      }
+    };
+    
+    requestAnimationFrame(updateScore);
+  };
+  
   // Update parent component with score when complete, but only once
   useEffect(() => {
     if (isComplete && onScoreChange && !hasUpdatedScore.current) {
       onScoreChange(finalScore);
       hasUpdatedScore.current = true;
+      
+      // Animate the score change
+      const newCumulativeScore = cumulativeScore + finalScore;
+      animateScore(cumulativeScore, newCumulativeScore, 1000); // 1 second animation
     }
     
     // Reset the flag when isComplete changes to false
     if (!isComplete) {
       hasUpdatedScore.current = false;
     }
-  }, [isComplete, finalScore, onScoreChange]);
+  }, [isComplete, finalScore, onScoreChange, cumulativeScore]);
+  
+  // Initialize display score on first render
+  useEffect(() => {
+    setDisplayCumulativeScore(cumulativeScore);
+  }, []);
   
   console.log('Final calculated score:', finalScore, 'Normalized annotation score:', normalizedScore, 'Time bonus:', timeBonus);
   
-  // Calculate new cumulative score (current cumulative + final score if complete)
-  const displayCumulativeScore = cumulativeScore + (isComplete ? finalScore : 0);
-  
   return (
     <div className="bg-white rounded-xl shadow-lg p-4">
+      {/* Prominent cumulative score at the top */}
+      <div className="bg-ocean-gradient rounded-lg p-3 mb-4 shadow-inner">
+        <div className="flex justify-between items-center">
+          <div className="flex items-center gap-2">
+            <Award className="text-yellow-300 w-6 h-6" />
+            <span className="text-white font-bold text-lg">Total Score:</span>
+          </div>
+          <div className="flex items-center">
+            <span className={`text-3xl font-bold text-white ${isAnimating ? 'animate-pulse' : ''}`}>
+              {displayCumulativeScore}
+            </span>
+          </div>
+        </div>
+      </div>
+      
       <div className="flex justify-between items-center mb-4">
-        <h3 className="text-xl font-bold text-ocean-dark">Your Score</h3>
+        <h3 className="text-xl font-bold text-ocean-dark">Round Score</h3>
         <div className="flex items-center gap-1">
           <Trophy className="text-yellow-500 w-5 h-5" />
           <span className="text-2xl font-bold">{finalScore}</span>
@@ -137,16 +183,8 @@ const ScoreBoard: React.FC<ScoreBoardProps> = ({
       
       <div className="bg-gray-50 p-3 rounded-lg">
         <div className="flex justify-between items-center">
-          <span className="font-medium">Total Score:</span>
+          <span className="font-medium">Total Round Score:</span>
           <span className="text-xl font-bold text-ocean-dark">{finalScore}</span>
-        </div>
-        
-        <div className="flex justify-between items-center mt-2">
-          <div className="flex items-center gap-1">
-            <Star className="w-4 h-4 text-amber-500" />
-            <span className="font-medium text-sm">Cumulative Score:</span>
-          </div>
-          <span className="font-bold text-ocean-dark">{cumulativeScore}</span>
         </div>
         
         {finalScore >= 100 && (
