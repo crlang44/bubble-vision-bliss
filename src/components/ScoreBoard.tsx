@@ -1,7 +1,7 @@
 
 import React, { useEffect, useRef } from 'react';
 import { Annotation, TargetAnnotation, calculateScore } from '../utils/annotationUtils';
-import { Trophy, Target, Clock, Star, Award } from 'lucide-react';
+import { Trophy, Target, Clock, Star } from 'lucide-react';
 
 interface ScoreBoardProps {
   userAnnotations: Annotation[];
@@ -100,13 +100,12 @@ const ScoreBoard: React.FC<ScoreBoardProps> = ({
   
   return (
     <div className="bg-white rounded-xl shadow-lg p-4">
-      {/* Score showcase area - now more prominent */}
-      <div className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg p-5 mb-4 text-center">
-        <h3 className="text-lg font-medium text-white/90 mb-1">Your Score</h3>
-        <div className="flex items-center justify-center gap-2">
-          <Award className="text-yellow-300 w-7 h-7" />
-          <span className="text-3xl font-bold text-white">{finalScore}</span>
-          <span className="text-lg text-white/70">/125</span>
+      <div className="flex justify-between items-center mb-4">
+        <h3 className="text-xl font-bold text-ocean-dark">Your Score</h3>
+        <div className="flex items-center gap-1">
+          <Trophy className="text-yellow-500 w-5 h-5" />
+          <span className="text-2xl font-bold">{finalScore}</span>
+          <span className="text-gray-500">/125</span>
         </div>
       </div>
       
