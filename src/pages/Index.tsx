@@ -140,8 +140,9 @@ const Index = () => {
   const handleSubmit = () => {
     if (!selectedImage) return;
     
-    // Don't pause the timer when submitting - removing this line keeps timer running
-    // setIsTimerRunning(false); - removed to keep timer running during submit
+    // Don't pause the timer when submitting
+    // DO NOT add any code here that would stop the timer
+    console.log("Submit clicked, timer should keep running");
     
     setGameComplete(true);
     setShowGroundTruth(true);
@@ -251,6 +252,11 @@ const Index = () => {
   const allImagesAnnotated = currentImages.length > 0 && 
     annotatedImages.size >= currentImages.length;
   
+  // Add a console log to debug timer state changes
+  useEffect(() => {
+    console.log("Timer running state changed:", isTimerRunning);
+  }, [isTimerRunning]);
+  
   return (
     <div className="min-h-screen bg-ocean-gradient relative">
       <BubbleBackground bubbleCount={30} />
@@ -331,7 +337,7 @@ const Index = () => {
               <Timer 
                 duration={TIMER_DURATION}
                 onTimeUp={handleTimeUp}
-                isRunning={isTimerRunning && !gameComplete}
+                isRunning={isTimerRunning && !showInstructions}
                 onTimerUpdate={handleTimerUpdate}
               />
             </div>

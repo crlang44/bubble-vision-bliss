@@ -13,17 +13,25 @@ interface TimerProps {
 const Timer: React.FC<TimerProps> = ({ duration, onTimeUp, isRunning, onTimerUpdate }) => {
   const [timeLeft, setTimeLeft] = useState(duration);
   const [isWarning, setIsWarning] = useState(false);
+  const [intervalId, setIntervalId] = useState<number | null>(null);
   
+  // Reset timer when duration changes
   useEffect(() => {
-    // Reset timer when duration changes
     setTimeLeft(duration);
   }, [duration]);
   
+  // Set up the timer effect
   useEffect(() => {
+    // Clear any existing interval
+    if (intervalId) {
+      clearInterval(intervalId);
+    }
+    
     // Only stop if isRunning is explicitly set to false
     if (!isRunning) return;
     
-    const interval = setInterval(() => {
+    // Create a new interval
+    const id = window.setInterval(() => {
       setTimeLeft(prevTime => {
         const newTime = prevTime <= 1 ? 0 : prevTime - 1;
         
@@ -38,7 +46,7 @@ const Timer: React.FC<TimerProps> = ({ duration, onTimeUp, isRunning, onTimerUpd
         }
         
         if (newTime <= 0) {
-          clearInterval(interval);
+          clearInterval(id);
           onTimeUp();
           return 0;
         }
@@ -46,9 +54,16 @@ const Timer: React.FC<TimerProps> = ({ duration, onTimeUp, isRunning, onTimerUpd
       });
     }, 1000);
     
-    return () => clearInterval(interval);
-  }, [isRunning, onTimeUp, isWarning, onTimerUpdate]);
+    // Store the interval ID
+    setIntervalId(id);
+    
+    // Clean up on unmount or when dependencies change
+    return () => {
+      if (id) clearInterval(id);
+    };
+  }, [isRunning, onTimeUp, isWarning, onTimerUpdate, duration]);
   
+  // Format time as minutes:seconds
   const formatTime = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
