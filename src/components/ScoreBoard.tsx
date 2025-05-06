@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef, useState } from 'react';
 import { Annotation, TargetAnnotation, calculateScore } from '../utils/annotationUtils';
 import { Trophy, Target, Clock, Award } from 'lucide-react';
@@ -70,7 +69,7 @@ const ScoreBoard: React.FC<ScoreBoardProps> = ({
     return {
       label: target.label,
       score: bestMatch.score,
-      found: bestMatch.score > 0
+      found: bestMatch.score > 1 // Changed from > 0 to > 1 to be consistent with the 1% threshold
     };
   });
   

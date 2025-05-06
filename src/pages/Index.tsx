@@ -171,8 +171,8 @@ const Index = () => {
           // Check if the positions overlap with reasonable accuracy
           const score = calculateScore(userAnnotation, targetAnnotation);
           console.log(`Checking match for ${targetAnnotation.label}: Score ${score}`);
-          // Consider a match if score is above threshold (30%)
-          if (score >= 30) {
+          // Consider a match if score is above threshold (1%)
+          if (score >= 1) {
             foundMatch = true;
             foundCount++;
             break;
