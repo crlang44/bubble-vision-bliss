@@ -22,7 +22,7 @@ const ImageSelector: React.FC<ImageSelectorProps> = ({
     <div className="bg-white rounded-xl p-4 shadow-lg">
       <h3 className="text-lg font-bold text-ocean-dark flex items-center gap-2 mb-4">
         <Waves className="text-ocean-medium" /> 
-        Select an Image to Annotate
+        Images to annotate
       </h3>
       
       {hasInvalidImages && (
