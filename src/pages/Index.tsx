@@ -11,7 +11,8 @@ import { Annotation, AnnotationType, calculateScore } from '../utils/annotationU
 import { oceanImages, OceanImage, getProgressiveImageSet } from '../data/oceanImages';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import { Fish, CheckCircle, RefreshCcw, Trophy, ArrowRight, RotateCcw } from 'lucide-react';
+import { routes, navigateTo } from '../routes'; // Add this import
+import { Fish, CheckCircle, RefreshCcw, Trophy, ArrowRight, BarChart } from 'lucide-react';
 
 const Index = () => {
   const [showInstructions, setShowInstructions] = useState(() => {
@@ -212,6 +213,13 @@ const Index = () => {
               className="bg-white/80 hover:bg-white"
             >
               How to Play
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => window.location.href = '/quick-id-game'}
+              className="bg-white/80 hover:bg-white"
+            >
+              Quick ID Game
             </Button>
             <Button
               variant="outline"
