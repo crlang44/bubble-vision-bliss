@@ -6,7 +6,7 @@ import AnnotationTools from '../components/AnnotationTools';
 import ScoreBoard from '../components/ScoreBoard';
 import Timer from '../components/Timer';
 import ImageSelector from '../components/ImageSelector';
-import { Annotation, AnnotationType } from '../utils/annotationUtils';
+import { Annotation, AnnotationType, calculateScore } from '../utils/annotationUtils';
 import { oceanImages, OceanImage, getProgressiveImageSet } from '../data/oceanImages';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -149,24 +149,45 @@ const Index = () => {
       setAnnotatedImages(prev => new Set([...prev, selectedImage.id]));
     }
     
-    // Check if all targets were found correctly
-    const targetLabels = selectedImage.targetAnnotations.map(target => target.label);
-    const userLabels = annotations.map(annotation => annotation.label);
+    // Skip feedback if there are no annotations or only one target
+    if (annotations.length === 0 || selectedImage.targetAnnotations.length <= 1) {
+      return;
+    }
+
+    // More accurate scoring - match each target annotation with user annotations
+    // and verify not just labels but also positions
+    let allTargetsFound = true;
+    let missedCount = 0;
     
-    // Check if every target label exists in user annotations
-    const foundAllTargets = targetLabels.every(targetLabel => 
-      userLabels.includes(targetLabel)
-    );
-    
-    if (foundAllTargets) {
-      toast.success('Great job! You found all the targets!');
-    } else {
-      const missingLabels = targetLabels.filter(targetLabel => 
-        !userLabels.includes(targetLabel)
-      );
+    // Check each target annotation
+    for (const targetAnnotation of selectedImage.targetAnnotations) {
+      // Find any user annotation that matches this target
+      let foundMatch = false;
       
-      const missingCount = missingLabels.length;
-      toast.error(`You missed ${missingCount} target${missingCount > 1 ? 's' : ''}!`);
+      for (const userAnnotation of annotations) {
+        // Check if label matches first
+        if (userAnnotation.label === targetAnnotation.label) {
+          // Check if the positions overlap with reasonable accuracy
+          const score = calculateScore(userAnnotation, targetAnnotation);
+          // Consider a match if score is above threshold (30%)
+          if (score >= 30) {
+            foundMatch = true;
+            break;
+          }
+        }
+      }
+      
+      if (!foundMatch) {
+        allTargetsFound = false;
+        missedCount++;
+      }
+    }
+    
+    // Show appropriate feedback
+    if (allTargetsFound && selectedImage.targetAnnotations.length > 0) {
+      toast.success('Great job! You found all the targets!');
+    } else if (missedCount > 0) {
+      toast.error(`You missed ${missedCount} target${missedCount > 1 ? 's' : ''}!`);
     }
   };
   
