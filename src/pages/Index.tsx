@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import BubbleBackground from '../components/BubbleBackground';
 import Instructions from '../components/Instructions';
@@ -12,7 +11,7 @@ import { oceanImages, OceanImage, getProgressiveImageSet } from '../data/oceanIm
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { routes, navigateTo } from '../routes'; // Add this import
-import { Fish, CheckCircle, RefreshCcw, Trophy, ArrowRight, BarChart } from 'lucide-react';
+import { Fish, CheckCircle, RefreshCcw, Trophy, ArrowRight, BarChart, RotateCcw } from 'lucide-react';
 
 const Index = () => {
   const [showInstructions, setShowInstructions] = useState(() => {
