@@ -140,7 +140,7 @@ const Index = () => {
   const handleSubmit = () => {
     if (!selectedImage) return;
     
-    setIsTimerRunning(false);
+    // Don't pause the timer when submitting - remove setIsTimerRunning(false)
     setGameComplete(true);
     setShowGroundTruth(true);
     
