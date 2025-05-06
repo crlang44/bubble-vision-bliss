@@ -31,16 +31,11 @@ const Index = () => {
   const [showGroundTruth, setShowGroundTruth] = useState(false);
   const [currentRound, setCurrentRound] = useState(1);
   const [currentImages, setCurrentImages] = useState<OceanImage[]>([]);
-  const [cumulativeScore, setCumulativeScore] = useState(() => {
-    const savedScore = localStorage.getItem('cumulativeScore');
-    return savedScore ? parseInt(savedScore) : 0;
-  });
+  // Initialize cumulative score to 0 instead of from localStorage
+  const [cumulativeScore, setCumulativeScore] = useState(0);
   const TIMER_DURATION = 120; // 2 minutes in seconds
   
-  // Save cumulative score to localStorage whenever it changes
-  useEffect(() => {
-    localStorage.setItem('cumulativeScore', cumulativeScore.toString());
-  }, [cumulativeScore]);
+  // Remove the localStorage effect for cumulative score
   
   // Load initial images based on round
   useEffect(() => {
