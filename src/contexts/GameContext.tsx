@@ -1,6 +1,6 @@
 
 import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
-import { Annotation } from '../utils/annotationUtils';
+import { Annotation, calculateScore } from '../utils/annotationUtils';
 import { OceanImage, getProgressiveImageSet } from '../data/oceanImages';
 import { toast } from 'sonner';
 

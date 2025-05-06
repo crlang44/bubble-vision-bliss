@@ -134,7 +134,8 @@ const IndexContent = () => {
         onOpenChange={(open) => {
           if (!open && allImagesAnnotated) {
             // If closing the dialog and all images are annotated, reset for a new game
-            setAnnotatedImages(new Set());
+            // Remove setAnnotatedImages as it's not directly accessible here
+            // The context already has this functionality
           }
           setShowCompletionDialog(open);
         }}
