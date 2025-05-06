@@ -44,6 +44,11 @@ const Index = () => {
   const [showCompletionDialog, setShowCompletionDialog] = useState(false);
   const [finalScore, setFinalScore] = useState(0);
   const [annotatedImages, setAnnotatedImages] = useState<Set<string>>(new Set());
+  // New state for tracking best score
+  const [bestScore, setBestScore] = useState<number>(() => {
+    const storedBestScore = localStorage.getItem('oceanAnnotationBestScore');
+    return storedBestScore ? parseInt(storedBestScore, 10) : 0;
+  });
   const TIMER_DURATION = 120; // 2 minutes in seconds
   
   // Load initial images based on round
@@ -82,10 +87,18 @@ const Index = () => {
   // Check if all images have been annotated
   useEffect(() => {
     if (currentImages.length > 0 && annotatedImages.size >= currentImages.length) {
-      // All images have been annotated, show the completion dialog
-      setShowCompletionDialog(true);
+      // Add a delay before showing the completion dialog (2 seconds)
+      setTimeout(() => {
+        setShowCompletionDialog(true);
+        
+        // Update best score if current cumulative score is higher
+        if (cumulativeScore > bestScore) {
+          setBestScore(cumulativeScore);
+          localStorage.setItem('oceanAnnotationBestScore', cumulativeScore.toString());
+        }
+      }, 2000);
     }
-  }, [annotatedImages, currentImages]);
+  }, [annotatedImages, currentImages, cumulativeScore, bestScore]);
   
   const handleSelectTool = (tool: AnnotationType | null) => {
     setSelectedTool(tool);
@@ -357,14 +370,26 @@ const Index = () => {
             <div className="bg-ocean-gradient p-6 rounded-lg shadow-inner w-full mb-4">
               <div className="text-center">
                 <div className="text-white/80 mb-1">Your score</div>
-                <div className="text-4xl font-bold text-white mb-2">{finalScore}</div>
-                <div className="text-white/80 text-sm">Added to your total score</div>
+                <div className="text-4xl font-bold text-white mb-2">{cumulativeScore}</div>
+                <div className="text-white/80 text-sm">Total points earned</div>
               </div>
             </div>
             
-            {finalScore >= 100 ? (
+            {/* Best score display */}
+            {bestScore > 0 && (
+              <div className="bg-yellow-100 p-3 rounded-lg mb-4 w-full">
+                <div className="text-center">
+                  <div className="text-yellow-800 font-medium mb-1 flex items-center justify-center gap-1">
+                    <Trophy className="h-4 w-4 text-yellow-600" /> Best Score
+                  </div>
+                  <div className="text-2xl font-bold text-yellow-700">{bestScore}</div>
+                </div>
+              </div>
+            )}
+            
+            {cumulativeScore >= 100 ? (
               <p className="text-green-600 font-medium">Amazing job! You're an annotation expert!</p>
-            ) : finalScore >= 70 ? (
+            ) : cumulativeScore >= 70 ? (
               <p className="text-blue-600 font-medium">Good work! Keep practicing to improve!</p>
             ) : (
               <p className="text-amber-600 font-medium">Nice try! Practice makes perfect!</p>
