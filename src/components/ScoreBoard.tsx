@@ -1,5 +1,5 @@
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Annotation, TargetAnnotation, calculateScore } from '../utils/annotationUtils';
 import { Trophy, Target, Clock, Star, Award } from 'lucide-react';
 
@@ -22,10 +22,6 @@ const ScoreBoard: React.FC<ScoreBoardProps> = ({
 }) => {
   // Use a ref to track if we've already updated the score for this round
   const hasUpdatedScore = useRef(false);
-  // State for animated score display
-  const [animatedScore, setAnimatedScore] = useState(cumulativeScore);
-  // Ref to track previous cumulative score
-  const prevCumulativeRef = useRef(cumulativeScore);
   
   // Debug output to see what we're working with
   useEffect(() => {
@@ -97,45 +93,10 @@ const ScoreBoard: React.FC<ScoreBoardProps> = ({
     }
   }, [isComplete, finalScore, onScoreChange]);
   
-  // Animation for cumulative score
-  useEffect(() => {
-    // Only run animation if cumulative score has changed and is greater than before
-    if (cumulativeScore > prevCumulativeRef.current) {
-      // Store starting value
-      const startValue = prevCumulativeRef.current;
-      // Calculate difference to animate
-      const endValue = cumulativeScore;
-      const duration = 1500; // milliseconds
-      const frameRate = 30; // frames per second
-      const totalFrames = duration / 1000 * frameRate;
-      const increment = (endValue - startValue) / totalFrames;
-      
-      let frame = 0;
-      setAnimatedScore(startValue);
-      
-      const animationInterval = setInterval(() => {
-        frame++;
-        const newScore = startValue + Math.round(increment * frame);
-        
-        if (frame >= totalFrames) {
-          clearInterval(animationInterval);
-          setAnimatedScore(endValue);
-        } else {
-          setAnimatedScore(newScore);
-        }
-      }, 1000 / frameRate);
-      
-      return () => clearInterval(animationInterval);
-    }
-    
-    // Update previous score ref
-    prevCumulativeRef.current = cumulativeScore;
-  }, [cumulativeScore]);
-  
   console.log('Final calculated score:', finalScore, 'Normalized annotation score:', normalizedScore, 'Time bonus:', timeBonus);
   
-  // Display the cumulative score (either animated or static)
-  const displayCumulativeScore = isComplete ? animatedScore : cumulativeScore;
+  // Calculate new cumulative score (current cumulative + final score if complete)
+  const displayCumulativeScore = cumulativeScore + (isComplete ? finalScore : 0);
   
   return (
     <div className="bg-white rounded-xl shadow-lg p-4">
@@ -181,15 +142,12 @@ const ScoreBoard: React.FC<ScoreBoardProps> = ({
           <span className="text-xl font-bold text-ocean-dark">{finalScore}</span>
         </div>
         
-        {/* Enhanced cumulative score display */}
-        <div className="mt-4 p-3 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-lg shadow-md score-highlight">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center gap-2">
-              <Star className="w-5 h-5 text-yellow-300" />
-              <span className="font-bold text-white">Cumulative Score:</span>
-            </div>
-            <span className="text-2xl font-bold text-white">{displayCumulativeScore}</span>
+        <div className="flex justify-between items-center mt-2">
+          <div className="flex items-center gap-1">
+            <Star className="w-4 h-4 text-amber-500" />
+            <span className="font-medium text-sm">Cumulative Score:</span>
           </div>
+          <span className="font-bold text-ocean-dark">{cumulativeScore}</span>
         </div>
         
         {finalScore >= 100 && (
