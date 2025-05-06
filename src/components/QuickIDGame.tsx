@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import BubbleBackground from '../components/BubbleBackground';
 import { toast } from 'sonner';
@@ -23,6 +24,10 @@ interface GameImage {
   correctAnswer: 'shark' | 'kelp' | 'dolphin';
 }
 
+interface QuickIDGameProps {
+  onGameComplete?: (score: number, allComplete: boolean) => void;
+}
+
 // Sample game images - you'll replace these with your actual images
 const gameImages: GameImage[] = [
   // Easy images (shown first)
@@ -41,7 +46,7 @@ const gameImages: GameImage[] = [
   { id: '9', imagePath: dolphinHard, correctAnswer: 'dolphin' },
 ];
 
-const QuickIDGame = () => {
+const QuickIDGame: React.FC<QuickIDGameProps> = ({ onGameComplete }) => {
   // Game state
   const [gameStarted, setGameStarted] = useState(false);
   const [gameOver, setGameOver] = useState(false);
@@ -57,11 +62,21 @@ const QuickIDGame = () => {
   const [animationKey, setAnimationKey] = useState(0);
   // Add feedback state for showing checkmark/X
   const [showFeedback, setShowFeedback] = useState<'correct' | 'incorrect' | null>(null);
+  // Track if all images have been seen at least once
+  const [seenImages, setSeenImages] = useState<Set<string>>(new Set());
+  const [allImagesSeen, setAllImagesSeen] = useState(false);
   
   // Refs
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const gameTimerRef = useRef<NodeJS.Timeout | null>(null);
   const imageTimerRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // Check if all images have been seen
+  useEffect(() => {
+    if (seenImages.size === gameImages.length && !allImagesSeen) {
+      setAllImagesSeen(true);
+    }
+  }, [seenImages, allImagesSeen]);
   
   // Initialize game
   const startGame = () => {
@@ -73,6 +88,8 @@ const QuickIDGame = () => {
     setTimePerImage(5000); // Start with 5 seconds
     setTimeRemaining(60);
     setAnimationKey(0); // Reset animation key
+    setSeenImages(new Set());
+    setAllImagesSeen(false);
     
     // Start the game timer (60 seconds)
     gameTimerRef.current = setInterval(() => {
@@ -114,6 +131,10 @@ const QuickIDGame = () => {
     }
     
     const currentImage = gameImages[currentImageIndex];
+    
+    // Mark this image as seen
+    setSeenImages(prev => new Set([...prev, currentImage.id]));
+    
     let isCorrect = false;
     
     if (answer !== 'timeout') {
@@ -175,8 +196,15 @@ const QuickIDGame = () => {
       clearTimeout(imageTimerRef.current);
     }
     
-    // Show final score
+    // Calculate final score
     const accuracy = totalAttempts > 0 ? Math.round((score / totalAttempts) * 100) : 0;
+    
+    // Call the onGameComplete callback if provided
+    if (onGameComplete) {
+      onGameComplete(accuracy, allImagesSeen);
+    }
+    
+    // Show toast with score
     toast.success(`Game Over! Your accuracy: ${accuracy}%`);
   };
   
