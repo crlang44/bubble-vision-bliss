@@ -7,13 +7,12 @@ import AnnotationTools from '../components/AnnotationTools';
 import ScoreBoard from '../components/ScoreBoard';
 import Timer from '../components/Timer';
 import ImageSelector from '../components/ImageSelector';
-import { Annotation, AnnotationType } from '../utils/annotationUtils';
+import { Annotation, AnnotationType, calculateScore } from '../utils/annotationUtils';
 import { oceanImages, OceanImage, getProgressiveImageSet } from '../data/oceanImages';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { routes, navigateTo } from '../routes'; // Add this import
 import { Fish, CheckCircle, RefreshCcw, Trophy, ArrowRight, BarChart } from 'lucide-react';
-
 
 const Index = () => {
   const [showInstructions, setShowInstructions] = useState(() => {
@@ -35,22 +34,25 @@ const Index = () => {
   const [currentImages, setCurrentImages] = useState<OceanImage[]>([]);
   const [cumulativeScore, setCumulativeScore] = useState(() => {
     const savedScore = localStorage.getItem('cumulativeScore');
-    return savedScore ? parseInt(savedScore, 10) : 0;
+    return savedScore ? parseInt(savedScore) : 0;
   });
-  const [roundScore, setRoundScore] = useState(0);
   const TIMER_DURATION = 120; // 2 minutes in seconds
+  
+  // Save cumulative score to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('cumulativeScore', cumulativeScore.toString());
+  }, [cumulativeScore]);
   
   // Load initial images based on round
   useEffect(() => {
     // Get images for the current round, ensuring they all have annotations
     const imageSet = getProgressiveImageSet(currentRound);
-    setCurrentImages(imageSet);
+    const validImages = imageSet.filter(img => img.targetAnnotations.length > 0);
+    setCurrentImages(validImages);
     
     // Only select an image if we have valid images and no image is currently selected
-    if (imageSet.length > 0 && !selectedImage) {
-      // Make sure we select an image with annotations
-      const validImage = imageSet.find(img => img.targetAnnotations.length > 0) || imageSet[0];
-      setSelectedImage(validImage);
+    if (validImages.length > 0 && !selectedImage) {
+      setSelectedImage(validImages[0]);
     }
   }, [currentRound]);
   
@@ -73,11 +75,6 @@ const Index = () => {
       setIsTimerRunning(true);
     }
   }, [selectedImage, showInstructions]);
-  
-  // Save cumulative score whenever it changes
-  useEffect(() => {
-    localStorage.setItem('cumulativeScore', cumulativeScore.toString());
-  }, [cumulativeScore]);
   
   const handleSelectTool = (tool: AnnotationType | null) => {
     setSelectedTool(tool);
@@ -118,44 +115,12 @@ const Index = () => {
     setTimeBonus(calculatedBonus);
   };
   
-  // Calculate the current round score
-  const calculateRoundScore = () => {
-    if (!selectedImage) return 0;
-    
-    // This calculates score in the same way as the ScoreBoard component
-    const targetAnnotations = selectedImage.targetAnnotations;
-    
-    // Calculate total annotation score (same logic as in ScoreBoard)
-    const totalAnnotationScore = targetAnnotations.reduce((sum, target) => {
-      const matchingAnnotation = annotations.find(a => a.label === target.label);
-      if (!matchingAnnotation) return sum;
-      
-      const score = calculateScore(matchingAnnotation, target);
-      return sum + score;
-    }, 0);
-    
-    // Normalize to 100 points maximum
-    const normalizedScore = targetAnnotations.length > 0
-      ? Math.round(totalAnnotationScore / targetAnnotations.length)
-      : 0;
-    
-    // Add time bonus
-    return normalizedScore + timeBonus;
-  };
-  
   const handleSubmit = () => {
     if (!selectedImage) return;
     
     setIsTimerRunning(false);
     setGameComplete(true);
     setShowGroundTruth(true);
-    
-    // Calculate and save round score
-    const currentRoundScore = calculateRoundScore();
-    setRoundScore(currentRoundScore);
-    
-    // Add to cumulative score
-    setCumulativeScore(prevScore => prevScore + currentRoundScore);
     
     const foundAllTargets = selectedImage.targetAnnotations.every(target => 
       annotations.some(annotation => annotation.label === target.label)
@@ -170,6 +135,15 @@ const Index = () => {
       
       toast.error(`You missed ${missingCount} target${missingCount > 1 ? 's' : ''}!`);
     }
+  };
+  
+  const handleScoreUpdate = (score: number) => {
+    setCumulativeScore(prevScore => prevScore + score);
+  };
+  
+  const handleResetCumulativeScore = () => {
+    setCumulativeScore(0);
+    toast.success('Cumulative score has been reset to 0');
   };
   
   const handlePlayAgain = () => {
@@ -195,20 +169,14 @@ const Index = () => {
     setShowGroundTruth(false);
     
     const newImageSet = getProgressiveImageSet(nextRound);
-    setCurrentImages(newImageSet);
+    const validImages = newImageSet.filter(img => img.targetAnnotations.length > 0);
+    setCurrentImages(validImages);
     
-    if (newImageSet.length > 0) {
-      setSelectedImage(newImageSet[0]);
+    if (validImages.length > 0) {
+      setSelectedImage(validImages[0]);
     }
     
     toast.success(`Starting Round ${nextRound} - Difficulty increased!`);
-  };
-  
-  const handleResetCumulativeScore = () => {
-    if (window.confirm('Are you sure you want to reset your cumulative score to zero?')) {
-      setCumulativeScore(0);
-      toast.success('Cumulative score has been reset to zero');
-    }
   };
   
   return (
@@ -226,9 +194,18 @@ const Index = () => {
             <div className="bg-white/20 text-white px-3 py-1 rounded-full text-sm font-medium">
               Round {currentRound}
             </div>
-            <div className="bg-purple-500/80 text-white px-3 py-1 rounded-full text-sm font-medium flex items-center gap-1 cursor-pointer" onClick={handleResetCumulativeScore} title="Click to reset score">
-              <BarChart className="h-3.5 w-3.5" />
-              <span>{cumulativeScore}</span>
+            <div className="bg-white/20 text-white px-3 py-1 rounded-full text-sm font-medium flex items-center gap-1">
+              <Trophy className="h-4 w-4" />
+              <span>Score: {cumulativeScore}</span>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-5 w-5 text-white hover:bg-white/20 ml-1" 
+                onClick={handleResetCumulativeScore}
+                title="Reset Score"
+              >
+                <RotateCcw className="h-3 w-3" />
+              </Button>
             </div>
             <Button
               variant="outline"
@@ -356,6 +333,7 @@ const Index = () => {
                   timeBonus={timeBonus}
                   isComplete={gameComplete}
                   cumulativeScore={cumulativeScore}
+                  onScoreChange={handleScoreUpdate}
                 />
                 
                 <div className="p-4 bg-white rounded-xl shadow-md text-center">

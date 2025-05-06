@@ -1,14 +1,15 @@
 
 import React, { useEffect } from 'react';
 import { Annotation, TargetAnnotation, calculateScore } from '../utils/annotationUtils';
-import { Trophy, Target, Clock, BarChart } from 'lucide-react';
+import { Trophy, Target, Clock, Star } from 'lucide-react';
 
 interface ScoreBoardProps {
   userAnnotations: Annotation[];
   targetAnnotations: TargetAnnotation[];
   timeBonus: number;
   isComplete: boolean;
-  cumulativeScore?: number;
+  cumulativeScore: number;
+  onScoreChange?: (score: number) => void;
 }
 
 const ScoreBoard: React.FC<ScoreBoardProps> = ({ 
@@ -16,7 +17,8 @@ const ScoreBoard: React.FC<ScoreBoardProps> = ({
   targetAnnotations, 
   timeBonus, 
   isComplete,
-  cumulativeScore = 0
+  cumulativeScore = 0,
+  onScoreChange
 }) => {
   // Debug output to see what we're working with
   useEffect(() => {
@@ -65,22 +67,24 @@ const ScoreBoard: React.FC<ScoreBoardProps> = ({
     };
   });
   
-  // Calculate total score - normalized to 100 points regardless of annotation count
+  // Calculate total score
   const totalAnnotationScore = annotationScores.reduce((sum, item) => sum + item.score, 0);
   
-  // Normalize to 100 points maximum for annotations
-  const normalizedAnnotationScore = targetAnnotations.length 
-    ? Math.round((totalAnnotationScore / targetAnnotations.length))
+  // Normalize score based on number of annotations (0-100 scale)
+  const normalizedScore = targetAnnotations.length 
+    ? Math.round(totalAnnotationScore / targetAnnotations.length) 
     : 0;
   
-  // Final score combines normalized annotation score (0-100) with time bonus (0-25)
-  const finalScore = normalizedAnnotationScore + timeBonus;
+  const finalScore = Math.round(normalizedScore + timeBonus);
   
-  // Cumulative score including the current round's score
-  const totalCumulativeScore = cumulativeScore + finalScore;
+  // Update parent component with score when complete
+  useEffect(() => {
+    if (isComplete && onScoreChange) {
+      onScoreChange(finalScore);
+    }
+  }, [isComplete, finalScore, onScoreChange]);
   
-  console.log('Normalized annotation score:', normalizedAnnotationScore, 'Time bonus:', timeBonus);
-  console.log('Final calculated score:', finalScore, 'Cumulative score:', totalCumulativeScore);
+  console.log('Final calculated score:', finalScore, 'Normalized annotation score:', normalizedScore, 'Time bonus:', timeBonus);
   
   return (
     <div className="bg-white rounded-xl shadow-lg p-4">
@@ -108,11 +112,6 @@ const ScoreBoard: React.FC<ScoreBoardProps> = ({
           </div>
         ))}
         
-        <div className="flex justify-between items-center mt-3 pt-2 border-t border-gray-100">
-          <span className="text-sm font-medium">Normalized Score:</span>
-          <span className="font-medium">{normalizedAnnotationScore} / 100</span>
-        </div>
-        
         <div className="h-px bg-gray-200 my-2"></div>
         
         <div className="flex justify-between items-center">
@@ -126,16 +125,16 @@ const ScoreBoard: React.FC<ScoreBoardProps> = ({
       
       <div className="bg-gray-50 p-3 rounded-lg">
         <div className="flex justify-between items-center">
-          <span className="font-medium">Round Score:</span>
+          <span className="font-medium">Total Score:</span>
           <span className="text-xl font-bold text-ocean-dark">{finalScore}</span>
         </div>
         
-        <div className="flex justify-between items-center mt-2 pt-2 border-t border-gray-100">
+        <div className="flex justify-between items-center mt-2">
           <div className="flex items-center gap-1">
-            <BarChart className="w-4 h-4 text-purple-600" />
-            <span className="font-medium">Cumulative Score:</span>
+            <Star className="w-4 h-4 text-amber-500" />
+            <span className="font-medium text-sm">Cumulative Score:</span>
           </div>
-          <span className="text-xl font-bold text-purple-700">{totalCumulativeScore}</span>
+          <span className="font-bold text-ocean-dark">{cumulativeScore + finalScore}</span>
         </div>
         
         {finalScore >= 100 && (
