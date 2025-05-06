@@ -95,6 +95,9 @@ const ScoreBoard: React.FC<ScoreBoardProps> = ({
   
   console.log('Final calculated score:', finalScore, 'Normalized annotation score:', normalizedScore, 'Time bonus:', timeBonus);
   
+  // Calculate new cumulative score (current cumulative + final score if complete)
+  const displayCumulativeScore = cumulativeScore + (isComplete ? finalScore : 0);
+  
   return (
     <div className="bg-white rounded-xl shadow-lg p-4">
       <div className="flex justify-between items-center mb-4">
@@ -143,7 +146,7 @@ const ScoreBoard: React.FC<ScoreBoardProps> = ({
             <Star className="w-4 h-4 text-amber-500" />
             <span className="font-medium text-sm">Cumulative Score:</span>
           </div>
-          <span className="font-bold text-ocean-dark">{cumulativeScore + finalScore}</span>
+          <span className="font-bold text-ocean-dark">{cumulativeScore}</span>
         </div>
         
         {finalScore >= 100 && (
