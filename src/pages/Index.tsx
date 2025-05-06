@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import BubbleBackground from '../components/BubbleBackground';
 import Instructions from '../components/Instructions';
@@ -149,6 +150,7 @@ const Index = () => {
       setAnnotatedImages(prev => new Set([...prev, selectedImage.id]));
     }
     
+    // Check if all targets were found correctly
     const foundAllTargets = selectedImage.targetAnnotations.every(target => 
       annotations.some(annotation => annotation.label === target.label)
     );
@@ -181,22 +183,37 @@ const Index = () => {
     setIsTimerRunning(true);
     setShowGroundTruth(false);
     setShowCompletionDialog(false);
-    // Reset cumulative score when trying again from completion dialog
+    // Reset cumulative score and annotated images when trying again from completion dialog
     setCumulativeScore(0);
+    setAnnotatedImages(new Set());
   };
   
   const handleNewImage = () => {
-    const currentIndex = currentImages.findIndex(img => img.id === selectedImage?.id);
+    if (!selectedImage) return;
+    
+    const currentIndex = currentImages.findIndex(img => img.id === selectedImage.id);
     const nextIndex = (currentIndex + 1) % currentImages.length;
+    
+    // If this is the last image and all have been annotated, don't allow selecting a new one
+    if (currentIndex === currentImages.length - 1 && annotatedImages.size >= currentImages.length) {
+      toast.info("You've completed all images!");
+      return;
+    }
+    
     setSelectedImage(currentImages[nextIndex]);
     setAnnotations([]);
     setShowGroundTruth(false);
-    setShowCompletionDialog(false);
   };
   
   const handleGoToQuickIDGame = () => {
     window.location.href = routes.quickIdGame;
   };
+  
+  // Determine if we've reached the last image
+  const isLastImage = selectedImage && 
+    currentImages.findIndex(img => img.id === selectedImage.id) === currentImages.length - 1;
+  const allImagesAnnotated = currentImages.length > 0 && 
+    annotatedImages.size >= currentImages.length;
   
   return (
     <div className="min-h-screen bg-ocean-gradient relative">
@@ -319,20 +336,14 @@ const Index = () => {
                   <CheckCircle className="h-4 w-4" /> Submit
                 </Button>
               ) : (
-                <div className="flex gap-2">
-                  <Button 
-                    onClick={handlePlayAgain}
-                    className="btn-ocean flex items-center gap-1"
-                  >
-                    <RefreshCcw className="h-4 w-4" /> Try Again
-                  </Button>
-                  <Button 
-                    onClick={handleNewImage}
-                    className="btn-coral flex items-center gap-1"
-                  >
-                    <Fish className="h-4 w-4" /> New Image
-                  </Button>
-                </div>
+                <Button 
+                  onClick={handleNewImage}
+                  className="btn-coral flex items-center gap-1"
+                  disabled={isLastImage && allImagesAnnotated}
+                >
+                  <Fish className="h-4 w-4" /> 
+                  {isLastImage && allImagesAnnotated ? 'All Images Complete!' : 'New Image'}
+                </Button>
               )}
             </div>
           </div>
@@ -368,7 +379,16 @@ const Index = () => {
       </div>
 
       {/* Game Completion Dialog */}
-      <Dialog open={showCompletionDialog} onOpenChange={setShowCompletionDialog}>
+      <Dialog 
+        open={showCompletionDialog} 
+        onOpenChange={(open) => {
+          if (!open && allImagesAnnotated) {
+            // If closing the dialog and all images are annotated, reset for a new game
+            setAnnotatedImages(new Set());
+          }
+          setShowCompletionDialog(open);
+        }}
+      >
         <DialogContent className="bg-gradient-to-b from-blue-50 to-white border-blue-200 max-w-md">
           <DialogHeader>
             <DialogTitle className="text-2xl text-center flex items-center justify-center gap-2">
