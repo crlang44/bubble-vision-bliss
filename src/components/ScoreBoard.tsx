@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Annotation, TargetAnnotation, calculateScore } from '../utils/annotationUtils';
 import { Trophy, Target, Clock, Star } from 'lucide-react';
 
@@ -20,6 +20,9 @@ const ScoreBoard: React.FC<ScoreBoardProps> = ({
   cumulativeScore = 0,
   onScoreChange
 }) => {
+  // Use a ref to track if we've already updated the score for this round
+  const hasUpdatedScore = useRef(false);
+  
   // Debug output to see what we're working with
   useEffect(() => {
     console.log('ScoreBoard - User Annotations:', userAnnotations);
@@ -77,10 +80,16 @@ const ScoreBoard: React.FC<ScoreBoardProps> = ({
   
   const finalScore = Math.round(normalizedScore + timeBonus);
   
-  // Update parent component with score when complete
+  // Update parent component with score when complete, but only once
   useEffect(() => {
-    if (isComplete && onScoreChange) {
+    if (isComplete && onScoreChange && !hasUpdatedScore.current) {
       onScoreChange(finalScore);
+      hasUpdatedScore.current = true;
+    }
+    
+    // Reset the flag when isComplete changes to false
+    if (!isComplete) {
+      hasUpdatedScore.current = false;
     }
   }, [isComplete, finalScore, onScoreChange]);
   
