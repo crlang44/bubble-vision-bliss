@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import BubbleBackground from '../components/BubbleBackground';
 import Instructions from '../components/Instructions';
@@ -182,6 +181,8 @@ const Index = () => {
     setIsTimerRunning(true);
     setShowGroundTruth(false);
     setShowCompletionDialog(false);
+    // Reset cumulative score when trying again from completion dialog
+    setCumulativeScore(0);
   };
   
   const handleNewImage = () => {
@@ -209,19 +210,32 @@ const Index = () => {
           </div>
           
           <div className="flex gap-2 items-center">
-            <div className="bg-white/20 text-white px-3 py-1 rounded-full text-sm font-medium flex items-center gap-1">
-              <Trophy className="h-4 w-4" />
-              <span>Score: {cumulativeScore}</span>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="h-5 w-5 text-white hover:bg-white/20 ml-1" 
-                onClick={handleResetCumulativeScore}
-                title="Reset Score"
-              >
-                <RefreshCcw className="h-3 w-3" />
-              </Button>
+            {/* Score display with best score addition */}
+            <div className="flex gap-2">
+              {/* Current score display */}
+              <div className="bg-white/20 text-white px-3 py-1 rounded-full text-sm font-medium flex items-center gap-1">
+                <Trophy className="h-4 w-4" />
+                <span>Score: {cumulativeScore}</span>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="h-5 w-5 text-white hover:bg-white/20 ml-1" 
+                  onClick={handleResetCumulativeScore}
+                  title="Reset Score"
+                >
+                  <RefreshCcw className="h-3 w-3" />
+                </Button>
+              </div>
+              
+              {/* Best score display in header */}
+              {bestScore > 0 && (
+                <div className="bg-yellow-100/30 text-white px-3 py-1 rounded-full text-sm font-medium flex items-center gap-1">
+                  <Trophy className="h-4 w-4 text-yellow-300" />
+                  <span>Best: {bestScore}</span>
+                </div>
+              )}
             </div>
+            
             <Button
               variant="outline"
               onClick={() => setShowInstructions(true)}
