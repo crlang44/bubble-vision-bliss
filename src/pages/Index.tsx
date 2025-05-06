@@ -157,7 +157,8 @@ const Index = () => {
     // More accurate scoring - match each target annotation with user annotations
     // and verify not just labels but also positions
     let allTargetsFound = true;
-    let missedCount = 0;
+    let foundCount = 0;
+    let totalTargets = selectedImage.targetAnnotations.length;
     
     // Check each target annotation
     for (const targetAnnotation of selectedImage.targetAnnotations) {
@@ -169,9 +170,11 @@ const Index = () => {
         if (userAnnotation.label === targetAnnotation.label) {
           // Check if the positions overlap with reasonable accuracy
           const score = calculateScore(userAnnotation, targetAnnotation);
+          console.log(`Checking match for ${targetAnnotation.label}: Score ${score}`);
           // Consider a match if score is above threshold (30%)
           if (score >= 30) {
             foundMatch = true;
+            foundCount++;
             break;
           }
         }
@@ -179,15 +182,21 @@ const Index = () => {
       
       if (!foundMatch) {
         allTargetsFound = false;
-        missedCount++;
       }
     }
     
-    // Show appropriate feedback
-    if (allTargetsFound && selectedImage.targetAnnotations.length > 0) {
-      toast.success('Great job! You found all the targets!');
-    } else if (missedCount > 0) {
-      toast.error(`You missed ${missedCount} target${missedCount > 1 ? 's' : ''}!`);
+    // Show appropriate feedback only for images with multiple targets
+    if (totalTargets > 1) {
+      if (allTargetsFound) {
+        toast.success('Great job! You found all the targets!');
+      } else if (foundCount > 0) {
+        // If user found some but not all targets
+        const missedCount = totalTargets - foundCount;
+        toast.error(`You found ${foundCount} target${foundCount > 1 ? 's' : ''}, but missed ${missedCount} target${missedCount > 1 ? 's' : ''}!`);
+      } else {
+        // If user found none of the targets
+        toast.error(`You missed all ${totalTargets} targets!`);
+      }
     }
   };
   

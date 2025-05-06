@@ -38,6 +38,19 @@ export const calculateRectOverlap = (rect1: Coordinate[], rect2: Coordinate[]): 
     bottom: Math.max(rect2[0].y, rect2[1].y)
   };
   
+  // Check for obvious mismatches first - if rectangles are too far apart
+  const maxDistance = 300; // Maximum distance to consider any possibility of a match
+  const centerDist = Math.sqrt(
+    Math.pow(((r1.left + r1.right) / 2) - ((r2.left + r2.right) / 2), 2) +
+    Math.pow(((r1.top + r1.bottom) / 2) - ((r2.top + r2.bottom) / 2), 2)
+  );
+  
+  // If centers are too far apart, don't consider them a match
+  if (centerDist > maxDistance) {
+    console.log(`Rectangles too far apart: ${centerDist} > ${maxDistance}`);
+    return 0;
+  }
+  
   const xOverlap = Math.max(0, Math.min(r1.right, r2.right) - Math.max(r1.left, r2.left));
   const yOverlap = Math.max(0, Math.min(r1.bottom, r2.bottom) - Math.max(r1.top, r2.top));
   const overlapArea = xOverlap * yOverlap;
@@ -71,6 +84,12 @@ export const calculateRectOverlap = (rect1: Coordinate[], rect2: Coordinate[]): 
     // If rectangles are close enough, assign a small score
     if (xDistance < proximity && yDistance < proximity) {
       boostedScore = 0.1; // 10% score for close proximity
+    }
+    
+    // Give partial credit for annotations in the general area
+    // This helps with large images where precision is harder
+    if (centerDist < maxDistance / 2) {
+      boostedScore = Math.max(boostedScore, 0.3); // At least 30% for being in right area
     }
   }
   
