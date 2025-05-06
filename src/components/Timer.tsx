@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { AlertCircle, Clock } from 'lucide-react';
 import { Progress } from "@/components/ui/progress";
@@ -19,7 +20,6 @@ const Timer: React.FC<TimerProps> = ({ duration, onTimeUp, isRunning, onTimerUpd
   }, [duration]);
   
   useEffect(() => {
-    // Always keep the timer running regardless of game state
     // Only stop if isRunning is explicitly set to false
     if (!isRunning) return;
     
