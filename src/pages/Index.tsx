@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import BubbleBackground from '../components/BubbleBackground';
 import Instructions from '../components/Instructions';
@@ -151,17 +150,22 @@ const Index = () => {
     }
     
     // Check if all targets were found correctly
-    const foundAllTargets = selectedImage.targetAnnotations.every(target => 
-      annotations.some(annotation => annotation.label === target.label)
+    const targetLabels = selectedImage.targetAnnotations.map(target => target.label);
+    const userLabels = annotations.map(annotation => annotation.label);
+    
+    // Check if every target label exists in user annotations
+    const foundAllTargets = targetLabels.every(targetLabel => 
+      userLabels.includes(targetLabel)
     );
     
     if (foundAllTargets) {
       toast.success('Great job! You found all the targets!');
     } else {
-      const missingCount = selectedImage.targetAnnotations.filter(target => 
-        !annotations.some(annotation => annotation.label === target.label)
-      ).length;
+      const missingLabels = targetLabels.filter(targetLabel => 
+        !userLabels.includes(targetLabel)
+      );
       
+      const missingCount = missingLabels.length;
       toast.error(`You missed ${missingCount} target${missingCount > 1 ? 's' : ''}!`);
     }
   };
