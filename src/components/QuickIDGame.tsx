@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import BubbleBackground from '../components/BubbleBackground';
 import { toast } from 'sonner';
@@ -166,7 +165,7 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({ onGameComplete }) => {
     
     // Set new timer for current image
     imageTimerRef.current = setTimeout(() => {
-      // Time's up for this image - count as incorrect
+      // Time's up for this image - count as incorrect and move to next image
       handleAnswer('timeout');
     }, timePerImage);
   };
@@ -202,27 +201,35 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({ onGameComplete }) => {
       setTotalAttempts(prev => prev + 1);
       setShowFeedback('incorrect');
       toast.error('Too slow!', { duration: 300 });
+      
+      // For timeouts, switch immediately to the next image
+      moveToNextImage();
+      return;
     }
     
     // Prepare for the next image with minimal delay
     setTimeout(() => {
       setShowFeedback(null);
-      
-      // Move to next image or end game if no more images
-      const nextIndex = (currentImageIndex + 1) % gameImages.length;
-      
-      // Set next image with very minimal delay
-      setCurrentImageIndex(nextIndex);
-      
-      // Gradually decrease time per image as game progresses
-      // From 5 seconds to 0.5 seconds over the course of the game
-      const progress = nextIndex / gameImages.length;
-      const newTimePerImage = 5000 - (progress * 4500);
-      setTimePerImage(Math.max(500, newTimePerImage));
-      
-      // Set timer for next image
-      setImageTimer();
+      moveToNextImage();
     }, 200); // Show feedback for only 200ms for faster transitions
+  };
+  
+  // New function to handle moving to the next image
+  const moveToNextImage = () => {
+    // Move to next image or end game if no more images
+    const nextIndex = (currentImageIndex + 1) % gameImages.length;
+    
+    // Set next image with very minimal delay
+    setCurrentImageIndex(nextIndex);
+    
+    // Gradually decrease time per image as game progresses
+    // From 5 seconds to 0.5 seconds over the course of the game
+    const progress = nextIndex / gameImages.length;
+    const newTimePerImage = 5000 - (progress * 4500);
+    setTimePerImage(Math.max(500, newTimePerImage));
+    
+    // Set timer for next image
+    setImageTimer();
   };
   
   // End the game
