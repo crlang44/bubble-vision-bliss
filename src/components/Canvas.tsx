@@ -33,6 +33,7 @@ const Canvas: React.FC<CanvasProps> = ({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const imageRef = useRef<HTMLImageElement | null>(null);
+  const prevImageUrlRef = useRef<string>(imageUrl); // Keep track of previous imageUrl
   const [isDrawing, setIsDrawing] = useState(false);
   const [currentAnnotation, setCurrentAnnotation] = useState<Annotation | null>(null);
   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
@@ -110,9 +111,18 @@ const Canvas: React.FC<CanvasProps> = ({
     }
   }, [targetAnnotations, canvasSize, originalWidth, originalHeight]);
 
-  // Load the image
+  // Load the image - only when imageUrl changes, not on every render
   useEffect(() => {
+    // Only reload the image if the URL has actually changed
+    if (imageUrl === prevImageUrlRef.current && isImageLoaded) {
+      console.log("Same image URL, skipping reload:", imageUrl);
+      return;
+    }
+    
+    console.log("Loading new image:", imageUrl);
     setIsImageLoaded(false);
+    prevImageUrlRef.current = imageUrl; // Update the ref with current URL
+    
     // Reset local ground truth display when image changes
     setLocalShowGroundTruth(showGroundTruth);
     
@@ -150,7 +160,7 @@ const Canvas: React.FC<CanvasProps> = ({
     img.onerror = () => {
       toast.error('Failed to load image');
     };
-  }, [imageUrl, showGroundTruth]);
+  }, [imageUrl]);
 
   // Initial render of the image when isImageLoaded changes
   useEffect(() => {
