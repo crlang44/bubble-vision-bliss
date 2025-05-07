@@ -75,9 +75,9 @@ const Timer: React.FC<TimerProps> = ({ duration, onTimeUp, isRunning, onTimerUpd
   
   // Determine the color based on the time percentage
   const getProgressColor = () => {
-    if (timePercentage > 50) return "bg-green-500";
-    if (timePercentage > 25) return "bg-yellow-500";
-    return "bg-red-500";
+    if (timePercentage > 50) return "bg-ocean-medium";
+    if (timePercentage > 25) return "bg-coral";
+    return "bg-ocean-dark";
   };
   
   return (
@@ -94,7 +94,7 @@ const Timer: React.FC<TimerProps> = ({ duration, onTimeUp, isRunning, onTimerUpd
       </div>
       <Progress 
         value={timePercentage} 
-        className="h-2 bg-gray-200" 
+        className="h-2 bg-ocean-light" 
         indicatorClassName={getProgressColor()} 
       />
     </div>
