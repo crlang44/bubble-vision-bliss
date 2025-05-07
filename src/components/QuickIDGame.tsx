@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import BubbleBackground from '../components/BubbleBackground';
 import { toast } from 'sonner';
@@ -82,6 +83,7 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({ onGameComplete }) => {
   const gameTimerRef = useRef<NodeJS.Timeout | null>(null);
   const imageTimerRef = useRef<NodeJS.Timeout | null>(null);
   const nextImageRef = useRef<HTMLImageElement | null>(null);
+  const progressAnimationRef = useRef<Animation | null>(null);
   
   // Preload all images when component mounts
   useEffect(() => {
@@ -137,6 +139,7 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({ onGameComplete }) => {
     setSeenImages(new Set());
     setAllImagesSeen(false);
     setIsImageLoading(false);
+    setShowFeedback(null);
     
     // Start the game timer (60 seconds)
     gameTimerRef.current = setInterval(() => {
@@ -192,9 +195,21 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({ onGameComplete }) => {
         setScore(prev => prev + 1);
         setShowFeedback('correct');
         toast.success('Correct!', { duration: 300 });
+
+        // Prepare for the next image with minimal delay
+        setTimeout(() => {
+          setShowFeedback(null);
+          moveToNextImage();
+        }, 200); // Show feedback for only 200ms for faster transitions
       } else {
         setShowFeedback('incorrect');
         toast.error('Incorrect!', { duration: 300 });
+
+        // Prepare for the next image with minimal delay
+        setTimeout(() => {
+          setShowFeedback(null);
+          moveToNextImage();
+        }, 200); // Show feedback for only 200ms for faster transitions
       }
     } else {
       // Timeout counts as an attempt
@@ -202,16 +217,12 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({ onGameComplete }) => {
       setShowFeedback('incorrect');
       toast.error('Too slow!', { duration: 300 });
       
-      // For timeouts, switch immediately to the next image
-      moveToNextImage();
-      return;
+      // For timeouts, show the feedback briefly then move to next image
+      setTimeout(() => {
+        setShowFeedback(null);
+        moveToNextImage();
+      }, 300);
     }
-    
-    // Prepare for the next image with minimal delay
-    setTimeout(() => {
-      setShowFeedback(null);
-      moveToNextImage();
-    }, 200); // Show feedback for only 200ms for faster transitions
   };
   
   // New function to handle moving to the next image
@@ -401,7 +412,7 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({ onGameComplete }) => {
                       className="h-full bg-ocean-dark"
                       style={{ 
                         width: '100%',
-                        animation: `shrink ${timePerImage/1000}s linear forwards` 
+                        animation: `shrinkTimer ${timePerImage/1000}s linear forwards` 
                       }}
                     ></div>
                   </div>
@@ -511,7 +522,7 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({ onGameComplete }) => {
         
         {/* CSS for animation */}
         <style>{`
-          @keyframes shrink {
+          @keyframes shrinkTimer {
             from { width: 100%; }
             to { width: 0%; }
           }

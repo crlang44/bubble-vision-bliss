@@ -43,7 +43,7 @@
 }
 
 /* Animation for timer */
-@keyframes shrink {
+@keyframes shrinkTimer {
   from { width: 100%; }
   to { width: 0%; }
 }
