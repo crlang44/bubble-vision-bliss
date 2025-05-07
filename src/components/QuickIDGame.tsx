@@ -62,7 +62,7 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({ onGameComplete }) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [score, setScore] = useState(0);
   const [totalAttempts, setTotalAttempts] = useState(0);
-  const [timePerImage, setTimePerImage] = useState(2000); // Start with 2 seconds per image
+  const [timePerImage, setTimePerImage] = useState(5000); // Start with 5 seconds per image
   const [timeRemaining, setTimeRemaining] = useState(60); // 1 minute gameplay
   const [currentImageStartTime, setCurrentImageStartTime] = useState(0); // Track when current image started
   const [showInstructions, setShowInstructions] = useState(() => {
@@ -139,7 +139,6 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({ onGameComplete }) => {
     setSeenImages(new Set());
     setAllImagesSeen(false);
     setIsImageLoading(false);
-    setCurrentImageStartTime(Date.now()); // Initialize the start time for the first image
     
     // Start the game timer (60 seconds)
     gameTimerRef.current = setInterval(() => {
@@ -224,13 +223,13 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({ onGameComplete }) => {
       // Set next image with very minimal delay
       setCurrentImageIndex(nextIndex);
       
-  // Gradually decrease time per image as game progresses
-  // From 5 seconds to 2 seconds over the course of the game
-  // Use total attempts instead of current index to prevent resetting speed
-  const progress = Math.min(1, totalAttempts / (gameImages.length * 2));
-  const newTimePerImage = 5000 - (progress * 3000);
-  setTimePerImage(Math.max(2000, newTimePerImage));
-      
+      // Gradually decrease time per image as game progresses
+      // From 5 seconds to 2 seconds over the course of the game
+      // Use total attempts instead of current index to prevent resetting speed
+      const progress = Math.min(1, totalAttempts / (gameImages.length * 2));
+      const newTimePerImage = 5000 - (progress * 3000);
+      setTimePerImage(Math.max(2000, newTimePerImage));
+          
       // Set timer for next image
       setImageTimer();
     }, 200); // Show feedback for only 200ms for faster transitions
