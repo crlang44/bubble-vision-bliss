@@ -66,17 +66,17 @@
 
 /* Progress bar custom styles */
 .progress-bar-container {
-  @apply bg-ocean-light;
+  @apply bg-gray-200;
 }
 
 .progress-bar-indicator {
-  @apply bg-ocean-medium;
+  @apply bg-green-500;
 }
 
 .progress-bar-indicator-warning {
-  @apply bg-coral;
+  @apply bg-yellow-500;
 }
 
 .progress-bar-indicator-danger {
-  @apply bg-ocean-dark;
+  @apply bg-red-500;
 }
