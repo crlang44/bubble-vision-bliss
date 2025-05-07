@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Fish, CheckCircle, RefreshCcw, Trophy, Clock, AlertTriangle } from 'lucide-react';
 import { routes } from '../routes';
+import { Skeleton } from '@/components/ui/skeleton';
 
 // Import images
 import sharkClear from '../data/images/shark_clear.jpg';
@@ -46,6 +47,14 @@ const gameImages: GameImage[] = [
   { id: '9', imagePath: dolphinHard, correctAnswer: 'dolphin' },
 ];
 
+// Preload images for faster switching
+const preloadImages = () => {
+  gameImages.forEach(image => {
+    const img = new Image();
+    img.src = image.imagePath;
+  });
+};
+
 const QuickIDGame: React.FC<QuickIDGameProps> = ({ onGameComplete }) => {
   // Game state
   const [gameStarted, setGameStarted] = useState(false);
@@ -65,18 +74,56 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({ onGameComplete }) => {
   // Track if all images have been seen at least once
   const [seenImages, setSeenImages] = useState<Set<string>>(new Set());
   const [allImagesSeen, setAllImagesSeen] = useState(false);
+  // Add state for next image preloading
+  const [nextImagePreloaded, setNextImagePreloaded] = useState(false);
+  const [isImageLoading, setIsImageLoading] = useState(true);
   
   // Refs
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const gameTimerRef = useRef<NodeJS.Timeout | null>(null);
   const imageTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const nextImageRef = useRef<HTMLImageElement | null>(null);
   
+  // Preload all images when component mounts
+  useEffect(() => {
+    preloadImages();
+  }, []);
+
   // Check if all images have been seen
   useEffect(() => {
     if (seenImages.size === gameImages.length && !allImagesSeen) {
       setAllImagesSeen(true);
     }
   }, [seenImages, allImagesSeen]);
+  
+  // Preload next image whenever current image index changes
+  useEffect(() => {
+    if (!gameStarted) return;
+    
+    // Calculate the next image index
+    const nextIndex = (currentImageIndex + 1) % gameImages.length;
+    const nextImage = gameImages[nextIndex];
+    
+    // Create an image element for preloading
+    if (!nextImageRef.current) {
+      nextImageRef.current = new Image();
+    }
+    
+    // Set up onload handler
+    nextImageRef.current.onload = () => {
+      setNextImagePreloaded(true);
+    };
+    
+    // Set the src to trigger preloading
+    nextImageRef.current.src = nextImage.imagePath;
+    
+    return () => {
+      // Clean up onload handler
+      if (nextImageRef.current) {
+        nextImageRef.current.onload = null;
+      }
+    };
+  }, [currentImageIndex, gameStarted]);
   
   // Initialize game
   const startGame = () => {
@@ -90,6 +137,7 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({ onGameComplete }) => {
     setAnimationKey(0); // Reset animation key
     setSeenImages(new Set());
     setAllImagesSeen(false);
+    setIsImageLoading(false);
     
     // Start the game timer (60 seconds)
     gameTimerRef.current = setInterval(() => {
@@ -156,30 +204,25 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({ onGameComplete }) => {
       toast.error('Too slow!', { duration: 300 });
     }
     
-    // Show feedback for a short time before moving to next image
+    // Prepare for the next image with minimal delay
     setTimeout(() => {
       setShowFeedback(null);
       
       // Move to next image or end game if no more images
-      const nextIndex = currentImageIndex + 1;
+      const nextIndex = (currentImageIndex + 1) % gameImages.length;
       
-      if (nextIndex < gameImages.length) {
-        setCurrentImageIndex(nextIndex);
-        
-        // Gradually decrease time per image as game progresses
-        // From 5 seconds to 0.5 seconds over the course of the game
-        const progress = nextIndex / gameImages.length;
-        const newTimePerImage = 5000 - (progress * 4500);
-        setTimePerImage(Math.max(500, newTimePerImage));
-        
-        // Set timer for next image
-        setImageTimer();
-      } else {
-        // Cycle back to the beginning if we run out of images
-        setCurrentImageIndex(0);
-        setImageTimer();
-      }
-    }, 500); // Show feedback for 500ms
+      // Set next image with very minimal delay
+      setCurrentImageIndex(nextIndex);
+      
+      // Gradually decrease time per image as game progresses
+      // From 5 seconds to 0.5 seconds over the course of the game
+      const progress = nextIndex / gameImages.length;
+      const newTimePerImage = 5000 - (progress * 4500);
+      setTimePerImage(Math.max(500, newTimePerImage));
+      
+      // Set timer for next image
+      setImageTimer();
+    }, 200); // Show feedback for only 200ms for faster transitions
   };
   
   // End the game
@@ -318,17 +361,20 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({ onGameComplete }) => {
           <div className="bg-white rounded-xl shadow-lg overflow-hidden mb-4">
             {gameStarted ? (
               <div className="p-4 flex flex-col items-center">
-                {/* Current image */}
+                {/* Current image with improved loading */}
                 <div className="relative h-[350px] w-full flex items-center justify-center bg-gray-100 rounded-lg mb-6">
+                  {/* Actual image (with hidden previous image to prevent flicker) */}
                   <img 
                     src={gameImages[currentImageIndex].imagePath} 
                     alt="Identify this" 
-                    className="max-h-full max-w-full object-contain"
+                    className="max-h-full max-w-full object-contain transition-opacity duration-200"
+                    style={{ opacity: 1 }}
+                    onLoad={() => setIsImageLoading(false)}
                   />
                   
                   {/* Feedback overlay */}
                   {showFeedback && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/30 z-10">
                       {showFeedback === 'correct' ? (
                         <div className="bg-green-500 rounded-full p-10">
                           <CheckCircle className="h-24 w-24 text-white" />
