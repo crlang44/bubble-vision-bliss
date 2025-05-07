@@ -110,8 +110,8 @@
 .bubble {
   position: absolute;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.3);
-  box-shadow: 0 0 10px rgba(255, 255, 255, 0.5), inset 0 0 10px rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.3), inset 0 0 10px rgba(255, 255, 255, 0.3);
   pointer-events: none;
 }
 
@@ -121,11 +121,11 @@
 }
 
 .btn-ocean {
-  @apply bg-ocean-medium hover:bg-ocean-dark text-white font-semibold py-2 px-4 rounded-full transition-all shadow-md hover:shadow-lg;
+  @apply bg-ocean-medium hover:bg-ocean-dark text-white font-semibold py-2 px-4 rounded-md transition-all shadow-md hover:shadow-lg;
 }
 
 .btn-coral {
-  @apply bg-coral text-white font-semibold py-2 px-4 rounded-full transition-all shadow-md hover:shadow-lg;
+  @apply bg-coral text-white font-semibold py-2 px-4 rounded-md transition-all shadow-md hover:shadow-lg;
 }
 
 .annotation-active {

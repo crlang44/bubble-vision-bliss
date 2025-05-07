@@ -65,12 +65,12 @@ export default {
 				},
 				ocean: {
 					light: '#D3E4FD',
-					medium: '#33C3F0',
-					dark: '#0EA5E9',
+					medium: '#0EA5E9',
+					dark: '#1A1F2C',
 				},
-				coral: '#FF719A',
-				sand: '#FEF7CD',
-				seaweed: '#6E59A5',
+				coral: '#8B5CF6',
+				sand: '#F1F1F1',
+				seaweed: '#403E43',
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
@@ -127,7 +127,7 @@ export default {
 				'swim': 'swim 3s ease-in-out infinite',
 			},
 			backgroundImage: {
-				'ocean-gradient': 'linear-gradient(180deg, #D3E4FD 0%, #33C3F0 50%, #0EA5E9 100%)',
+				'ocean-gradient': 'linear-gradient(180deg, #D3E4FD 0%, #0EA5E9 50%, #1A1F2C 100%)',
 			}
 		}
 	},

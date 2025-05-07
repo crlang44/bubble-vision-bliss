@@ -3,7 +3,7 @@
 
 /* Custom classes for ocean theme */
 .bg-ocean-gradient {
-  @apply bg-gradient-to-b from-blue-900 via-blue-700 to-blue-500;
+  @apply bg-gradient-to-b from-blue-900 via-blue-700 to-blue-800;
 }
 
 .text-ocean-dark {
@@ -19,7 +19,7 @@
 }
 
 .text-coral {
-  @apply text-red-400;
+  @apply text-purple-500;
 }
 
 .bg-ocean-dark {
@@ -35,7 +35,7 @@
 }
 
 .bg-coral {
-  @apply bg-red-400;
+  @apply bg-purple-500;
 }
 
 .hover\:bg-ocean-darker:hover {
@@ -51,7 +51,7 @@
 /* Animation for score pulse */
 @keyframes score-glow {
   0% { text-shadow: 0 0 10px rgba(255, 255, 255, 0.5); }
-  50% { text-shadow: 0 0 20px rgba(255, 255, 255, 0.8), 0 0 30px rgba(255, 215, 0, 0.6); }
+  50% { text-shadow: 0 0 20px rgba(255, 255, 255, 0.8), 0 0 30px rgba(139, 92, 246, 0.6); }
   100% { text-shadow: 0 0 10px rgba(255, 255, 255, 0.5); }
 }
 
