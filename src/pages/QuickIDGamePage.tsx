@@ -48,7 +48,6 @@ const QuickIDGamePage: React.FC = () => {
   return (
     <div className="min-h-screen bg-ocean-gradient relative">
       <div className="container mx-auto py-6 px-4 relative z-10">
-        <NavBar />
         <QuickIDGame onGameComplete={handleGameComplete} />
       </div>
 
