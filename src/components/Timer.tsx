@@ -94,7 +94,7 @@ const Timer: React.FC<TimerProps> = ({ duration, onTimeUp, isRunning, onTimerUpd
       </div>
       <Progress 
         value={timePercentage} 
-        className="h-2 bg-gray-200" 
+        className="h-2" 
         indicatorClassName={getProgressColor()} 
       />
     </div>

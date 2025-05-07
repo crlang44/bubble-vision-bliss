@@ -64,13 +64,13 @@ export default {
 					ring: 'hsl(var(--sidebar-ring))'
 				},
 				ocean: {
-					light: '#E6EBEA', // Grey from brand colors
-					medium: '#24a8e0', // Ocean Blue from brand colors
-					dark: '#064160', // Deep Blue from brand colors
+					light: '#D3E4FD',
+					medium: '#33C3F0',
+					dark: '#0EA5E9',
 				},
-				coral: '#f26f63', // Coral from brand colors
-				sand: '#E6EBEA', // Grey from brand colors
-				seaweed: '#4cc0b9', // Seafoam from brand colors
+				coral: '#FF719A',
+				sand: '#FEF7CD',
+				seaweed: '#6E59A5',
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
@@ -127,11 +127,7 @@ export default {
 				'swim': 'swim 3s ease-in-out infinite',
 			},
 			backgroundImage: {
-				'ocean-gradient': 'none',
-			},
-			fontFamily: {
-				'garet': ['Garet', 'sans-serif'],
-				'raleway': ['Raleway', 'sans-serif'],
+				'ocean-gradient': 'linear-gradient(180deg, #D3E4FD 0%, #33C3F0 50%, #0EA5E9 100%)',
 			}
 		}
 	},
