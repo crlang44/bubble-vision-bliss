@@ -3,11 +3,11 @@
 
 /* Custom classes for ocean theme */
 .bg-ocean-gradient {
-  @apply bg-gradient-to-b from-blue-900 via-blue-700 to-blue-500;
+  @apply bg-gradient-to-b from-[#064160] via-blue-700 to-blue-500;
 }
 
 .text-ocean-dark {
-  @apply text-blue-900;
+  @apply text-[#064160];
 }
 
 .text-ocean-medium {
@@ -23,7 +23,7 @@
 }
 
 .bg-ocean-dark {
-  @apply bg-blue-900;
+  @apply bg-[#064160];
 }
 
 .bg-ocean-medium {

@@ -66,7 +66,7 @@ export default {
 				ocean: {
 					light: '#D3E4FD',
 					medium: '#33C3F0',
-					dark: '#0EA5E9',
+					dark: '#064160', // Updated to match the new background color
 				},
 				coral: '#FF719A',
 				sand: '#FEF7CD',
