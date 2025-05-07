@@ -48,7 +48,7 @@ const Index = () => {
     const storedBestScore = localStorage.getItem('oceanAnnotationBestScore');
     return storedBestScore ? parseInt(storedBestScore, 10) : 0;
   });
-  const TIMER_DURATION = 120; // 2 minutes in seconds
+  const TIMER_DURATION = 60; // 1 minute in seconds
   
   // Load initial images based on round
   useEffect(() => {
@@ -384,7 +384,7 @@ const Index = () => {
                   disabled={isLastImage && allImagesAnnotated}
                 >
                   <Fish className="h-4 w-4" /> 
-                  {isLastImage && allImagesAnnotated ? 'All Images Complete!' : 'New Image'}
+                  {isLastImage && allImagesAnnotated ? 'All Images Complete!' : 'Next Image'}
                 </Button>
               )}
             </div>

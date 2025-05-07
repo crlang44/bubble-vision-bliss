@@ -64,6 +64,7 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({ onGameComplete }) => {
   const [totalAttempts, setTotalAttempts] = useState(0);
   const [timePerImage, setTimePerImage] = useState(2000); // Start with 2 seconds per image
   const [timeRemaining, setTimeRemaining] = useState(60); // 1 minute gameplay
+  const [currentImageStartTime, setCurrentImageStartTime] = useState(0); // Track when current image started
   const [showInstructions, setShowInstructions] = useState(() => {
     return localStorage.getItem('hasSeenQuickIDInstructions') !== 'true';
   });
@@ -138,6 +139,7 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({ onGameComplete }) => {
     setSeenImages(new Set());
     setAllImagesSeen(false);
     setIsImageLoading(false);
+    setCurrentImageStartTime(Date.now()); // Initialize the start time for the first image
     
     // Start the game timer (60 seconds)
     gameTimerRef.current = setInterval(() => {
@@ -163,6 +165,9 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({ onGameComplete }) => {
     
     // Increment animation key to force restart of animation
     setAnimationKey(prev => prev + 1);
+    
+    // Record the start time for this image
+    setCurrentImageStartTime(Date.now());
     
     // Set new timer for current image
     imageTimerRef.current = setTimeout(() => {
@@ -190,9 +195,14 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({ onGameComplete }) => {
       isCorrect = answer === currentImage.correctAnswer;
       
       if (isCorrect) {
-        setScore(prev => prev + 1);
+        // Calculate points based on time remaining
+        const elapsedTime = Date.now() - currentImageStartTime;
+        const timeRatio = Math.max(0, 1 - (elapsedTime / timePerImage));
+        const pointsEarned = Math.round(10 * timeRatio);
+        
+        setScore(prev => prev + pointsEarned);
         setShowFeedback('correct');
-        toast.success('Correct!', { duration: 300 });
+        toast.success(`Correct! +${pointsEarned} points`, { duration: 300 });
       } else {
         setShowFeedback('incorrect');
         toast.error('Incorrect!', { duration: 300 });
@@ -214,11 +224,12 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({ onGameComplete }) => {
       // Set next image with very minimal delay
       setCurrentImageIndex(nextIndex);
       
-      // Gradually decrease time per image as game progresses
-      // From 5 seconds to 0.5 seconds over the course of the game
-      const progress = nextIndex / gameImages.length;
-      const newTimePerImage = 5000 - (progress * 4500);
-      setTimePerImage(Math.max(500, newTimePerImage));
+  // Gradually decrease time per image as game progresses
+  // From 5 seconds to 2 seconds over the course of the game
+  // Use total attempts instead of current index to prevent resetting speed
+  const progress = Math.min(1, totalAttempts / (gameImages.length * 2));
+  const newTimePerImage = 5000 - (progress * 3000);
+  setTimePerImage(Math.max(2000, newTimePerImage));
       
       // Set timer for next image
       setImageTimer();
@@ -248,7 +259,7 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({ onGameComplete }) => {
     }
     
     // Show toast with score
-    toast.success(`Game Over! Your accuracy: ${accuracy}%`);
+    toast.success(`Game Over! You scored ${score} points with ${accuracy}% accuracy!`);
   };
   
   // Clean up timers when component unmounts
@@ -275,6 +286,7 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({ onGameComplete }) => {
           <h3 className="font-bold text-ocean-dark mb-2">How to Play:</h3>
           <ul className="list-disc pl-5 text-gray-700 space-y-2">
             <li>Click the correct button (shark, kelp, or dolphin) for each image</li>
+            <li>Earn up to 10 points for each correct answer - the faster you answer, the more points you get!</li>
             <li>Correct answers show a green checkmark</li>
             <li>Wrong answers show a red X</li>
             <li>No response in time counts as incorrect</li>
@@ -428,14 +440,22 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({ onGameComplete }) => {
                 <h2 className="text-2xl font-bold text-ocean-dark mb-2">Game Over!</h2>
                 
                 <div className="bg-blue-50 p-4 rounded-lg max-w-md mx-auto mb-6">
-                  <div className="text-4xl font-bold text-ocean-dark mb-2">
-                    {totalAttempts > 0 ? Math.round((score / totalAttempts) * 100) : 0}%
+                  <div className="text-5xl font-bold text-ocean-dark mb-2">
+                    {score}
                   </div>
-                  <p className="text-gray-700">Accuracy</p>
+                  <p className="text-gray-700">Total Points</p>
                   
-                  <div className="flex justify-between mt-4 text-sm text-gray-700">
-                    <div>Correct: <span className="font-bold text-green-600">{score}</span></div>
-                    <div>Total: <span className="font-bold">{totalAttempts}</span></div>
+                  <div className="mt-4 text-sm text-gray-700">
+                    <div className="flex justify-between mb-2">
+                      <div>Accuracy:</div>
+                      <div className="font-bold text-ocean-dark">
+                        {totalAttempts > 0 ? Math.round((score / totalAttempts) * 100) : 0}%
+                      </div>
+                    </div>
+                    <div className="flex justify-between">
+                      <div>Attempts:</div>
+                      <div className="font-bold">{totalAttempts}</div>
+                    </div>
                   </div>
                 </div>
                 
@@ -466,21 +486,22 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({ onGameComplete }) => {
           {/* Score card (only visible during gameplay) */}
           {gameStarted && (
             <div className="bg-white rounded-xl p-4 shadow-md">
-              <h3 className="font-bold text-ocean-dark mb-2">Current Score</h3>
-              <div className="flex justify-between">
+              <div className="flex justify-between items-center">
+                <h3 className="font-bold text-ocean-dark">Current Score</h3>
+                <div className="text-3xl font-bold text-ocean-dark">
+                  {score} <span className="text-sm font-normal text-gray-600">points</span>
+                </div>
+              </div>
+              <div className="flex justify-between mt-2">
                 <div>
                   <span className="text-gray-700">Correct:</span> 
-                  <span className="font-bold text-green-600 ml-1">{score}</span>
+                  <span className="font-bold text-green-600 ml-1">
+                    {totalAttempts > 0 ? Math.round((score / totalAttempts) * 100) : 0}%
+                  </span>
                 </div>
                 <div>
                   <span className="text-gray-700">Attempts:</span> 
                   <span className="font-bold ml-1">{totalAttempts}</span>
-                </div>
-                <div>
-                  <span className="text-gray-700">Accuracy:</span> 
-                  <span className="font-bold text-ocean-dark ml-1">
-                    {totalAttempts > 0 ? Math.round((score / totalAttempts) * 100) : 0}%
-                  </span>
                 </div>
               </div>
             </div>
