@@ -42,6 +42,11 @@
   @apply hover:bg-[#053550];
 }
 
+/* Updated annotation-active style */
+.annotation-active {
+  @apply ring-2 ring-[#24a8e0] bg-[#24a8e0] text-white;
+}
+
 /* Animation for timer */
 @keyframes shrink {
   from { width: 100%; }
