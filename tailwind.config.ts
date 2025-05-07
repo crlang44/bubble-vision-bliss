@@ -127,7 +127,7 @@ export default {
 				'swim': 'swim 3s ease-in-out infinite',
 			},
 			backgroundImage: {
-				'ocean-gradient': 'linear-gradient(180deg, #E6EBEA 0%, #24a8e0 50%, #064160 100%)',
+				'ocean-gradient': 'none',
 			},
 			fontFamily: {
 				'garet': ['Garet', 'sans-serif'],

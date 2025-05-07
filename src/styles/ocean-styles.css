@@ -3,7 +3,7 @@
 
 /* Custom classes for ocean theme */
 .bg-ocean-gradient {
-  @apply bg-gradient-to-b from-[#064160] via-[#24a8e0] to-[#064160];
+  @apply bg-ocean-dark;
 }
 
 .text-ocean-dark {
