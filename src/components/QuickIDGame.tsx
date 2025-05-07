@@ -44,7 +44,7 @@ const gameImages: GameImage[] = [
   // Hard (obscured/ambiguous)
   { id: '7', imagePath: sharkHard, correctAnswer: 'shark' },
   { id: '8', imagePath: kelpHard, correctAnswer: 'kelp' },
-  { id: '9', imagePath: dolphinHard, correctAnswer: 'dolphin' },
+  { id: '9', imagePath: dolphinHard, correctAnswer: 'shark' },
 ];
 
 // Preload images for faster switching
