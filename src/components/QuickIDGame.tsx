@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import BubbleBackground from '../components/BubbleBackground';
 import { toast } from 'sonner';
@@ -175,6 +174,25 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({ onGameComplete }) => {
     }, timePerImage);
   };
   
+  // Move to the next image
+  const moveToNextImage = () => {
+    // Move to next image or end game if no more images
+    const nextIndex = (currentImageIndex + 1) % gameImages.length;
+    
+    // Set next image
+    setCurrentImageIndex(nextIndex);
+    
+    // Gradually decrease time per image as game progresses
+    // From 5 seconds to 2 seconds over the course of the game
+    // Use total attempts instead of current index to prevent resetting speed
+    const progress = Math.min(1, totalAttempts / (gameImages.length * 2));
+    const newTimePerImage = 5000 - (progress * 3000);
+    setTimePerImage(Math.max(2000, newTimePerImage));
+        
+    // Set timer for next image
+    setImageTimer();
+  };
+  
   // Handle player's answer
   const handleAnswer = (answer: 'shark' | 'kelp' | 'dolphin' | 'timeout') => {
     // Clear the current image timer
@@ -216,22 +234,7 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({ onGameComplete }) => {
     // Prepare for the next image with minimal delay
     setTimeout(() => {
       setShowFeedback(null);
-      
-      // Move to next image or end game if no more images
-      const nextIndex = (currentImageIndex + 1) % gameImages.length;
-      
-      // Set next image with very minimal delay
-      setCurrentImageIndex(nextIndex);
-      
-      // Gradually decrease time per image as game progresses
-      // From 5 seconds to 2 seconds over the course of the game
-      // Use total attempts instead of current index to prevent resetting speed
-      const progress = Math.min(1, totalAttempts / (gameImages.length * 2));
-      const newTimePerImage = 5000 - (progress * 3000);
-      setTimePerImage(Math.max(2000, newTimePerImage));
-          
-      // Set timer for next image
-      setImageTimer();
+      moveToNextImage();
     }, 200); // Show feedback for only 200ms for faster transitions
   };
   
