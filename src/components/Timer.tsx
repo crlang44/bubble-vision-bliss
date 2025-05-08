@@ -25,10 +25,16 @@ const Timer: React.FC<TimerProps> = ({ duration, onTimeUp, isRunning, onTimerUpd
     // Clear any existing interval
     if (intervalId) {
       clearInterval(intervalId);
+      setIntervalId(null);
     }
     
-    // Only stop if isRunning is explicitly set to false
-    if (!isRunning) return;
+    // Only start if isRunning is true
+    if (!isRunning) {
+      console.log('Timer stopped');
+      return;
+    }
+    
+    console.log('Timer starting/continuing');
     
     // Create a new interval
     const id = window.setInterval(() => {
@@ -41,7 +47,7 @@ const Timer: React.FC<TimerProps> = ({ duration, onTimeUp, isRunning, onTimerUpd
         }
         
         // Notify parent component about time update (for time bonus calculation)
-        if (onTimerUpdate) {
+        if (onTimerUpdate && isRunning) {
           onTimerUpdate(newTime);
         }
         
@@ -59,7 +65,10 @@ const Timer: React.FC<TimerProps> = ({ duration, onTimeUp, isRunning, onTimerUpd
     
     // Clean up on unmount or when dependencies change
     return () => {
-      if (id) clearInterval(id);
+      if (id) {
+        console.log('Cleaning up timer interval');
+        clearInterval(id);
+      }
     };
   }, [isRunning, onTimeUp, isWarning, onTimerUpdate, duration]);
   

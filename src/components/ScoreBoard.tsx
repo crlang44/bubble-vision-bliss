@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef, useState } from 'react';
 import { Annotation, TargetAnnotation, calculateScore } from '../utils/annotationUtils';
 import { Trophy, Target, Clock, Award } from 'lucide-react';
@@ -25,6 +26,10 @@ const ScoreBoard: React.FC<ScoreBoardProps> = ({
   const [displayCumulativeScore, setDisplayCumulativeScore] = useState(cumulativeScore);
   // Track if animation is in progress
   const [isAnimating, setIsAnimating] = useState(false);
+  // Track the final calculated score to prevent changes after completion
+  const [finalCalculatedScore, setFinalCalculatedScore] = useState<number | null>(null);
+  // Track the final time bonus
+  const [finalTimeBonus, setFinalTimeBonus] = useState<number | null>(null);
   
   // Debug output to see what we're working with
   useEffect(() => {
@@ -81,7 +86,11 @@ const ScoreBoard: React.FC<ScoreBoardProps> = ({
     ? Math.round(totalAnnotationScore / targetAnnotations.length) 
     : 0;
   
-  const finalScore = Math.round(normalizedScore + timeBonus);
+  // Use the final calculated values if they exist, otherwise calculate them
+  const actualTimeBonus = finalTimeBonus !== null ? finalTimeBonus : timeBonus;
+  const calculatedFinalScore = finalCalculatedScore !== null 
+    ? finalCalculatedScore 
+    : Math.round(normalizedScore + actualTimeBonus);
   
   // Animation function for cumulative score
   const animateScore = (from, to, duration) => {
@@ -107,26 +116,37 @@ const ScoreBoard: React.FC<ScoreBoardProps> = ({
   // Update parent component with score when complete, but only once
   useEffect(() => {
     if (isComplete && onScoreChange && !hasUpdatedScore.current) {
-      onScoreChange(finalScore);
+      // Lock in the final values when the game is complete
+      setFinalCalculatedScore(calculatedFinalScore);
+      setFinalTimeBonus(timeBonus);
+      
+      onScoreChange(calculatedFinalScore);
       hasUpdatedScore.current = true;
       
       // Animate the score change
-      const newCumulativeScore = cumulativeScore + finalScore;
+      const newCumulativeScore = cumulativeScore + calculatedFinalScore;
       animateScore(cumulativeScore, newCumulativeScore, 1000); // 1 second animation
+      
+      console.log('ScoreBoard - Final score locked in:', calculatedFinalScore, 'Final time bonus:', timeBonus);
     }
     
     // Reset the flag when isComplete changes to false
     if (!isComplete) {
       hasUpdatedScore.current = false;
+      setFinalCalculatedScore(null);
+      setFinalTimeBonus(null);
     }
-  }, [isComplete, finalScore, onScoreChange, cumulativeScore]);
+  }, [isComplete, calculatedFinalScore, onScoreChange, cumulativeScore, timeBonus]);
   
   // Initialize display score on first render
   useEffect(() => {
     setDisplayCumulativeScore(cumulativeScore);
   }, []);
   
-  console.log('Final calculated score:', finalScore, 'Normalized annotation score:', normalizedScore, 'Time bonus:', timeBonus);
+  // Use for display
+  const finalScore = calculatedFinalScore;
+  
+  console.log('Final calculated score:', finalScore, 'Normalized annotation score:', normalizedScore, 'Time bonus:', actualTimeBonus);
   
   return (
     <div className="bg-white rounded-xl shadow-lg p-4">
@@ -176,7 +196,7 @@ const ScoreBoard: React.FC<ScoreBoardProps> = ({
             <Clock className="w-4 h-4 text-ocean-medium" />
             <span className="text-sm">Time Bonus</span>
           </div>
-          <span className="font-medium">{timeBonus} pts</span>
+          <span className="font-medium">{actualTimeBonus} pts</span>
         </div>
       </div>
       
