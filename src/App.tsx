@@ -1,31 +1,27 @@
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Index from "./pages/Index";
-import NotFound from "./pages/NotFound";
-import GroundTruthEditor from "./pages/GroundTruthEditor";
-import QuickIDGamePage from "./pages/QuickIDGamePage";
 
-const queryClient = new QueryClient();
+import { Toaster } from './components/ui/sonner';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import Index from './pages/Index';
+import QuickIDGamePage from './pages/QuickIDGamePage';
+import NotFound from './pages/NotFound';
+import GroundTruthEditor from './pages/GroundTruthEditor';
+import './index.css';
+import './styles/ocean-styles.css';
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
+function App() {
+  return (
+    <>
+      <Router>
         <Routes>
           <Route path="/" element={<Index />} />
-          <Route path="/ground-truth-editor" element={<GroundTruthEditor />} />
           <Route path="/quick-id-game" element={<QuickIDGamePage />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+          <Route path="/ground-truth-editor" element={<GroundTruthEditor />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+      </Router>
+      <Toaster />
+    </>
+  );
+}
 
 export default App;

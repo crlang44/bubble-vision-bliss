@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import BubbleBackground from '../components/BubbleBackground';
 import Instructions from '../components/Instructions';
@@ -48,6 +49,11 @@ const Index = () => {
     const storedBestScore = localStorage.getItem('oceanAnnotationBestScore');
     return storedBestScore ? parseInt(storedBestScore, 10) : 0;
   });
+  // New state to track if the first annotation tip has been shown
+  const [hasShownFirstAnnotationTip, setHasShownFirstAnnotationTip] = useState<boolean>(() => {
+    return localStorage.getItem('hasShownFirstAnnotationTip') === 'true';
+  });
+  
   const TIMER_DURATION = 60; // 1 minute in seconds
   
   // Load initial images based on round
@@ -109,7 +115,31 @@ const Index = () => {
   };
   
   const handleAnnotationComplete = (annotation: Annotation) => {
-    setAnnotations([...annotations, annotation]);
+    const newAnnotations = [...annotations, annotation];
+    setAnnotations(newAnnotations);
+    
+    // Show first annotation tip if it's the first annotation and hasn't been shown before
+    if (newAnnotations.length === 1 && !hasShownFirstAnnotationTip) {
+      // Use a timeout to show the tip after the annotation is complete
+      setTimeout(() => {
+        toast.info(
+          <div className="space-y-2">
+            <p className="font-medium">Annotation Tip</p>
+            <p className="text-sm">
+              Draw tight boundaries around objects to maximize your points, but remember to work quickly enough to complete all annotations before time runs out!
+            </p>
+          </div>,
+          {
+            duration: 6000,
+            position: 'top-center'
+          }
+        );
+        
+        // Mark that we've shown the tip and save to localStorage
+        setHasShownFirstAnnotationTip(true);
+        localStorage.setItem('hasShownFirstAnnotationTip', 'true');
+      }, 500);
+    }
   };
   
   const handleLabelChange = (label: string) => {
