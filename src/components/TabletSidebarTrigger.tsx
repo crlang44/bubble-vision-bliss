@@ -12,16 +12,18 @@ const TabletSidebarTrigger: React.FC = () => {
   
   return (
     <div className="fixed left-3 top-3 z-30">
-      <SidebarTrigger asChild>
-        <Button 
-          variant="secondary" 
-          size="sm" 
-          className="bg-white/90 shadow-md hover:bg-white"
-        >
-          <PanelLeft className="h-4 w-4 mr-1" />
-          <span className="text-xs">Images</span>
-        </Button>
+      <SidebarTrigger>
+        <span className="sr-only">Toggle sidebar</span>
       </SidebarTrigger>
+      <Button 
+        variant="secondary" 
+        size="sm" 
+        className="bg-white/90 shadow-md hover:bg-white"
+        onClick={() => document.querySelector('[data-sidebar="trigger"]')?.click()}
+      >
+        <PanelLeft className="h-4 w-4 mr-1" />
+        <span className="text-xs">Images</span>
+      </Button>
     </div>
   );
 };
