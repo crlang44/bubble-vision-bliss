@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import BubbleBackground from '../components/BubbleBackground';
 import Instructions from '../components/Instructions';
@@ -288,9 +287,6 @@ const Index = () => {
     console.log("Timer running state changed:", isTimerRunning);
   }, [isTimerRunning]);
   
-  // Determine when to show the annotation score visual
-  const [showScoringVisual, setShowScoringVisual] = useState(true);
-  
   return (
     <div className="min-h-screen bg-ocean-gradient relative">
       <BubbleBackground bubbleCount={30} />
@@ -364,34 +360,6 @@ const Index = () => {
               onSelectImage={handleImageSelect} 
               selectedImageId={selectedImage?.id || null}
             />
-            
-            {/* Show the annotation score visual when not in game complete state */}
-            {showScoringVisual && !gameComplete && (
-              <div className="mt-4">
-                <AnnotationScoreVisual />
-                <div className="flex justify-end mt-2">
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={() => setShowScoringVisual(false)}
-                    className="text-xs text-white/70 hover:text-white"
-                  >
-                    Hide Visual
-                  </Button>
-                </div>
-              </div>
-            )}
-            
-            {!showScoringVisual && !gameComplete && (
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={() => setShowScoringVisual(true)} 
-                className="mt-2 w-full text-white/70 hover:text-white border border-white/20"
-              >
-                Show Scoring Tips
-              </Button>
-            )}
           </div>
           
           <div className="lg:col-span-3 space-y-4">

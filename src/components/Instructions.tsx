@@ -1,8 +1,9 @@
 
 import React from 'react';
-import { X, Check, Target, Square, Circle } from 'lucide-react';
 import { Button } from './ui/button';
 import AnnotationScoreVisual from './AnnotationScoreVisual';
+import { Popover, PopoverTrigger, PopoverContent } from './ui/popover';
+import { Info, X } from 'lucide-react';
 
 interface InstructionsProps {
   onClose: () => void;
@@ -10,105 +11,61 @@ interface InstructionsProps {
 
 const Instructions: React.FC<InstructionsProps> = ({ onClose }) => {
   return (
-    <div className="bg-white rounded-xl shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
-      <div className="p-6 border-b border-gray-200 sticky top-0 bg-white z-10">
-        <div className="flex justify-between items-center">
-          <h2 className="text-2xl font-bold text-ocean-dark">How to Play</h2>
-          <Button variant="ghost" size="icon" onClick={onClose}>
-            <X className="h-6 w-6" />
-          </Button>
-        </div>
+    <div className="bg-white rounded-xl p-6 max-w-3xl w-full max-h-[80vh] overflow-y-auto">
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-2xl font-bold text-ocean-dark">How to Play Ocean Annotation</h2>
+        <Button variant="ghost" size="icon" onClick={onClose}>
+          <X className="h-5 w-5" />
+        </Button>
       </div>
       
-      <div className="p-6 space-y-6">
-        {/* Game objective */}
-        <div>
-          <h3 className="text-xl font-semibold text-ocean-dark mb-3 flex items-center gap-2">
-            <Target className="h-5 w-5 text-ocean-medium" /> Game Objective
-          </h3>
-          <p>
-            Create accurate annotations for ocean creatures and objects in the image. 
-            Your goal is to identify and annotate all targets in each image as 
-            precisely and quickly as possible.
-          </p>
-        </div>
-
-        {/* New annotation scoring visual */}
-        <AnnotationScoreVisual />
-        
-        {/* Game controls */}
-        <div>
-          <h3 className="text-xl font-semibold text-ocean-dark mb-3 flex items-center gap-2">
-            <Square className="h-5 w-5 text-ocean-medium" /> Game Controls
-          </h3>
-          <div className="space-y-3">
-            <div className="flex items-start">
-              <div className="bg-blue-50 p-2 rounded mr-3">
-                <Circle className="h-5 w-5 text-ocean-medium" />
-              </div>
-              <div>
-                <p className="font-medium">Select an annotation tool</p>
-                <p className="text-gray-600">Choose between Rectangle, Polygon, or Point tools to create your annotations.</p>
-              </div>
-            </div>
-            <div className="flex items-start">
-              <div className="bg-blue-50 p-2 rounded mr-3">
-                <Circle className="h-5 w-5 text-ocean-medium" />
-              </div>
-              <div>
-                <p className="font-medium">Choose a label</p>
-                <p className="text-gray-600">Select the correct label for the object you're annotating.</p>
-              </div>
-            </div>
-            <div className="flex items-start">
-              <div className="bg-blue-50 p-2 rounded mr-3">
-                <Circle className="h-5 w-5 text-ocean-medium" />
-              </div>
-              <div>
-                <p className="font-medium">Draw annotations</p>
-                <p className="text-gray-600">
-                  For rectangles: Click and drag to create a box.<br />
-                  For polygons: Click to add points, double-click to complete.<br />
-                  For points: Click to place a point marker.
-                </p>
-              </div>
-            </div>
-            <div className="flex items-start">
-              <div className="bg-blue-50 p-2 rounded mr-3">
-                <Circle className="h-5 w-5 text-ocean-medium" />
-              </div>
-              <div>
-                <p className="font-medium">Submit annotations</p>
-                <p className="text-gray-600">Click "Submit" when you've annotated all targets in the image.</p>
-              </div>
-            </div>
-          </div>
+      <div className="space-y-6">
+        <div className="space-y-2">
+          <h3 className="text-lg font-semibold text-ocean-medium">Goal</h3>
+          <p>Identify and annotate ocean creatures and objects as accurately as possible within the time limit.</p>
         </div>
         
-        {/* Scoring */}
-        <div>
-          <h3 className="text-xl font-semibold text-ocean-dark mb-3 flex items-center gap-2">
-            <Check className="h-5 w-5 text-ocean-medium" /> Scoring
-          </h3>
-          <p className="mb-3">
-            Your score is based on annotation accuracy and completion time:
-          </p>
+        <div className="space-y-2">
+          <h3 className="text-lg font-semibold text-ocean-medium">Controls</h3>
           <ul className="list-disc pl-5 space-y-2">
-            <li>Accurate annotations earn more points (up to 100%)</li>
-            <li>Remaining time adds a time bonus (up to 25 points)</li>
-            <li>Aim for both speed and precision!</li>
+            <li>Select a tool (rectangle, polygon, or point) from the annotation panel</li>
+            <li>Choose a label for the object you want to annotate</li>
+            <li>Draw on the image to create an annotation</li>
+            <li>Submit your annotations before time runs out</li>
           </ul>
         </div>
         
-        <div className="p-4 bg-blue-50 rounded-lg">
-          <p className="text-center font-medium text-ocean-dark">
-            Good luck and have fun annotating ocean images!
+        <div className="space-y-2">
+          <h3 className="text-lg font-semibold text-ocean-medium">Scoring</h3>
+          <ul className="list-disc pl-5 space-y-2">
+            <li>Points are awarded based on the accuracy of your annotations</li>
+            <li>Bonus points for completing annotations quickly</li>
+            <li>Higher scores for finding all targets in an image</li>
+          </ul>
+        </div>
+        
+        {/* Add the AnnotationScoreVisual component here */}
+        <div className="border border-blue-100 rounded-lg bg-blue-50/50 p-4">
+          <h3 className="text-lg font-semibold text-ocean-medium mb-3">Precision Matters!</h3>
+          <AnnotationScoreVisual className="mb-2" />
+          <p className="text-sm text-blue-700 mt-3">
+            Draw tight boundaries around objects to maximize your score, but remember to balance precision with speed!
           </p>
         </div>
         
-        <div className="flex justify-center">
-          <Button onClick={onClose} className="bg-ocean-medium hover:bg-ocean-dark">
-            Start Playing
+        <div className="space-y-2">
+          <h3 className="text-lg font-semibold text-ocean-medium">Tips</h3>
+          <ul className="list-disc pl-5 space-y-2">
+            <li>Use the correct tool for each object type</li>
+            <li>Look carefully for partially hidden or camouflaged objects</li>
+            <li>Balance speed and accuracy - both matter!</li>
+            <li>Try different image difficulty levels to improve your skills</li>
+          </ul>
+        </div>
+        
+        <div className="flex justify-end">
+          <Button onClick={onClose} className="bg-ocean-medium hover:bg-ocean-darker text-white">
+            Start Annotating!
           </Button>
         </div>
       </div>
