@@ -58,3 +58,27 @@
 .score-glow {
   animation: score-glow 2s infinite;
 }
+
+/* Annotation scoring visual animations */
+.annotation-visual-pulse {
+  animation: annotation-pulse 2s ease-in-out infinite alternate;
+}
+
+@keyframes annotation-pulse {
+  from { transform: scale(1); }
+  to { transform: scale(1.05); }
+}
+
+/* Button coral style */
+.btn-coral {
+  @apply bg-red-400 hover:bg-red-500 text-white;
+}
+
+/* Card hover effect for annotation visual */
+.annotation-card {
+  @apply transition-all duration-300;
+}
+
+.annotation-card:hover {
+  @apply shadow-lg transform -translate-y-1;
+}
