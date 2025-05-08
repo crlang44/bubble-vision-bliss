@@ -88,3 +88,42 @@
   @apply bg-blue-50 border border-blue-100 rounded-lg p-4 shadow-inner;
 }
 
+/* Tablet-specific styles */
+@media screen and (min-width: 768px) and (max-width: 1024px) {
+  /* Increase touch target sizes on tablets */
+  button {
+    @apply min-h-[48px] min-w-[48px];
+  }
+  
+  /* Adjust spacing for better tablet layout */
+  .tablet-p-6 {
+    @apply p-6;
+  }
+  
+  .tablet-gap-6 {
+    @apply gap-6;
+  }
+  
+  /* Ensure text is legible on tablet screens */
+  .tablet-text-base {
+    @apply text-base;
+  }
+  
+  /* Make canvas touch interactions better on tablets */
+  .tablet-touch-canvas {
+    @apply touch-manipulation;
+  }
+}
+
+/* Fix for touch events on Android tablets */
+.touch-device button, 
+.touch-device [role="button"] {
+  @apply cursor-pointer touch-manipulation active:opacity-80;
+}
+
+/* Make content scrollable on tablets in portrait mode */
+@media screen and (max-width: 1024px) and (orientation: portrait) {
+  .tablet-portrait-scroll {
+    @apply max-h-[80vh] overflow-y-auto;
+  }
+}
