@@ -46,3 +46,20 @@ export function useIsTouch() {
   
   return isTouch
 }
+
+// New hook to detect Android tablet specifically
+export function useIsAndroidTablet() {
+  const [isAndroidTablet, setIsAndroidTablet] = React.useState<boolean>(false)
+  const isTablet = useIsTablet()
+  
+  React.useEffect(() => {
+    const checkAndroidTablet = () => {
+      const isAndroid = /Android/i.test(navigator.userAgent)
+      setIsAndroidTablet(isTablet && isAndroid)
+    }
+    
+    checkAndroidTablet()
+  }, [isTablet])
+  
+  return isAndroidTablet
+}

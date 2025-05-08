@@ -61,3 +61,15 @@
   height: 100vh;
   height: -webkit-fill-available;
 }
+
+/* Specific fix for Android tablets */
+@supports (-webkit-touch-callout: none) {
+  .full-height {
+    height: -webkit-fill-available;
+  }
+}
+
+/* Prevent scrolling when interacting with canvas */
+body.canvas-active {
+  overflow: hidden;
+}
