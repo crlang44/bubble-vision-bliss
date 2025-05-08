@@ -6,7 +6,6 @@ import AnnotationTools from '../components/AnnotationTools';
 import ScoreBoard from '../components/ScoreBoard';
 import Timer from '../components/Timer';
 import ImageSelector from '../components/ImageSelector';
-import MobileImageSelector from '../components/MobileImageSelector';
 import AnnotationScoreVisual from '../components/AnnotationScoreVisual';
 import { Annotation, AnnotationType, calculateScore } from '../utils/annotationUtils';
 import { oceanImages, OceanImage, getProgressiveImageSet } from '../data/oceanImages';
@@ -22,7 +21,6 @@ import {
   DialogTitle,
   DialogDescription
 } from '@/components/ui/dialog';
-import { useIsMobile, useIsTablet } from '@/hooks/use-mobile';
 
 const Index = () => {
   const [showInstructions, setShowInstructions] = useState(() => {
@@ -289,10 +287,6 @@ const Index = () => {
     console.log("Timer running state changed:", isTimerRunning);
   }, [isTimerRunning]);
   
-  // Check if we're on a tablet or mobile device
-  const isMobile = useIsMobile();
-  const isTablet = useIsTablet();
-  
   return (
     <div className="min-h-screen bg-ocean-gradient relative">
       <BubbleBackground bubbleCount={30} />
@@ -360,19 +354,15 @@ const Index = () => {
         )}
         
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-          {/* Only show ImageSelector on desktop */}
-          {!isTablet && !isMobile && (
-            <div className="lg:col-span-1">
-              <ImageSelector 
-                images={currentImages} 
-                onSelectImage={handleImageSelect} 
-                selectedImageId={selectedImage?.id || null}
-              />
-            </div>
-          )}
+          <div className="lg:col-span-1">
+            <ImageSelector 
+              images={currentImages} 
+              onSelectImage={handleImageSelect} 
+              selectedImageId={selectedImage?.id || null}
+            />
+          </div>
           
-          {/* Main content area - expand to full width on tablet/mobile */}
-          <div className={`${isTablet || isMobile ? 'lg:col-span-5' : 'lg:col-span-3'} space-y-4`}>
+          <div className="lg:col-span-3 space-y-4">
             <div className="bg-white rounded-xl p-3 shadow-md">
               <Timer 
                 duration={TIMER_DURATION}
@@ -430,72 +420,35 @@ const Index = () => {
             </div>
           </div>
           
-          {/* Only show AnnotationTools/ScoreBoard on desktop as a sidebar */}
-          {!isTablet && !isMobile ? (
-            <div className="lg:col-span-1">
-              {!gameComplete ? (
-                <AnnotationTools
-                  selectedTool={selectedTool}
-                  onSelectTool={handleSelectTool}
-                  onClearAnnotations={handleClearAnnotations}
-                  currentLabel={currentLabel}
-                  onLabelChange={handleLabelChange}
-                  labels={availableLabels}
+          <div className="lg:col-span-1">
+            {!gameComplete ? (
+              <AnnotationTools
+                selectedTool={selectedTool}
+                onSelectTool={handleSelectTool}
+                onClearAnnotations={handleClearAnnotations}
+                currentLabel={currentLabel}
+                onLabelChange={handleLabelChange}
+                labels={availableLabels}
+              />
+            ) : (
+              <div className="space-y-4">
+                <ScoreBoard 
+                  userAnnotations={annotations}
+                  targetAnnotations={selectedImage?.targetAnnotations || []}
+                  timeBonus={timeBonus}
+                  isComplete={gameComplete}
+                  cumulativeScore={cumulativeScore}
+                  onScoreChange={handleScoreUpdate}
                 />
-              ) : (
-                <div className="space-y-4">
-                  <ScoreBoard 
-                    userAnnotations={annotations}
-                    targetAnnotations={selectedImage?.targetAnnotations || []}
-                    timeBonus={timeBonus}
-                    isComplete={gameComplete}
-                    cumulativeScore={cumulativeScore}
-                    onScoreChange={handleScoreUpdate}
-                  />
-                </div>
-              )}
-            </div>
-          ) : (
-            // For tablet/mobile, show AnnotationTools below the canvas
-            <div className="col-span-5">
-              {!gameComplete ? (
-                <div className="bg-white rounded-xl shadow-lg p-4">
-                  <AnnotationTools
-                    selectedTool={selectedTool}
-                    onSelectTool={handleSelectTool}
-                    onClearAnnotations={handleClearAnnotations}
-                    currentLabel={currentLabel}
-                    onLabelChange={handleLabelChange}
-                    labels={availableLabels}
-                  />
-                </div>
-              ) : (
-                <div className="bg-white rounded-xl shadow-lg p-4">
-                  <ScoreBoard 
-                    userAnnotations={annotations}
-                    targetAnnotations={selectedImage?.targetAnnotations || []}
-                    timeBonus={timeBonus}
-                    isComplete={gameComplete}
-                    cumulativeScore={cumulativeScore}
-                    onScoreChange={handleScoreUpdate}
-                  />
-                </div>
-              )}
-            </div>
-          )}
+              </div>
+            )}
+          </div>
         </div>
         
         <footer className="mt-8 text-center text-white/80 text-sm">
           <p>Ocean Annotation Game - A fun way to learn computer vision annotation techniques</p>
         </footer>
       </div>
-
-      {/* Add the mobile image selector with floating button */}
-      <MobileImageSelector
-        images={currentImages}
-        onSelectImage={handleImageSelect}
-        selectedImageId={selectedImage?.id || null}
-      />
 
       {/* Game Completion Dialog */}
       <Dialog 
