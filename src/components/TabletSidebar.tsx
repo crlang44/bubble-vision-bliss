@@ -7,10 +7,8 @@ import {
   SidebarContent,
   SidebarHeader,
   SidebarGroup,
-  SidebarGroupLabel,
-  SidebarTrigger
+  SidebarGroupLabel
 } from '@/components/ui/sidebar';
-import { SidebarProvider } from '@/components/ui/sidebar';
 import { Images } from 'lucide-react';
 
 interface TabletSidebarProps {
@@ -25,31 +23,29 @@ const TabletSidebar: React.FC<TabletSidebarProps> = ({
   selectedImageId
 }) => {
   return (
-    <SidebarProvider defaultOpen={false}>
-      <div className="flex h-full">
-        <Sidebar side="left" collapsible="offcanvas">
-          <SidebarHeader className="flex items-center py-4">
-            <div className="flex items-center gap-2">
-              <Images className="h-5 w-5 text-ocean-medium" />
-              <h3 className="font-semibold text-sm">Images to annotate</h3>
+    <div className="flex h-full">
+      <Sidebar side="left" collapsible="offcanvas">
+        <SidebarHeader className="flex items-center py-4">
+          <div className="flex items-center gap-2">
+            <Images className="h-5 w-5 text-ocean-medium" />
+            <h3 className="font-semibold text-sm">Images to annotate</h3>
+          </div>
+        </SidebarHeader>
+        <SidebarContent>
+          <SidebarGroup>
+            <SidebarGroupLabel>Select an image</SidebarGroupLabel>
+            <div className="px-2">
+              <ImageSelector 
+                images={images} 
+                onSelectImage={onSelectImage} 
+                selectedImageId={selectedImageId} 
+                inSidebar={true}
+              />
             </div>
-          </SidebarHeader>
-          <SidebarContent>
-            <SidebarGroup>
-              <SidebarGroupLabel>Select an image</SidebarGroupLabel>
-              <div className="px-2">
-                <ImageSelector 
-                  images={images} 
-                  onSelectImage={onSelectImage} 
-                  selectedImageId={selectedImageId} 
-                  inSidebar={true}
-                />
-              </div>
-            </SidebarGroup>
-          </SidebarContent>
-        </Sidebar>
-      </div>
-    </SidebarProvider>
+          </SidebarGroup>
+        </SidebarContent>
+      </Sidebar>
+    </div>
   );
 };
 

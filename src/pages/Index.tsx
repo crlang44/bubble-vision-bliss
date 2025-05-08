@@ -24,6 +24,7 @@ import {
 import { useIsTablet } from '@/hooks/use-mobile';
 import TabletSidebar from '@/components/TabletSidebar';
 import TabletSidebarTrigger from '@/components/TabletSidebarTrigger';
+import { SidebarProvider } from '@/components/ui/sidebar';
 
 const Index = () => {
   const isTablet = useIsTablet();
@@ -297,14 +298,14 @@ const Index = () => {
       <BubbleBackground bubbleCount={30} />
       
       {isTablet && (
-        <>
+        <SidebarProvider defaultOpen={false}>
           <TabletSidebar
             images={currentImages}
             onSelectImage={handleImageSelect}
             selectedImageId={selectedImage?.id || null}
           />
           <TabletSidebarTrigger />
-        </>
+        </SidebarProvider>
       )}
       
       <div className="container mx-auto py-6 px-4 relative z-10">
