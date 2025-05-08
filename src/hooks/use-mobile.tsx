@@ -63,3 +63,20 @@ export function useIsAndroidTablet() {
   
   return isAndroidTablet
 }
+
+// New hook that combines tablet detection with content display logic
+export function useTabletLayout() {
+  const isTablet = useIsTablet()
+  const [sidebarOpen, setSidebarOpen] = React.useState(false)
+  
+  const toggleSidebar = React.useCallback(() => {
+    setSidebarOpen(prev => !prev)
+  }, [])
+  
+  return {
+    isTablet,
+    sidebarOpen,
+    setSidebarOpen,
+    toggleSidebar
+  }
+}

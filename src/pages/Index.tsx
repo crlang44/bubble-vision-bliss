@@ -21,8 +21,13 @@ import {
   DialogTitle,
   DialogDescription
 } from '@/components/ui/dialog';
+import { useIsTablet } from '@/hooks/use-mobile';
+import TabletSidebar from '@/components/TabletSidebar';
+import TabletSidebarTrigger from '@/components/TabletSidebarTrigger';
 
 const Index = () => {
+  const isTablet = useIsTablet();
+  
   const [showInstructions, setShowInstructions] = useState(() => {
     return localStorage.getItem('hasSeenInstructions') !== 'true';
   });
@@ -291,6 +296,17 @@ const Index = () => {
     <div className="min-h-screen bg-ocean-gradient relative">
       <BubbleBackground bubbleCount={30} />
       
+      {isTablet && (
+        <>
+          <TabletSidebar
+            images={currentImages}
+            onSelectImage={handleImageSelect}
+            selectedImageId={selectedImage?.id || null}
+          />
+          <TabletSidebarTrigger />
+        </>
+      )}
+      
       <div className="container mx-auto py-6 px-4 relative z-10">
         <header className="flex justify-between items-center mb-6">
           <div className="flex items-center gap-2">
@@ -354,15 +370,17 @@ const Index = () => {
         )}
         
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-          <div className="lg:col-span-1">
-            <ImageSelector 
-              images={currentImages} 
-              onSelectImage={handleImageSelect} 
-              selectedImageId={selectedImage?.id || null}
-            />
-          </div>
+          {!isTablet && (
+            <div className="lg:col-span-1">
+              <ImageSelector 
+                images={currentImages} 
+                onSelectImage={handleImageSelect} 
+                selectedImageId={selectedImage?.id || null}
+              />
+            </div>
+          )}
           
-          <div className="lg:col-span-3 space-y-4">
+          <div className={`${isTablet ? 'col-span-full' : 'lg:col-span-3'} space-y-4`}>
             <div className="bg-white rounded-xl p-3 shadow-md">
               <Timer 
                 duration={TIMER_DURATION}

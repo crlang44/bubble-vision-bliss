@@ -7,23 +7,27 @@ interface ImageSelectorProps {
   images: OceanImage[];
   onSelectImage: (image: OceanImage) => void;
   selectedImageId: string | null;
+  inSidebar?: boolean;
 }
 
 const ImageSelector: React.FC<ImageSelectorProps> = ({ 
   images, 
   onSelectImage,
-  selectedImageId 
+  selectedImageId,
+  inSidebar = false
 }) => {
   // Filter out images with zero annotations
   const validImages = images.filter(img => img.targetAnnotations.length > 0);
   const hasInvalidImages = images.length !== validImages.length;
   
   return (
-    <div className="bg-white rounded-xl p-4 shadow-lg">
-      <h3 className="text-lg font-bold text-ocean-dark flex items-center gap-2 mb-4">
-        <Waves className="text-ocean-medium" /> 
-        Images to annotate
-      </h3>
+    <div className={`${inSidebar ? '' : 'bg-white rounded-xl shadow-lg'} p-4`}>
+      {!inSidebar && (
+        <h3 className="text-lg font-bold text-ocean-dark flex items-center gap-2 mb-4">
+          <Waves className="text-ocean-medium" /> 
+          Images to annotate
+        </h3>
+      )}
       
       {hasInvalidImages && (
         <div className="text-xs text-amber-700 bg-amber-50 p-2 rounded-md mb-3 flex items-start">
