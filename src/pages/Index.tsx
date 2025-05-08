@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import BubbleBackground from '../components/BubbleBackground';
 import Instructions from '../components/Instructions';
@@ -6,6 +7,7 @@ import AnnotationTools from '../components/AnnotationTools';
 import ScoreBoard from '../components/ScoreBoard';
 import Timer from '../components/Timer';
 import ImageSelector from '../components/ImageSelector';
+import AnnotationScoreVisual from '../components/AnnotationScoreVisual';
 import { Annotation, AnnotationType, calculateScore } from '../utils/annotationUtils';
 import { oceanImages, OceanImage, getProgressiveImageSet } from '../data/oceanImages';
 import { toast } from 'sonner';
