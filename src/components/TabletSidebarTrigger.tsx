@@ -19,7 +19,10 @@ const TabletSidebarTrigger: React.FC = () => {
         variant="secondary" 
         size="sm" 
         className="bg-white/90 shadow-md hover:bg-white"
-        onClick={() => document.querySelector('[data-sidebar="trigger"]')?.click()}
+        onClick={() => {
+          const triggerElement = document.querySelector('[data-sidebar="trigger"]') as HTMLElement;
+          if (triggerElement) triggerElement.click();
+        }}
       >
         <PanelLeft className="h-4 w-4 mr-1" />
         <span className="text-xs">Images</span>
