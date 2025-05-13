@@ -129,16 +129,24 @@ const Index = () => {
       // Use a timeout to show the tip after the annotation is complete
       setTimeout(() => {
         toast.info(
-          <div className="space-y-2">
-            <p className="font-medium">Annotation Tip</p>
-            <p className="text-sm">
-              Draw tight boundaries around objects to maximize your points, but remember to work quickly enough to complete all annotations before time runs out!
+          <div className="border border-blue-100 rounded-lg bg-blue-50/50 p-4">
+            <h3 className="text-lg font-semibold text-ocean-medium mb-3">Precision Matters!</h3>
+            <AnnotationScoreVisual className="mb-2" />
+            <p className="text-sm tablet-text-base text-blue-700 mt-3">
+              Draw tight boundaries around objects to maximize your score, but remember to complete all your annotations before time runs out!
             </p>
           </div>,
           {
             duration: 6000,
-            position: 'top-center'
+            position: 'top-center',
+
+            style: {
+              width: '500px',
+              maxWidth: '90vw',
+              margin: '0 auto'
+              }
           }
+          
         );
         
         // Mark that we've shown the tip and save to localStorage

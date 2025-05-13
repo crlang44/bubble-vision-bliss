@@ -31,9 +31,8 @@ const Instructions: React.FC<InstructionsProps> = ({ onClose }) => {
         <div className="space-y-2">
           <h3 className="text-lg font-semibold text-ocean-medium">Controls</h3>
           <ul className="list-disc pl-5 space-y-2">
-            <li className="tablet-text-base">Select a tool (rectangle, polygon, or point) from the annotation panel</li>
             <li className="tablet-text-base">Choose a label for the object you want to annotate</li>
-            <li className="tablet-text-base">Draw on the image to create an annotation</li>
+            <li className="tablet-text-base">Using the annotation tool, draw on the image to create an annotation</li>
             <li className="tablet-text-base">Submit your annotations before time runs out</li>
           </ul>
         </div>
@@ -41,28 +40,18 @@ const Instructions: React.FC<InstructionsProps> = ({ onClose }) => {
         <div className="space-y-2">
           <h3 className="text-lg font-semibold text-ocean-medium">Scoring</h3>
           <ul className="list-disc pl-5 space-y-2">
-            <li className="tablet-text-base">Points are awarded based on the accuracy of your annotations</li>
+            <li className="tablet-text-base">Points are awarded based on accuracy</li>
             <li className="tablet-text-base">Bonus points for completing annotations quickly</li>
             <li className="tablet-text-base">Higher scores for finding all targets in an image</li>
           </ul>
         </div>
         
-        {/* Add the AnnotationScoreVisual component here */}
-        <div className="border border-blue-100 rounded-lg bg-blue-50/50 p-4">
-          <h3 className="text-lg font-semibold text-ocean-medium mb-3">Precision Matters!</h3>
-          <AnnotationScoreVisual className="mb-2" />
-          <p className="text-sm tablet-text-base text-blue-700 mt-3">
-            Draw tight boundaries around objects to maximize your score, but remember to balance precision with speed!
-          </p>
-        </div>
-        
         <div className="space-y-2">
           <h3 className="text-lg font-semibold text-ocean-medium">Tips</h3>
           <ul className="list-disc pl-5 space-y-2">
-            <li className="tablet-text-base">Use the correct tool for each object type</li>
             <li className="tablet-text-base">Look carefully for partially hidden or camouflaged objects</li>
             <li className="tablet-text-base">Balance speed and accuracy - both matter!</li>
-            <li className="tablet-text-base">Try different image difficulty levels to improve your skills</li>
+            <li className="tablet-text-base">Try different image difficulty levels to improve</li>
           </ul>
         </div>
         
