@@ -62,6 +62,10 @@ const Index = () => {
   
   const TIMER_DURATION = 60; // 1 minute in seconds
   
+  const [isTimerStuck, setIsTimerStuck] = useState(false);
+  const [isGameStuck, setIsGameStuck] = useState(false);
+  const [isToolsStuck, setIsToolsStuck] = useState(false);
+  
   // Load initial images based on round
   useEffect(() => {
     // Get images for the current round, ensuring they all have annotations

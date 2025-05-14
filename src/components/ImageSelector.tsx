@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { OceanImage } from '../data/oceanImages';
 import { Waves, BadgePlus, AlertCircle } from 'lucide-react';
@@ -21,7 +20,7 @@ const ImageSelector: React.FC<ImageSelectorProps> = ({
   const hasInvalidImages = images.length !== validImages.length;
   
   return (
-    <div className={`${inSidebar ? '' : 'bg-white rounded-xl shadow-lg'} p-4`}>
+    <div className={`${inSidebar ? '' : 'bg-white rounded-xl shadow-lg'} p-4 flex flex-col h-full`}>
       {!inSidebar && (
         <h3 className="text-lg font-bold text-ocean-dark flex items-center gap-2 mb-4">
           <Waves className="text-ocean-medium" /> 
@@ -36,52 +35,55 @@ const ImageSelector: React.FC<ImageSelectorProps> = ({
         </div>
       )}
       
-      <div className="grid grid-cols-1 gap-3">
-        {validImages.length > 0 ? (
-          validImages.map((image) => (
-            <div 
-              key={image.id}
-              onClick={() => onSelectImage(image)}
-              className={`flex cursor-pointer rounded-lg overflow-hidden hover:shadow-md transition-all ${
-                selectedImageId === image.id ? 'ring-2 ring-ocean-medium' : 'hover:bg-gray-50'
-              }`}
-            >
-              <div className="w-20 h-20 flex-shrink-0">
-                <img 
-                  src={image.imagePath} 
-                  alt={image.title}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <div className="px-3 py-2 flex-1">
-                <h4 className="font-medium text-sm">{image.title}</h4>
-                <div className="flex items-center gap-2 mt-1">
-                  <span className={`text-xs px-2 py-0.5 rounded-full font-medium
-                    ${image.difficulty === 'easy' ? 'bg-green-100 text-green-800' : 
-                      image.difficulty === 'medium' ? 'bg-yellow-100 text-yellow-800' : 
-                      'bg-red-100 text-red-800'
-                    }`}
-                  >
-                    {image.difficulty}
-                  </span>
-                  <span className="text-xs text-gray-500">
-                    {image.targetAnnotations.length} annotations
-                  </span>
+      {/* Set to a shorter fixed height - adjust as needed */}
+      <div className="overflow-y-auto max-h-[450px] pr-1">
+        <div className="grid grid-cols-1 gap-3">
+          {validImages.length > 0 ? (
+            validImages.map((image) => (
+              <div 
+                key={image.id}
+                onClick={() => onSelectImage(image)}
+                className={`flex cursor-pointer rounded-lg overflow-hidden hover:shadow-md transition-all ${
+                  selectedImageId === image.id ? 'ring-2 ring-ocean-medium' : 'hover:bg-gray-50'
+                }`}
+              >
+                <div className="w-20 h-20 flex-shrink-0">
+                  <img 
+                    src={image.imagePath} 
+                    alt={image.title}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="px-3 py-2 flex-1">
+                  <h4 className="font-medium text-sm">{image.title}</h4>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium
+                      ${image.difficulty === 'easy' ? 'bg-green-100 text-green-800' : 
+                        image.difficulty === 'medium' ? 'bg-yellow-100 text-yellow-800' : 
+                        'bg-red-100 text-red-800'
+                      }`}
+                    >
+                      {image.difficulty}
+                    </span>
+                    <span className="text-xs text-gray-500">
+                      {image.targetAnnotations.length} annotations
+                    </span>
+                  </div>
                 </div>
               </div>
+            ))
+          ) : (
+            <div className="text-center p-4 text-gray-500">
+              No images with annotations available.
             </div>
-          ))
-        ) : (
-          <div className="text-center p-4 text-gray-500">
-            No images with annotations available.
-          </div>
-        )}
-        
-        {/* Disabled "Add Your Own" option for simplicity */}
-        <div className="flex items-center justify-center p-3 mt-2 border border-dashed border-gray-300 rounded-lg text-gray-400">
-          <BadgePlus className="w-4 h-4 mr-2" />
-          <span className="text-sm">Add Your Own (Coming Soon)</span>
+          )}
         </div>
+      </div>
+      
+      {/* Add Your Own option moved outside of scrollable area to keep it always visible */}
+      <div className="flex items-center justify-center p-2 mt-auto border border-dashed border-gray-300 rounded-lg text-gray-400">
+        <BadgePlus className="w-4 h-4 mr-2" />
+        <span className="text-sm">Add Your Own (Coming Soon)</span>
       </div>
     </div>
   );
