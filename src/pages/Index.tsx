@@ -140,30 +140,30 @@ const Index = () => {
     // Show first annotation tip if it's the first annotation for this session
     if (newAnnotations.length === 1 && !hasShownFirstAnnotationTip) {
       // Use a timeout to show the tip after the annotation is complete
-      setTimeout(() => {
-        toast.info(
-          <div className="border border-blue-100 rounded-lg bg-blue-50/50 p-4">
-            <h3 className="text-lg font-semibold text-ocean-medium mb-3">Precision Matters!</h3>
-            <AnnotationScoreVisual className="mb-2" />
-            <p className="text-sm tablet-text-base text-blue-700 mt-3">
-              Draw tight boundaries around objects to maximize your score, but remember to complete all your annotations before time runs out!
-            </p>
-          </div>,
-          {
-            duration: 6000,
-            position: 'top-center',
-            style: {
-              width: '500px',
-              maxWidth: '90vw',
-              margin: '0 auto'
-            }
-          }
-        );
+      // setTimeout(() => {
+      //   toast.info(
+      //     <div className="border border-blue-100 rounded-lg bg-blue-50/50 p-4">
+      //       <h3 className="text-lg font-semibold text-ocean-medium mb-3">Precision Matters!</h3>
+      //       <AnnotationScoreVisual className="mb-2" />
+      //       <p className="text-sm tablet-text-base text-blue-700 mt-3">
+      //         Draw tight boundaries around objects to maximize your score, but remember to complete all your annotations before time runs out!
+      //       </p>
+      //     </div>,
+      //     {
+      //       duration: 6000,
+      //       position: 'top-center',
+      //       style: {
+      //         width: '500px',
+      //         maxWidth: '90vw',
+      //         margin: '0 auto'
+      //       }
+      //     }
+      //   );
         
-        // Mark that we've shown the tip for this session only
-        setHasShownFirstAnnotationTip(true);
-        // Removed localStorage save
-      }, 500);
+      //   // Mark that we've shown the tip for this session only
+      //   setHasShownFirstAnnotationTip(true);
+      //   // Removed localStorage save
+      // }, 500);
     }
   };
   
