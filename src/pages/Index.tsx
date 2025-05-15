@@ -328,7 +328,7 @@ const Index = () => {
   useEffect(() => {
     console.log("Timer running state changed:", isTimerRunning);
   }, [isTimerRunning]);
-
+  
   return (
     <div className="min-h-screen bg-ocean-gradient relative">
       <BubbleBackground bubbleCount={30} />
@@ -346,13 +346,10 @@ const Index = () => {
       
       <div className="container mx-auto py-6 px-4 relative z-10">
         <header className="flex justify-between items-center mb-6">
-          <a href="/" className="block">
-            <img 
-              src="/lovable-uploads/dbb48f96-ab05-4be9-a1f7-c30194568c5b.png" 
-              alt="Benioff Ocean Science Laboratory Logo" 
-              className="h-16 w-auto" 
-            />
-          </a>
+          <div className="flex items-center gap-2">
+            <Fish className="text-coral h-8 w-8" />
+            <h1 className="text-2xl md:text-3xl font-bold text-white">Ocean Annotation</h1>
+          </div>
           
           <div className="flex gap-2 items-center">
             {/* Score display with best score addition */}
