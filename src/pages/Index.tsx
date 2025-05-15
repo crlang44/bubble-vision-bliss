@@ -347,7 +347,7 @@ const Index = () => {
       <div className="container mx-auto py-6 px-4 relative z-10">
         <header className="flex justify-between items-center mb-6">
           <div className="flex items-center gap-2">
-            <img src="/lovable-uploads/c5bd120b-ed39-4828-9d92-541b6aef9cf9.png" alt="Organization Logo" className="h-8 w-auto" />
+            <img src="/lovable-uploads/c5bd120b-ed39-4828-9d92-541b6aef9cf9.png" alt="Organization Logo" className="h-10 w-auto" />
             <h1 className="text-2xl md:text-3xl font-bold text-white">Ocean Annotation</h1>
           </div>
           
