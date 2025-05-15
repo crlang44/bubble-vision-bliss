@@ -43,7 +43,7 @@ interface GameImage {
 }
 
 interface QuickIDGameProps {
-  onGameComplete?: (score: number, allComplete: boolean) => void;
+  onGameComplete?: (score: number, accuracy: number, allComplete: boolean) => void;
 }
 
 // Sample game images - you'll replace these with your actual images
@@ -107,17 +107,41 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({ onGameComplete }) => {
   // Add state for next image preloading
   const [nextImagePreloaded, setNextImagePreloaded] = useState(false);
   const [isImageLoading, setIsImageLoading] = useState(true);
+  // Fixed: Initialize bestScore as 0 if no saved score exists
+  const [bestScore, setBestScore] = useState(() => {
+    const saved = localStorage.getItem("quickIdBestScore");
+    return saved ? parseInt(saved, 10) : 0;
+  });
+  const [isNewBestScore, setIsNewBestScore] = useState(false);
+  // Store the final game score for display
+  const [finalGameScore, setFinalGameScore] = useState(0);
+  // Store whether the final game score was a new best
+  const [finalGameWasNewBest, setFinalGameWasNewBest] = useState(false);
 
   // Refs
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
   const gameTimerRef = useRef<NodeJS.Timeout | null>(null);
   const imageTimerRef = useRef<NodeJS.Timeout | null>(null);
   const nextImageRef = useRef<HTMLImageElement | null>(null);
+  // Use refs to track game state for timer
+  const gameStateRef = useRef({
+    score: 0,
+    totalAttempts: 0,
+    correctAnswersCount: 0,
+    allImagesSeen: false,
+  });
 
   // Preload all images when component mounts
   useEffect(() => {
     preloadImages();
   }, []);
+
+  // Sync state with ref
+  useEffect(() => {
+    gameStateRef.current.score = score;
+    gameStateRef.current.totalAttempts = totalAttempts;
+    gameStateRef.current.correctAnswersCount = correctAnswersCount;
+    gameStateRef.current.allImagesSeen = allImagesSeen;
+  }, [score, totalAttempts, correctAnswersCount, allImagesSeen]);
 
   // Check if all images have been seen
   useEffect(() => {
@@ -125,6 +149,13 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({ onGameComplete }) => {
       setAllImagesSeen(true);
     }
   }, [seenImages, allImagesSeen]);
+
+  // Handle image timer when image index changes or game starts
+  useEffect(() => {
+    if (gameStarted && !gameOver) {
+      setImageTimer(timePerImage);
+    }
+  }, [currentImageIndex, gameStarted]); // Trigger when image changes or game starts
 
   // Preload next image whenever current image index changes
   useEffect(() => {
@@ -169,6 +200,21 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({ onGameComplete }) => {
     setSeenImages(new Set());
     setAllImagesSeen(false);
     setIsImageLoading(false);
+    setIsNewBestScore(false); // Reset new best score flag
+
+    // Reset the game state ref
+    gameStateRef.current = {
+      score: 0,
+      totalAttempts: 0,
+      correctAnswersCount: 0,
+      allImagesSeen: false,
+    };
+
+    // Reload best score from localStorage to ensure it's up to date
+    const savedBestScore = localStorage.getItem("quickIdBestScore");
+    if (savedBestScore) {
+      setBestScore(parseInt(savedBestScore, 10));
+    }
 
     // Start the game timer (60 seconds)
     gameTimerRef.current = setInterval(() => {
@@ -181,8 +227,7 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({ onGameComplete }) => {
       });
     }, 1000);
 
-    // Set the first image timeout
-    setImageTimer(5000); // Pass initial 5 seconds
+    // The image timer will be set by the useEffect
   };
 
   // Set timer for current image
@@ -193,21 +238,30 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({ onGameComplete }) => {
       imageTimerRef.current = null;
     }
 
-    // Increment animation key to force restart of animation
-    setAnimationKey((prev) => prev + 1);
+    // Only set a new timer if the game is still active
+    if (gameStarted && !gameOver) {
+      // Increment animation key to force restart of animation
+      setAnimationKey((prev) => prev + 1);
 
-    // Record the start time for this image
-    setCurrentImageStartTime(Date.now());
+      // Record the start time for this image
+      setCurrentImageStartTime(Date.now());
 
-    // Set new timer for current image
-    imageTimerRef.current = setTimeout(() => {
-      // Time's up for this image - count as incorrect
-      handleAnswer("timeout");
-    }, delayMs);
+      // Set new timer for current image
+      imageTimerRef.current = setTimeout(() => {
+        // Time's up for this image - count as incorrect
+        handleAnswer("timeout");
+      }, delayMs);
+    }
   };
 
   // Move to the next image
   const moveToNextImage = () => {
+    // Clear any existing timer first
+    if (imageTimerRef.current) {
+      clearTimeout(imageTimerRef.current);
+      imageTimerRef.current = null;
+    }
+
     // Move to next image or end game if no more images
     const nextIndex = (currentImageIndex + 1) % gameImages.length;
 
@@ -239,8 +293,7 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({ onGameComplete }) => {
     );
     setTimePerImage(newDelayMs); // Update state for UI or other logic
 
-    // Set timer for next image
-    setImageTimer(newDelayMs); // Pass calculated delay directly
+    // Don't set the timer here - let useEffect handle it
   };
 
   // Handle player's answer
@@ -287,7 +340,7 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({ onGameComplete }) => {
     }
   };
 
-  // End the game
+  // Fixed: End the game with proper best score handling
   const endGame = () => {
     setGameOver(true);
     setGameStarted(false);
@@ -301,31 +354,50 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({ onGameComplete }) => {
       clearTimeout(imageTimerRef.current);
     }
 
-    // Calculate final score
-    const accuracy =
-      totalAttempts > 0
-        ? Math.round((correctAnswersCount / totalAttempts) * 100)
-        : 0;
-
-    // Call the onGameComplete callback if provided
-    if (onGameComplete) {
-      onGameComplete(accuracy, allImagesSeen);
+    // Use the ref to get the current values
+    const currentScore = gameStateRef.current.score;
+    const currentBestScore = bestScore;
+    const totalAttemptsValue = gameStateRef.current.totalAttempts;
+    const correctAnswersValue = gameStateRef.current.correctAnswersCount;
+    const allImagesSeenValue = gameStateRef.current.allImagesSeen;
+    
+    // Set the final score for display
+    setFinalGameScore(currentScore);
+    
+    if (currentScore > currentBestScore) {
+      // Update best score immediately
+      setBestScore(currentScore);
+      setIsNewBestScore(true);
+      setFinalGameWasNewBest(true); // Set this for the game over display
+      localStorage.setItem("quickIdBestScore", currentScore.toString());
+      
+      // Show toast after a slight delay to ensure state is updated
+      setTimeout(() => {
+        toast.success("New best score!");
+      }, 100);
+    } else {
+      setIsNewBestScore(false);
+      setFinalGameWasNewBest(false);
     }
 
-    // Show toast with score
-    toast.success(
-      `Game Over! You scored ${score} points with ${accuracy}% accuracy!`
-    );
-  };
+    // Calculate final accuracy
+    const accuracy =
+      totalAttemptsValue > 0
+        ? Math.round((correctAnswersValue / totalAttemptsValue) * 100)
+        : 0;
 
-  // Clean up timers when component unmounts
-  useEffect(() => {
-    return () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
-      if (gameTimerRef.current) clearInterval(gameTimerRef.current);
-      if (imageTimerRef.current) clearTimeout(imageTimerRef.current);
-    };
-  }, []);
+    // Call the onGameComplete callback if provided - pass both score and accuracy
+    if (onGameComplete) {
+      onGameComplete(currentScore, accuracy, allImagesSeenValue);
+    }
+
+    // Show final toast with score
+    setTimeout(() => {
+      toast.success(
+        `Game Over! You scored ${currentScore} points with ${accuracy}% accuracy!`
+      );
+    }, 150);
+  };
 
   // Instructions component
   const Instructions = ({ onClose }: { onClose: () => void }) => (
@@ -514,9 +586,24 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({ onGameComplete }) => {
 
                 <div className="bg-blue-50 p-4 rounded-lg max-w-md mx-auto mb-6">
                   <div className="text-5xl font-bold text-ocean-dark mb-2">
-                    {score}
+                    {finalGameScore}
                   </div>
                   <p className="text-gray-700">Total Points</p>
+
+                  {/* Fixed: Best Score Display */}
+                  {finalGameWasNewBest ? (
+                    <div className="mt-4 p-2 bg-yellow-100 rounded">
+                      <p className="text-yellow-700 font-bold text-lg">
+                        🏆 NEW BEST SCORE! 🏆
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="mt-4">
+                      <p className="text-gray-600">
+                        Best Score: <span className="font-bold text-ocean-dark">{bestScore}</span>
+                      </p>
+                    </div>
+                  )}
 
                   <div className="mt-4 text-sm text-gray-700">
                     <div className="flex justify-between mb-2">
@@ -588,6 +675,14 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({ onGameComplete }) => {
                 <div>
                   <span className="text-gray-700">Attempts:</span>
                   <span className="font-bold ml-1">{totalAttempts}</span>
+                </div>
+              </div>
+              <div className="mt-2 pt-2 border-t border-gray-200">
+                <div className="flex justify-between">
+                  <span className="text-gray-700">Best Score:</span>
+                  <span className="font-bold text-ocean-dark">
+                    {bestScore > 0 ? bestScore : "--"}
+                  </span>
                 </div>
               </div>
             </div>
