@@ -124,7 +124,7 @@ const Index = () => {
   
   const handleClearAnnotations = () => {
     setAnnotations([]);
-    toast('All annotations cleared');
+    // toast('All annotations cleared'); // Commented out
   };
   
   const handleAnnotationComplete = (annotation: Annotation) => {
@@ -254,14 +254,14 @@ const Index = () => {
     // Show appropriate feedback only for images with multiple targets
     if (totalTargets > 1) {
       if (allTargetsFound) {
-        toast.success('Great job! You found all the targets!');
+        // toast.success('Great job! You found all the targets!'); // Commented out
       } else if (foundCount > 0) {
         // If user found some but not all targets
         const missedCount = totalTargets - foundCount;
-        toast.error(`You found ${foundCount} target${foundCount > 1 ? 's' : ''}, but missed ${missedCount} target${missedCount > 1 ? 's' : ''}!`);
+        // toast.error(`You found ${foundCount} target${foundCount > 1 ? 's' : ''}, but missed ${missedCount} target${missedCount > 1 ? 's' : ''}!`); // Commented out
       } else {
         // If user found none of the targets
-        toast.error(`You missed all ${totalTargets} targets!`);
+        // toast.error(`You missed all ${totalTargets} targets!`); // Commented out
       }
     }
   };
@@ -273,7 +273,7 @@ const Index = () => {
   
   const handleResetCumulativeScore = () => {
     setCumulativeScore(0);
-    toast.success('Cumulative score has been reset to 0');
+    // toast.success('Cumulative score has been reset to 0'); // Commented out
   };
   
   const handlePlayAgain = () => {
@@ -305,7 +305,7 @@ const Index = () => {
     
     // If this is the last image and all have been annotated, don't allow selecting a new one
     if (currentIndex === currentImages.length - 1 && annotatedImages.size >= currentImages.length) {
-      toast.info("You've completed all images!");
+      // toast.info("You've completed all images!"); // Commented out
       return;
     }
     
