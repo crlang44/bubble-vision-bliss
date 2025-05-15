@@ -55,12 +55,18 @@ const Index = () => {
     const storedBestScore = localStorage.getItem('oceanAnnotationBestScore');
     return storedBestScore ? parseInt(storedBestScore, 10) : 0;
   });
-  // New state to track if the first annotation tip has been shown
-  const [hasShownFirstAnnotationTip, setHasShownFirstAnnotationTip] = useState<boolean>(() => {
-    return localStorage.getItem('hasShownFirstAnnotationTip') === 'true';
-  });
+  // Modified: Always start as false on page refresh
+  const [hasShownFirstAnnotationTip, setHasShownFirstAnnotationTip] = useState<boolean>(false);
+  // Track if user has started annotating
+  const [hasStartedAnnotating, setHasStartedAnnotating] = useState(false);
+  // Track timer reset key to force timer component to reset
+  const [timerResetKey, setTimerResetKey] = useState(0);
   
   const TIMER_DURATION = 60; // 1 minute in seconds
+  
+  const [isTimerStuck, setIsTimerStuck] = useState(false);
+  const [isGameStuck, setIsGameStuck] = useState(false);
+  const [isToolsStuck, setIsToolsStuck] = useState(false);
   
   // Load initial images based on round
   useEffect(() => {
@@ -90,9 +96,9 @@ const Index = () => {
       setCurrentLabel(labels[0]);
     }
     
-    if (!showInstructions) {
-      setIsTimerRunning(true);
-    }
+    // Don't start timer automatically - wait for first annotation
+    setIsTimerRunning(false);
+    setHasStartedAnnotating(false);
   }, [selectedImage, showInstructions]);
   
   // Check if all images have been annotated
@@ -101,6 +107,7 @@ const Index = () => {
       // Add a delay before showing the completion dialog (2 seconds)
       setTimeout(() => {
         setShowCompletionDialog(true);
+        setIsTimerRunning(false); // Stop the timer when game is complete
         
         // Update best score if current cumulative score is higher
         if (cumulativeScore > bestScore) {
@@ -124,26 +131,38 @@ const Index = () => {
     const newAnnotations = [...annotations, annotation];
     setAnnotations(newAnnotations);
     
-    // Show first annotation tip if it's the first annotation and hasn't been shown before
+    // Start timer on first annotation
+    if (!hasStartedAnnotating && !showInstructions) {
+      setHasStartedAnnotating(true);
+      setIsTimerRunning(true);
+    }
+    
+    // Show first annotation tip if it's the first annotation for this session
     if (newAnnotations.length === 1 && !hasShownFirstAnnotationTip) {
       // Use a timeout to show the tip after the annotation is complete
       setTimeout(() => {
         toast.info(
-          <div className="space-y-2">
-            <p className="font-medium">Annotation Tip</p>
-            <p className="text-sm">
-              Draw tight boundaries around objects to maximize your points, but remember to work quickly enough to complete all annotations before time runs out!
+          <div className="border border-blue-100 rounded-lg bg-blue-50/50 p-4">
+            <h3 className="text-lg font-semibold text-ocean-medium mb-3">Precision Matters!</h3>
+            <AnnotationScoreVisual className="mb-2" />
+            <p className="text-sm tablet-text-base text-blue-700 mt-3">
+              Draw tight boundaries around objects to maximize your score, but remember to complete all your annotations before time runs out!
             </p>
           </div>,
           {
             duration: 6000,
-            position: 'top-center'
+            position: 'top-center',
+            style: {
+              width: '500px',
+              maxWidth: '90vw',
+              margin: '0 auto'
+            }
           }
         );
         
-        // Mark that we've shown the tip and save to localStorage
+        // Mark that we've shown the tip for this session only
         setHasShownFirstAnnotationTip(true);
-        localStorage.setItem('hasShownFirstAnnotationTip', 'true');
+        // Removed localStorage save
       }, 500);
     }
   };
@@ -163,6 +182,14 @@ const Index = () => {
   const handleTimeUp = () => {
     setIsTimerRunning(false);
     handleSubmit();
+    // Show completion dialog when timer runs out
+    setShowCompletionDialog(true);
+    
+    // Update best score if current cumulative score is higher
+    if (cumulativeScore > bestScore) {
+      setBestScore(cumulativeScore);
+      localStorage.setItem('oceanAnnotationBestScore', cumulativeScore.toString());
+    }
   };
   
   // Calculate time bonus as a percentage of remaining time
@@ -250,15 +277,24 @@ const Index = () => {
   };
   
   const handlePlayAgain = () => {
+    // Reset all game state
     setGameComplete(false);
     setAnnotations([]);
     setTimeBonus(25); // Reset to a lower initial time bonus
-    setIsTimerRunning(true);
     setShowGroundTruth(false);
     setShowCompletionDialog(false);
-    // Reset cumulative score and annotated images when trying again from completion dialog
+    // Reset cumulative score and annotated images when trying again
     setCumulativeScore(0);
     setAnnotatedImages(new Set());
+    // Select the first image
+    if (currentImages.length > 0) {
+      setSelectedImage(currentImages[0]);
+    }
+    // Reset timer state but don't start it yet - wait for first annotation
+    setIsTimerRunning(false);
+    setHasStartedAnnotating(false);
+    // Increment timer key to force timer component to reset
+    setTimerResetKey(prev => prev + 1);
   };
   
   const handleNewImage = () => {
@@ -365,7 +401,8 @@ const Index = () => {
               setShowInstructions(false);
               setHasSeenInstructions(true);
               localStorage.setItem('hasSeenInstructions', 'true');
-              setIsTimerRunning(true);
+              // Don't start timer when closing instructions - wait for first annotation
+              setIsTimerRunning(false);
             }} />
           </div>
         )}
@@ -384,6 +421,7 @@ const Index = () => {
           <div className={`${isTablet ? 'col-span-full' : 'lg:col-span-3'} space-y-4`}>
             <div className="bg-white rounded-xl p-3 shadow-md">
               <Timer 
+                key={timerResetKey}
                 duration={TIMER_DURATION}
                 onTimeUp={handleTimeUp}
                 isRunning={isTimerRunning && !showInstructions}
@@ -427,14 +465,24 @@ const Index = () => {
                   <CheckCircle className="h-4 w-4" /> Submit
                 </Button>
               ) : (
-                <Button 
-                  onClick={handleNewImage}
-                  className="btn-coral flex items-center gap-1"
-                  disabled={isLastImage && allImagesAnnotated}
-                >
-                  <Fish className="h-4 w-4" /> 
-                  {isLastImage && allImagesAnnotated ? 'All Images Complete!' : 'Next Image'}
-                </Button>
+                <div className="flex gap-2">
+                  <Button 
+                    onClick={handleNewImage}
+                    className="btn-coral flex items-center gap-1"
+                    disabled={isLastImage && allImagesAnnotated}
+                  >
+                    <Fish className="h-4 w-4" /> 
+                    {isLastImage && allImagesAnnotated ? 'All Images Complete!' : 'Next Image'}
+                  </Button>
+                  {isLastImage && allImagesAnnotated && (
+                    <Button 
+                      onClick={handlePlayAgain}
+                      className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white flex items-center gap-1"
+                    >
+                      <RefreshCcw className="h-4 w-4" /> Replay
+                    </Button>
+                  )}
+                </div>
               )}
             </div>
           </div>

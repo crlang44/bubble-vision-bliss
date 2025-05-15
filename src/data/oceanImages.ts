@@ -86,15 +86,7 @@ const getImageDimensions = (imageId: number): { width: number, height: number } 
 
 // Generate a description based on annotations
 const generateDescription = (annotations: TargetAnnotation[]): string => {
-  const categories = [...new Set(annotations.map(a => a.label))];
-  if (categories.length === 0) return "Ocean scene.";
-  
-  if (categories.length === 1) {
-    return `Ocean scene containing ${categories[0].toLowerCase()}.`;
-  }
-  
-  const lastCategory = categories.pop();
-  return `Ocean scene containing ${categories.join(', ').toLowerCase()} and ${lastCategory?.toLowerCase()}.`;
+  return "Tap and drag to draw a bounding box.";
 };
 
 // Generate difficulty based on number of annotations
