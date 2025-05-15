@@ -328,7 +328,7 @@ const Index = () => {
   useEffect(() => {
     console.log("Timer running state changed:", isTimerRunning);
   }, [isTimerRunning]);
-  
+
   return (
     <div className="min-h-screen bg-ocean-gradient relative">
       <BubbleBackground bubbleCount={30} />
@@ -348,6 +348,7 @@ const Index = () => {
         <header className="flex justify-between items-center mb-6">
           <div className="flex items-center gap-2">
             <Fish className="text-coral h-8 w-8" />
+            <img src="/lovable-uploads/995efee1-e024-4311-b5d3-c317bf9a36f1.png" alt="Organization Logo" className="h-8 w-8" />
             <h1 className="text-2xl md:text-3xl font-bold text-white">Ocean Annotation</h1>
           </div>
           
