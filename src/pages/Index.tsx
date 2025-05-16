@@ -124,7 +124,7 @@ const Index = () => {
   
   const handleClearAnnotations = () => {
     setAnnotations([]);
-    toast('All annotations cleared');
+    // toast('All annotations cleared'); // Commented out
   };
   
   const handleAnnotationComplete = (annotation: Annotation) => {
@@ -140,30 +140,30 @@ const Index = () => {
     // Show first annotation tip if it's the first annotation for this session
     if (newAnnotations.length === 1 && !hasShownFirstAnnotationTip) {
       // Use a timeout to show the tip after the annotation is complete
-      setTimeout(() => {
-        toast.info(
-          <div className="border border-blue-100 rounded-lg bg-blue-50/50 p-4">
-            <h3 className="text-lg font-semibold text-ocean-medium mb-3">Precision Matters!</h3>
-            <AnnotationScoreVisual className="mb-2" />
-            <p className="text-sm tablet-text-base text-blue-700 mt-3">
-              Draw tight boundaries around objects to maximize your score, but remember to complete all your annotations before time runs out!
-            </p>
-          </div>,
-          {
-            duration: 6000,
-            position: 'top-center',
-            style: {
-              width: '500px',
-              maxWidth: '90vw',
-              margin: '0 auto'
-            }
-          }
-        );
+      // setTimeout(() => {
+      //   toast.info(
+      //     <div className="border border-blue-100 rounded-lg bg-blue-50/50 p-4">
+      //       <h3 className="text-lg font-semibold text-ocean-medium mb-3">Precision Matters!</h3>
+      //       <AnnotationScoreVisual className="mb-2" />
+      //       <p className="text-sm tablet-text-base text-blue-700 mt-3">
+      //         Draw tight boundaries around objects to maximize your score, but remember to complete all your annotations before time runs out!
+      //       </p>
+      //     </div>,
+      //     {
+      //       duration: 6000,
+      //       position: 'top-center',
+      //       style: {
+      //         width: '500px',
+      //         maxWidth: '90vw',
+      //         margin: '0 auto'
+      //       }
+      //     }
+      //   );
         
-        // Mark that we've shown the tip for this session only
-        setHasShownFirstAnnotationTip(true);
-        // Removed localStorage save
-      }, 500);
+      //   // Mark that we've shown the tip for this session only
+      //   setHasShownFirstAnnotationTip(true);
+      //   // Removed localStorage save
+      // }, 500);
     }
   };
   
@@ -254,14 +254,14 @@ const Index = () => {
     // Show appropriate feedback only for images with multiple targets
     if (totalTargets > 1) {
       if (allTargetsFound) {
-        toast.success('Great job! You found all the targets!');
+        // toast.success('Great job! You found all the targets!'); // Commented out
       } else if (foundCount > 0) {
         // If user found some but not all targets
         const missedCount = totalTargets - foundCount;
-        toast.error(`You found ${foundCount} target${foundCount > 1 ? 's' : ''}, but missed ${missedCount} target${missedCount > 1 ? 's' : ''}!`);
+        // toast.error(`You found ${foundCount} target${foundCount > 1 ? 's' : ''}, but missed ${missedCount} target${missedCount > 1 ? 's' : ''}!`); // Commented out
       } else {
         // If user found none of the targets
-        toast.error(`You missed all ${totalTargets} targets!`);
+        // toast.error(`You missed all ${totalTargets} targets!`); // Commented out
       }
     }
   };
@@ -273,7 +273,7 @@ const Index = () => {
   
   const handleResetCumulativeScore = () => {
     setCumulativeScore(0);
-    toast.success('Cumulative score has been reset to 0');
+    // toast.success('Cumulative score has been reset to 0'); // Commented out
   };
   
   const handlePlayAgain = () => {
@@ -305,7 +305,7 @@ const Index = () => {
     
     // If this is the last image and all have been annotated, don't allow selecting a new one
     if (currentIndex === currentImages.length - 1 && annotatedImages.size >= currentImages.length) {
-      toast.info("You've completed all images!");
+      // toast.info("You've completed all images!"); // Commented out
       return;
     }
     
@@ -328,7 +328,7 @@ const Index = () => {
   useEffect(() => {
     console.log("Timer running state changed:", isTimerRunning);
   }, [isTimerRunning]);
-  
+
   return (
     <div className="min-h-screen bg-ocean-gradient relative">
       <BubbleBackground bubbleCount={30} />
@@ -347,7 +347,7 @@ const Index = () => {
       <div className="container mx-auto py-6 px-4 relative z-10">
         <header className="flex justify-between items-center mb-6">
           <div className="flex items-center gap-2">
-            <Fish className="text-coral h-8 w-8" />
+            <img src="/lovable-uploads/c5bd120b-ed39-4828-9d92-541b6aef9cf9.png" alt="Organization Logo" className="h-10 w-auto" />
             <h1 className="text-2xl md:text-3xl font-bold text-white">Ocean Annotation</h1>
           </div>
           
