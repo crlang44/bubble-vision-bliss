@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
 import BubbleBackground from "../components/BubbleBackground";
-import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
   Fish,
@@ -101,7 +100,7 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({ onGameComplete }) => {
   const [showFeedback, setShowFeedback] = useState<
     "correct" | "incorrect" | null
   >(null);
-  // Track if all images have been seen at least once
+  // Track if all images have been seen
   const [seenImages, setSeenImages] = useState<Set<string>>(new Set());
   const [allImagesSeen, setAllImagesSeen] = useState(false);
   // Add state for next image preloading
@@ -311,7 +310,6 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({ onGameComplete }) => {
     setTotalAttempts((prev) => prev + 1); // Common for all outcomes, attempt is made
 
     if (answer === "timeout") {
-      toast.error("Too slow!", { duration: 300 });
       // For timeouts, move to the next image directly.
       // The "X" feedback overlay is skipped for a quicker transition; toast is sufficient.
       moveToNextImage();
@@ -326,10 +324,8 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({ onGameComplete }) => {
         setScore((prev) => prev + pointsEarned);
         setCorrectAnswersCount((prev) => prev + 1);
         setShowFeedback("correct");
-        toast.success(`Correct! +${pointsEarned} points`, { duration: 300 });
       } else {
         setShowFeedback("incorrect");
-        toast.error("Incorrect!", { duration: 300 });
       }
 
       // For explicit answers (correct or incorrect), show feedback overlay for a short duration.
@@ -373,7 +369,6 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({ onGameComplete }) => {
       
       // Show toast after a slight delay to ensure state is updated
       setTimeout(() => {
-        toast.success("New best score!");
       }, 100);
     } else {
       setIsNewBestScore(false);
@@ -393,9 +388,6 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({ onGameComplete }) => {
 
     // Show final toast with score
     setTimeout(() => {
-      toast.success(
-        `Game Over! You scored ${currentScore} points with ${accuracy}% accuracy!`
-      );
     }, 150);
   };
 
