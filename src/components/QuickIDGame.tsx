@@ -399,11 +399,6 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({ onGameComplete }) => {
       </h2>
 
       <div className="space-y-4 mb-6">
-        <p className="text-gray-700">
-          Test your quick identification skills! You'll be shown a series of
-          ocean images and must quickly identify whether each contains a shark,
-          kelp, or dolphin.
-        </p>
 
         <div className="bg-blue-50 p-3 rounded-lg">
           <h3 className="font-bold text-ocean-dark mb-2">How to Play:</h3>
