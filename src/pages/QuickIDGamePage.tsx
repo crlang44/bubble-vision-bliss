@@ -30,11 +30,9 @@ const QuickIDGamePage: React.FC = () => {
     }
   }, [allImagesAnnotated]);
 
-  const handleGameComplete = (score: number, accuracy: number, allComplete: boolean) => {
+  const handleGameComplete = (score: number, completed: boolean) => {
     setFinalScore(score);
-    setAllImagesAnnotated(allComplete); // Use allComplete here
-    // The 'accuracy' parameter is available if needed in the future
-    console.log(`Game complete! Score: ${score}, Accuracy: ${accuracy}%, All images seen: ${allComplete}`);
+    setAllImagesAnnotated(completed);
   };
 
   const handlePlayAgain = () => {
@@ -48,7 +46,6 @@ const QuickIDGamePage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-ocean-gradient relative">
-      {/* <NavBar /> */} {/* NavBar is commented out in current code */}
       <div className="container mx-auto py-6 px-4 relative z-10">
         <QuickIDGame onGameComplete={handleGameComplete} />
       </div>
