@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import BubbleBackground from "../components/BubbleBackground";
 import { Button } from "@/components/ui/button";
 import {
+  Fish,
   CheckCircle,
   RefreshCcw,
   Trophy,
@@ -431,23 +432,32 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({ onGameComplete }) => {
     <div className="min-h-screen bg-ocean-gradient relative">
       <BubbleBackground bubbleCount={30} />
 
-      {/* The local header was here - it has been removed. */}
-      {/* Game content container now includes title and "How to Play" button */}
-      <div className="container mx-auto pt-0 pb-6 px-4 relative z-10"> {/* Adjusted pt-0 as NavBar adds margin-bottom */}
-        
-        {/* Page Title and How to Play button */}
-        <div className="flex justify-between items-center mb-6 mt-0"> {/* Added mt-0, NavBar has mb-6 */}
-          <h1 className="text-2xl md:text-3xl font-bold text-white">
-            Quick ID Challenge
-          </h1>
-          <Button
-            variant="outline"
-            onClick={() => setShowInstructions(true)}
-            className="bg-white/80 hover:bg-white"
-          >
-            How to Play
-          </Button>
-        </div>
+      <div className="container mx-auto py-6 px-4 relative z-10">
+        <header className="flex justify-between items-center mb-6">
+          <div className="flex items-center gap-2">
+            <Fish className="text-coral h-8 w-8" />
+            <h1 className="text-2xl md:text-3xl font-bold text-white">
+              Quick ID Challenge
+            </h1>
+          </div>
+
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setShowInstructions(true)}
+              className="bg-white/80 hover:bg-white"
+            >
+              How to Play
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => (window.location.href = routes.home)}
+              className="bg-white/80 hover:bg-white"
+            >
+              Ocean Annotation
+            </Button>
+          </div>
+        </header>
 
         {/* Instructions Modal */}
         {showInstructions && (
@@ -610,8 +620,8 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({ onGameComplete }) => {
               </div>
             ) : (
               <div className="p-8 text-center">
-                {/* Replaced Fish icon with a generic heading for simplicity, or could use another icon */}
-                <h2 className="text-2xl font-bold text-ocean-dark mb-4 mt-8"> {/* Added mt-8 for spacing if Fish icon removed */}
+                <Fish className="h-16 w-16 text-ocean-dark mx-auto mb-4" />
+                <h2 className="text-2xl font-bold text-ocean-dark mb-4">
                   Ready to Test Your Quick ID Skills?
                 </h2>
                 <p className="text-gray-700 mb-6">
@@ -666,9 +676,18 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({ onGameComplete }) => {
           )}
         </div>
 
-        {/* Footer: Removed the "Return to Ocean Annotation" button */}
         <footer className="mt-8 text-center text-white/80 text-sm">
-          {/* Content can be added here if needed in the future */}
+
+          {/* Return to Index button at bottom of page */}
+          <div className="mt-4">
+            <Button
+              variant="outline"
+              onClick={() => (window.location.href = routes.home)}
+              className="bg-white/20 hover:bg-white/40 text-white"
+            >
+              Return to Ocean Annotation
+            </Button>
+          </div>
         </footer>
 
         {/* CSS for animation */}
