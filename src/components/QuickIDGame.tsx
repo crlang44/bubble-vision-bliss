@@ -677,9 +677,6 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({ onGameComplete }) => {
         </div>
 
         <footer className="mt-8 text-center text-white/80 text-sm">
-          <p>
-            Quick ID Challenge - Test your ocean creature identification skills!
-          </p>
 
           {/* Return to Index button at bottom of page */}
           <div className="mt-4">
