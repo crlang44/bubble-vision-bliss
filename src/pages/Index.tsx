@@ -58,7 +58,7 @@ const Index = () => {
   // Track timer reset key to force timer component to reset
   const [timerResetKey, setTimerResetKey] = useState(0);
   
-  const TIMER_DURATION = 60; // 1 minute in seconds
+  const TIMER_DURATION = 30; // 1 minute in seconds
   
   const [isTimerStuck, setIsTimerStuck] = useState(false);
   const [isGameStuck, setIsGameStuck] = useState(false);
