@@ -45,6 +45,7 @@ interface QuickIDGameProps {
   onGameComplete?: (score: number, accuracy: number, allComplete: boolean) => void;
   showInstructions?: boolean;
   setShowInstructions?: (show: boolean) => void;
+  resetGameRef?: React.MutableRefObject<(() => void) | null>;
 }
 
 // Sample game images - you'll replace these with your actual images
@@ -85,7 +86,8 @@ const preloadImages = () => {
 const QuickIDGame: React.FC<QuickIDGameProps> = ({ 
   onGameComplete,
   showInstructions: externalShowInstructions,
-  setShowInstructions: externalSetShowInstructions
+  setShowInstructions: externalSetShowInstructions,
+  resetGameRef
 }) => {
   // Game state
   const [gameStarted, setGameStarted] = useState(false);
@@ -199,6 +201,10 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({
 
   // Initialize game
   const startGame = () => {
+    // Expose the startGame function through the ref if provided
+    if (resetGameRef) {
+      resetGameRef.current = startGame;
+    }
     setGameStarted(true);
     setGameOver(false);
     setCurrentImageIndex(0);

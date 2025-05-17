@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import QuickIDGame from "../components/QuickIDGame";
 import NavBar from "../components/NavBar";
 import BubbleBackground from "../components/BubbleBackground";
@@ -23,6 +23,9 @@ const QuickIDGamePage: React.FC = () => {
     const saved = localStorage.getItem("quickIdBestScore");
     return saved ? parseInt(saved, 10) : 0;
   });
+  
+  // Create a ref to store the resetGame function from QuickIDGame
+  const resetGameRef = useRef<(() => void) | null>(null);
 
   // Set page title via document API
   useEffect(() => {
@@ -52,7 +55,10 @@ const QuickIDGamePage: React.FC = () => {
 
   const handlePlayAgain = () => {
     setShowCompletionDialog(false);
-    window.location.reload();
+    // Use the resetGame function from the ref instead of reloading the page
+    if (resetGameRef.current) {
+      resetGameRef.current();
+    }
   };
 
   const handleGoToAnnotationGame = () => {
@@ -77,6 +83,7 @@ const QuickIDGamePage: React.FC = () => {
           onGameComplete={handleGameComplete}
           showInstructions={showInstructions}
           setShowInstructions={setShowInstructions}
+          resetGameRef={resetGameRef}
         />
       </div>
 
