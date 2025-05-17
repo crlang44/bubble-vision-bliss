@@ -476,10 +476,6 @@ const Index = () => {
       <Dialog 
         open={showCompletionDialog} 
         onOpenChange={(open) => {
-          if (!open && allImagesAnnotated) {
-            // If closing the dialog and all images are annotated, reset for a new game
-            setAnnotatedImages(new Set());
-          }
           setShowCompletionDialog(open);
         }}
       >
