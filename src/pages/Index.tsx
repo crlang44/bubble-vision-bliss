@@ -333,7 +333,7 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-ocean-gradient relative">
       {/* NavBar Component - Moved to top level for better visibility */}
-      <div className="container mx-auto py-6 pt-4 relative z-50">
+      <div className="container mx-auto px-4 pt-4 relative z-50">
         <NavBar 
           pageType="annotation"
           cumulativeScore={cumulativeScore}
@@ -345,7 +345,7 @@ const Index = () => {
       
       <BubbleBackground bubbleCount={30} />
       
-      {isTablet && (
+      {/* {isTablet && (
         <SidebarProvider defaultOpen={false}>
           <TabletSidebar
             images={currentImages}
@@ -354,7 +354,7 @@ const Index = () => {
           />
           <TabletSidebarTrigger />
         </SidebarProvider>
-      )}
+      )} */}
       
       <div className="container mx-auto py-6 px-4 relative z-10">
         {/* NavBar Component removed from here */}
