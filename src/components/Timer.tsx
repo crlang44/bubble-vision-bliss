@@ -40,9 +40,9 @@ const Timer: React.FC<TimerProps> = ({ duration, onTimeUp, isRunning, onTimerUpd
     const id = window.setInterval(() => {
       setTimeLeft(prevTime => {
         const newTime = prevTime <= 1 ? 0 : prevTime - 1;
-        
+    
         // Add a warning when less than 30 seconds remain
-        if (newTime <= 30 && !isWarning) {
+        if (newTime <= duration / 2 && !isWarning) {
           setIsWarning(true);
         }
         
