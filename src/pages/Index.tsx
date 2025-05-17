@@ -483,7 +483,11 @@ const Index = () => {
           setShowCompletionDialog(open);
         }}
       >
-        <DialogContent className="bg-gradient-to-b from-blue-50 to-white border-blue-200 max-w-md">
+        <DialogContent
+          onInteractOutside={(e) => {
+            e.preventDefault();
+          }}
+          className="bg-gradient-to-b from-blue-50 to-white border-blue-200 max-w-md">
           <DialogHeader>
             <DialogTitle className="text-2xl text-center flex items-center justify-center gap-2">
               <Trophy className="text-yellow-500 h-6 w-6" /> 
