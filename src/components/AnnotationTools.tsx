@@ -40,7 +40,7 @@ const AnnotationTools: React.FC<AnnotationToolsProps> = ({
             className={`${selectedTool === 'rectangle' ? 'annotation-active bg-blue-100' : ''} ${isTouch ? 'min-h-[48px] min-w-[48px]' : ''}`}
           >
             <Square className={`${isTouch ? 'h-5 w-5 mr-1' : 'h-4 w-4'}`} />
-            {isTouch && "Rectangle"}
+            {/* {isTouch && "Rectangle"} */}
           </Button>
           
           <div className="border-r border-gray-300 mx-1"></div>
