@@ -639,7 +639,7 @@ const Canvas: React.FC<CanvasProps> = ({
       ref={containerRef} 
       className="flex items-center justify-center w-full h-full bg-gray-100 rounded-xl overflow-hidden relative"
     >
-      <div className="absolute top-2 right-2 z-10">
+      {/* <div className="absolute top-2 right-2 z-10">
         <button 
           onClick={() => {
             // When the button is clicked, notify the parent component
@@ -651,7 +651,7 @@ const Canvas: React.FC<CanvasProps> = ({
         >
           {showGroundTruth ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
         </button>
-      </div>
+      </div> */}
       
       <canvas
         ref={canvasRef}
