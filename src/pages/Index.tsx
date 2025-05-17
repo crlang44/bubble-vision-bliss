@@ -7,6 +7,7 @@ import ScoreBoard from '../components/ScoreBoard';
 import Timer from '../components/Timer';
 import ImageSelector from '../components/ImageSelector';
 import AnnotationScoreVisual from '../components/AnnotationScoreVisual';
+import NavBar from '../components/NavBar';
 import { Annotation, AnnotationType, calculateScore } from '../utils/annotationUtils';
 import { oceanImages, OceanImage, getProgressiveImageSet } from '../data/oceanImages';
 import { toast } from 'sonner';
@@ -331,6 +332,17 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-ocean-gradient relative">
+      {/* NavBar Component - Moved to top level for better visibility */}
+      <div className="container mx-auto py-6 pt-4 relative z-50">
+        <NavBar 
+          pageType="annotation"
+          cumulativeScore={cumulativeScore}
+          bestScore={bestScore}
+          onResetScore={handleResetCumulativeScore}
+          setShowInstructions={setShowInstructions}
+        />
+      </div>
+      
       <BubbleBackground bubbleCount={30} />
       
       {isTablet && (
@@ -345,59 +357,12 @@ const Index = () => {
       )}
       
       <div className="container mx-auto py-6 px-4 relative z-10">
-        <header className="flex justify-between items-center mb-6">
-          <div className="flex items-center gap-2">
-            <img src="/lovable-uploads/c5bd120b-ed39-4828-9d92-541b6aef9cf9.png" alt="Organization Logo" className="h-10 w-auto" />
-            <h1 className="text-2xl md:text-3xl font-bold text-white">Ocean Annotation</h1>
-          </div>
-          
-          <div className="flex gap-2 items-center">
-            {/* Score display with best score addition */}
-            <div className="flex gap-2">
-              {/* Current score display */}
-              <div className="bg-white/20 text-white px-3 py-1 rounded-full text-sm font-medium flex items-center gap-1">
-                <Trophy className="h-4 w-4" />
-                <span>Score: {cumulativeScore}</span>
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  className="h-5 w-5 text-white hover:bg-white/20 ml-1" 
-                  onClick={handleResetCumulativeScore}
-                  title="Reset Score"
-                >
-                  <RefreshCcw className="h-3 w-3" />
-                </Button>
-              </div>
-              
-              {/* Best score display in header */}
-              {bestScore > 0 && (
-                <div className="bg-yellow-100/30 text-white px-3 py-1 rounded-full text-sm font-medium flex items-center gap-1">
-                  <Trophy className="h-4 w-4 text-yellow-300" />
-                  <span>Best: {bestScore}</span>
-                </div>
-              )}
-            </div>
-            
-            <Button
-              variant="outline"
-              onClick={() => setShowInstructions(true)}
-              className="bg-white/80 hover:bg-white"
-            >
-              How to Play
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => window.location.href = '/quick-id-game'}
-              className="bg-white/80 hover:bg-white"
-            >
-              Quick ID Game
-            </Button>
-          </div>
-        </header>
+        {/* NavBar Component removed from here */}
         
         {showInstructions && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-40">
             <Instructions onClose={() => {
+              console.log("Closing instructions");
               setShowInstructions(false);
               setHasSeenInstructions(true);
               localStorage.setItem('hasSeenInstructions', 'true');
@@ -511,10 +476,6 @@ const Index = () => {
             )}
           </div>
         </div>
-        
-        <footer className="mt-8 text-center text-white/80 text-sm">
-          <p>Ocean Annotation Game - A fun way to learn computer vision annotation techniques</p>
-        </footer>
       </div>
 
       {/* Game Completion Dialog */}

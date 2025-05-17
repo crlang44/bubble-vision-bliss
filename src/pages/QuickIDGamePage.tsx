@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import QuickIDGame from "../components/QuickIDGame";
 import NavBar from "../components/NavBar";
+import BubbleBackground from "../components/BubbleBackground";
 import {
   Dialog,
   DialogContent,
@@ -17,6 +18,11 @@ const QuickIDGamePage: React.FC = () => {
   const [showCompletionDialog, setShowCompletionDialog] = useState(false);
   const [finalScore, setFinalScore] = useState(0);
   const [allImagesAnnotated, setAllImagesAnnotated] = useState(false);
+  const [showInstructions, setShowInstructions] = useState(false);
+  const [bestScore, setBestScore] = useState(() => {
+    const saved = localStorage.getItem("quickIdBestScore");
+    return saved ? parseInt(saved, 10) : 0;
+  });
 
   // Set page title via document API
   useEffect(() => {
@@ -33,6 +39,13 @@ const QuickIDGamePage: React.FC = () => {
   const handleGameComplete = (score: number, accuracy: number, allComplete: boolean) => {
     setFinalScore(score);
     setAllImagesAnnotated(allComplete); // Use allComplete here
+    
+    // Update best score if current score is higher
+    if (score > bestScore) {
+      setBestScore(score);
+      localStorage.setItem("quickIdBestScore", score.toString());
+    }
+    
     // The 'accuracy' parameter is available if needed in the future
     console.log(`Game complete! Score: ${score}, Accuracy: ${accuracy}%, All images seen: ${allComplete}`);
   };
@@ -48,9 +61,23 @@ const QuickIDGamePage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-ocean-gradient relative">
-      {/* <NavBar /> */} {/* NavBar is commented out in current code */}
+      {/* NavBar Component - Moved to top level for better visibility */}
+      <div className="container mx-auto py-6 px-4 relative z-50">
+        <NavBar 
+          pageType="quickId"
+          setShowInstructions={setShowInstructions}
+          cumulativeScore={finalScore}
+          bestScore={bestScore}
+        />
+      </div>
+      
+      <BubbleBackground bubbleCount={30} />
       <div className="container mx-auto py-6 px-4 relative z-10">
-        <QuickIDGame onGameComplete={handleGameComplete} />
+        <QuickIDGame 
+          onGameComplete={handleGameComplete}
+          showInstructions={showInstructions}
+          setShowInstructions={setShowInstructions}
+        />
       </div>
 
       {/* Game Completion Dialog */}

@@ -43,6 +43,8 @@ interface GameImage {
 
 interface QuickIDGameProps {
   onGameComplete?: (score: number, accuracy: number, allComplete: boolean) => void;
+  showInstructions?: boolean;
+  setShowInstructions?: (show: boolean) => void;
 }
 
 // Sample game images - you'll replace these with your actual images
@@ -80,7 +82,11 @@ const preloadImages = () => {
   });
 };
 
-const QuickIDGame: React.FC<QuickIDGameProps> = ({ onGameComplete }) => {
+const QuickIDGame: React.FC<QuickIDGameProps> = ({ 
+  onGameComplete,
+  showInstructions: externalShowInstructions,
+  setShowInstructions: externalSetShowInstructions
+}) => {
   // Game state
   const [gameStarted, setGameStarted] = useState(false);
   const [gameOver, setGameOver] = useState(false);
@@ -89,11 +95,17 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({ onGameComplete }) => {
   const [totalAttempts, setTotalAttempts] = useState(0);
   const [correctAnswersCount, setCorrectAnswersCount] = useState(0);
   const [timePerImage, setTimePerImage] = useState(5000); // Start with 5 seconds per image
-  const [timeRemaining, setTimeRemaining] = useState(60); // 1 minute gameplay
+  const [timeRemaining, setTimeRemaining] = useState(30); // 1 minute gameplay
   const [currentImageStartTime, setCurrentImageStartTime] = useState(0); // Track when current image started
-  const [showInstructions, setShowInstructions] = useState(() => {
+  
+  // Use external state if provided, otherwise use local state
+  const [internalShowInstructions, setInternalShowInstructions] = useState(() => {
     return localStorage.getItem("hasSeenQuickIDInstructions") !== "true";
   });
+  
+  // Use either external or internal state based on what's provided
+  const showInstructions = externalShowInstructions !== undefined ? externalShowInstructions : internalShowInstructions;
+  const setShowInstructions = externalSetShowInstructions || setInternalShowInstructions;
   // Add animation key state to force timer bar animation restart
   const [animationKey, setAnimationKey] = useState(0);
   // Add feedback state for showing checkmark/X
@@ -194,7 +206,7 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({ onGameComplete }) => {
     setTotalAttempts(0);
     setCorrectAnswersCount(0);
     setTimePerImage(5000); // Start with 5 seconds
-    setTimeRemaining(60);
+    setTimeRemaining(30);
     setAnimationKey(0); // Reset animation key
     setSeenImages(new Set());
     setAllImagesSeen(false);
@@ -215,7 +227,7 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({ onGameComplete }) => {
       setBestScore(parseInt(savedBestScore, 10));
     }
 
-    // Start the game timer (60 seconds)
+    // Start the game timer (30 seconds)
     gameTimerRef.current = setInterval(() => {
       setTimeRemaining((prev) => {
         if (prev <= 1) {
@@ -269,7 +281,7 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({ onGameComplete }) => {
 
     // Gradually decrease time per image as the game timer (timeRemaining) nears the end.
     // Starts at 5 seconds, goes down to 2 seconds.
-    const initialGameDurationSeconds = 60;
+    const initialGameDurationSeconds = 30;
     const maxTimePerImageMs = 5000;
     const minTimePerImageMs = 2000;
 
@@ -414,7 +426,7 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({ onGameComplete }) => {
             <li>Wrong answers show a red X</li>
             <li>No response in time counts as incorrect</li>
             <li>The game starts slow and gets progressively faster</li>
-            <li>The game lasts for 60 seconds</li>
+            <li>The game lasts for 30 seconds</li>
           </ul>
         </div>
       </div>
@@ -429,35 +441,8 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({ onGameComplete }) => {
   );
 
   return (
-    <div className="min-h-screen bg-ocean-gradient relative">
-      <BubbleBackground bubbleCount={30} />
-
-      <div className="container mx-auto py-6 px-4 relative z-10">
-        <header className="flex justify-between items-center mb-6">
-          <div className="flex items-center gap-2">
-            <Fish className="text-coral h-8 w-8" />
-            <h1 className="text-2xl md:text-3xl font-bold text-white">
-              Quick ID Challenge
-            </h1>
-          </div>
-
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              onClick={() => setShowInstructions(true)}
-              className="bg-white/80 hover:bg-white"
-            >
-              How to Play
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => (window.location.href = routes.home)}
-              className="bg-white/80 hover:bg-white"
-            >
-              Ocean Annotation
-            </Button>
-          </div>
-        </header>
+    <div>
+      <div className="container mx-auto py-0 px-4 relative z-10">
 
         {/* Instructions Modal */}
         {showInstructions && (
@@ -490,7 +475,7 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({ onGameComplete }) => {
               <div className="w-full bg-gray-200 h-2 rounded-full mt-2">
                 <div
                   className="bg-ocean-dark h-2 rounded-full transition-all duration-1000"
-                  style={{ width: `${(timeRemaining / 60) * 100}%` }}
+                  style={{ width: `${(timeRemaining / 30) * 100}%` }}
                 ></div>
               </div>
             )}
@@ -675,20 +660,6 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({ onGameComplete }) => {
             </div>
           )}
         </div>
-
-        <footer className="mt-8 text-center text-white/80 text-sm">
-
-          {/* Return to Index button at bottom of page */}
-          <div className="mt-4">
-            <Button
-              variant="outline"
-              onClick={() => (window.location.href = routes.home)}
-              className="bg-white/20 hover:bg-white/40 text-white"
-            >
-              Return to Ocean Annotation
-            </Button>
-          </div>
-        </footer>
 
         {/* CSS for animation */}
         <style>{`

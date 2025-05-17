@@ -79,12 +79,6 @@ const ImageSelector: React.FC<ImageSelectorProps> = ({
           )}
         </div>
       </div>
-      
-      {/* Add Your Own option moved outside of scrollable area to keep it always visible */}
-      <div className="flex items-center justify-center p-2 mt-auto border border-dashed border-gray-300 rounded-lg text-gray-400">
-        <BadgePlus className="w-4 h-4 mr-2" />
-        <span className="text-sm">Add Your Own (Coming Soon)</span>
-      </div>
     </div>
   );
 };
