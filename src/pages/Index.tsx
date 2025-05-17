@@ -332,7 +332,6 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-ocean-gradient relative">
-      {/* NavBar Component - Moved to top level for better visibility */}
       <div className="container mx-auto px-4 pt-4 relative z-50">
         <NavBar 
           pageType="annotation"
