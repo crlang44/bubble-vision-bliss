@@ -1,31 +1,26 @@
-import React, { useState, useEffect } from 'react';
-import BubbleBackground from '../components/BubbleBackground';
-import Instructions from '../components/Instructions';
-import Canvas from '../components/Canvas';
-import AnnotationTools from '../components/AnnotationTools';
-import ScoreBoard from '../components/ScoreBoard';
-import Timer from '../components/Timer';
-import ImageSelector from '../components/ImageSelector';
-import AnnotationScoreVisual from '../components/AnnotationScoreVisual';
-import NavBar from '../components/NavBar';
-import { Annotation, AnnotationType, calculateScore } from '../utils/annotationUtils';
-import { oceanImages, OceanImage, getProgressiveImageSet } from '../data/oceanImages';
-import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import { routes, navigateTo } from '../routes';
-import { Fish, CheckCircle, RefreshCcw, Trophy, Zap } from 'lucide-react';
-import { 
+import {
   Dialog,
   DialogContent,
-  DialogHeader,
+  DialogDescription,
   DialogFooter,
-  DialogTitle,
-  DialogDescription
+  DialogHeader,
+  DialogTitle
 } from '@/components/ui/dialog';
 import { useIsTablet } from '@/hooks/use-mobile';
-import TabletSidebar from '@/components/TabletSidebar';
-import TabletSidebarTrigger from '@/components/TabletSidebarTrigger';
-import { SidebarProvider } from '@/components/ui/sidebar';
+import { CheckCircle, Fish, RefreshCcw, Trophy, Zap } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import AnnotationTools from '../components/AnnotationTools';
+import BubbleBackground from '../components/BubbleBackground';
+import Canvas from '../components/Canvas';
+import ImageSelector from '../components/ImageSelector';
+import Instructions from '../components/Instructions';
+import NavBar from '../components/NavBar';
+import ScoreBoard from '../components/ScoreBoard';
+import Timer from '../components/Timer';
+import { OceanImage, getProgressiveImageSet } from '../data/oceanImages';
+import { routes } from '../routes';
+import { Annotation, AnnotationType, calculateScore } from '../utils/annotationUtils';
 
 const Index = () => {
   const isTablet = useIsTablet();
