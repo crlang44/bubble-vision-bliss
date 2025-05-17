@@ -280,10 +280,10 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({
     setCurrentImageIndex(nextIndex);
 
     // Gradually decrease time per image as the game timer (timeRemaining) nears the end.
-    // Starts at 5 seconds, goes down to 2 seconds.
+    // Starts at 5 seconds, goes down to 1 seconds.
     const initialGameDurationSeconds = 30;
     const maxTimePerImageMs = 5000;
-    const minTimePerImageMs = 2000;
+    const minTimePerImageMs = 500;
 
     // Calculate game progress based on timeRemaining (0.0 at start, ~1.0 towards end)
     // timeRemaining is in seconds.
