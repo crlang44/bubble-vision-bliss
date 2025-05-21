@@ -129,3 +129,13 @@ export const calculateScore = (
 export const generateId = (): string => {
   return Math.random().toString(36).substring(2, 9);
 };
+
+// Color mapping for different annotation labels
+export const labelColors: { [key: string]: string } = {
+  'Kelp': '#22c55e', // Green
+  'Great White Shark': '#3b82f6', // Blue
+  'Whale': '#8b5cf6', // Purple
+  'Fish': '#f59e0b', // Amber
+  'Dolphin': '#ec4899', // Pink
+  'Coral': '#ef4444', // Red
+};

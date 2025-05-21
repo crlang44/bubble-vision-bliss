@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Annotation, AnnotationType, Coordinate, generateId, TargetAnnotation } from '../utils/annotationUtils';
+import { Annotation, AnnotationType, Coordinate, generateId, TargetAnnotation, labelColors } from '../utils/annotationUtils';
 import { toast } from 'sonner';
 import { Eye, EyeOff } from 'lucide-react';
 import { useIsTouch, useIsAndroidTablet } from '../hooks/use-mobile';
@@ -329,13 +329,13 @@ const Canvas: React.FC<CanvasProps> = ({
     
     setIsDrawing(true);
     
-    // Create a new annotation
+    // Create a new annotation with the label's color
     const newAnnotation: Annotation = {
       id: generateId(),
       type: 'rectangle',
       coordinates: [{ x: offsetX, y: offsetY }],
       label: currentLabel || 'Unknown',
-      color: annotationColors.rectangle,
+      color: labelColors[currentLabel] || annotationColors.rectangle,
       isComplete: false
     };
     

@@ -20,7 +20,7 @@ import ScoreBoard from '../components/ScoreBoard';
 import Timer from '../components/Timer';
 import { OceanImage, getProgressiveImageSet } from '../data/oceanImages';
 import { routes } from '../routes';
-import { Annotation, AnnotationType, calculateScore } from '../utils/annotationUtils';
+import { Annotation, AnnotationType, calculateScore, labelColors } from '../utils/annotationUtils';
 
 const Index = () => {
   const isTablet = useIsTablet();
@@ -363,17 +363,7 @@ const Index = () => {
         )}
         
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-          {!isTablet && (
-            <div className="lg:col-span-1">
-              <ImageSelector 
-                images={currentImages} 
-                onSelectImage={handleImageSelect} 
-                selectedImageId={selectedImage?.id || null}
-              />
-            </div>
-          )}
-          
-          <div className={`${isTablet ? 'col-span-full' : 'lg:col-span-3'} space-y-4`}>
+          <div className={`${isTablet ? 'col-span-full' : 'lg:col-span-4'} space-y-4`}>
             <div className="bg-white rounded-xl p-3 shadow-md">
               <Timer 
                 key={timerResetKey}
@@ -384,7 +374,7 @@ const Index = () => {
               />
             </div>
             
-            <div className="h-[450px] bg-white rounded-xl shadow-lg overflow-hidden">
+            <div className="relative w-full aspect-[16/9] bg-white rounded-xl shadow-lg overflow-hidden">
               {selectedImage ? (
                 <Canvas
                   imageUrl={selectedImage.imagePath}
@@ -410,29 +400,42 @@ const Index = () => {
               <div className="flex items-center justify-between">
                 {/* Left side: Annotation Tools */}
                 {!gameComplete && selectedImage ? (
-                  <div className="flex items-center gap-3">
-                    <div className="flex items-center gap-2">
-                      {availableLabels.map((label) => (
-                        <Button
-                          key={label}
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleLabelChange(label)}
-                          className={`text-xs ${currentLabel === label ? 'bg-blue-100 border-blue-300' : ''}`}
-                        >
-                          {label}
-                        </Button>
-                      ))}
+                  <div className="flex flex-col gap-3">
+                    <p className="text-sm text-gray-700">
+                      Choose the object below and Tap and Drag to draw boxes around {selectedImage.targetAnnotations.length} objects in the image above.
+                    </p>
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-2">
+                        {availableLabels.map((label) => (
+                          <Button
+                            key={label}
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleLabelChange(label)}
+                            className={`text-xs ${
+                              currentLabel === label 
+                                ? `bg-${labelColors[label]?.slice(1)}/20 border-${labelColors[label]?.slice(1)}/30 text-${labelColors[label]?.slice(1)}` 
+                                : ''
+                            }`}
+                            style={{
+                              borderColor: currentLabel === label ? labelColors[label] : undefined,
+                              color: currentLabel === label ? labelColors[label] : undefined
+                            }}
+                          >
+                            {label}
+                          </Button>
+                        ))}
+                      </div>
+                      
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={handleClearAnnotations}
+                        className="text-gray-500 hover:text-red-500 h-8 w-8"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
-                    
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={handleClearAnnotations}
-                      className="text-gray-500 hover:text-red-500 h-8 w-8"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
                   </div>
                 ) : (
                   <p className="text-sm text-gray-700">
@@ -440,43 +443,35 @@ const Index = () => {
                   </p>
                 )}
                 
-                {/* Right side: Instructions & Submit */}
-                <div className="flex items-center gap-3">
-                  {!gameComplete && selectedImage && (
-                    <p className="text-sm text-gray-700">
-                      {selectedImage?.description || 'Tap and drag to draw a bounding box'}
-                    </p>
-                  )}
-                  
-                  {!gameComplete ? (
+                {/* Right side: Submit */}
+                {!gameComplete ? (
+                  <Button 
+                    onClick={handleSubmit}
+                    className="btn-coral flex items-center gap-1 whitespace-nowrap"
+                    disabled={!selectedImage || annotations.length === 0}
+                  >
+                    <CheckCircle className="h-4 w-4" /> Submit
+                  </Button>
+                ) : (
+                  <div className="flex gap-2">
                     <Button 
-                      onClick={handleSubmit}
-                      className="btn-coral flex items-center gap-1 whitespace-nowrap"
-                      disabled={!selectedImage || annotations.length === 0}
+                      onClick={handleNewImage}
+                      className="btn-coral flex items-center gap-1"
+                      disabled={isLastImage && allImagesAnnotated}
                     >
-                      <CheckCircle className="h-4 w-4" /> Submit
+                      <Fish className="h-4 w-4" /> 
+                      {isLastImage && allImagesAnnotated ? 'All Images Complete!' : 'Next Image'}
                     </Button>
-                  ) : (
-                    <div className="flex gap-2">
+                    {isLastImage && allImagesAnnotated && (
                       <Button 
-                        onClick={handleNewImage}
-                        className="btn-coral flex items-center gap-1"
-                        disabled={isLastImage && allImagesAnnotated}
+                        onClick={handlePlayAgain}
+                        className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white flex items-center gap-1"
                       >
-                        <Fish className="h-4 w-4" /> 
-                        {isLastImage && allImagesAnnotated ? 'All Images Complete!' : 'Next Image'}
+                        <RefreshCcw className="h-4 w-4" /> Replay
                       </Button>
-                      {isLastImage && allImagesAnnotated && (
-                        <Button 
-                          onClick={handlePlayAgain}
-                          className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white flex items-center gap-1"
-                        >
-                          <RefreshCcw className="h-4 w-4" /> Replay
-                        </Button>
-                      )}
-                    </div>
-                  )}
-                </div>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           </div>
