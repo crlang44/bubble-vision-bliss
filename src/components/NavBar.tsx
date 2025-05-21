@@ -26,7 +26,7 @@ const NavBar: React.FC<NavBarProps> = ({
   return (
     <header className="flex justify-between items-center mb-2 bg-transparent pt-4 rounded-lg z-50 relative">
       <div className="flex items-center gap-2">
-        <img src="/lovable-uploads/c5bd120b-ed39-4828-9d92-541b6aef9cf9.png" alt="Organization Logo" className="h-10 w-auto" />
+        <img src="/lovable-uploads/c5bd120b-ed39-4828-9d92-541b6aef9cf9.png" alt="Organization Logo" className="h-10 w-auto" loading="lazy" />
         <h1 className="text-2xl md:text-3xl font-bold text-white">
           {isAnnotationPage ? 'Ocean Annotation' : 'Quick ID Challenge'}
         </h1>

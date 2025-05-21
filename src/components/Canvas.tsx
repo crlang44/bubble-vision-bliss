@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Annotation, AnnotationType, Coordinate, generateId, TargetAnnotation } from '../utils/annotationUtils';
+import { Annotation, AnnotationType, Coordinate, generateId, TargetAnnotation, labelColors } from '../utils/annotationUtils';
 import { toast } from 'sonner';
 import { Eye, EyeOff } from 'lucide-react';
 import { useIsTouch, useIsAndroidTablet } from '../hooks/use-mobile';
@@ -62,8 +62,6 @@ const Canvas: React.FC<CanvasProps> = ({
   // Colors for different annotation types
   const annotationColors = {
     rectangle: '#FF719A', // coral
-    polygon: '#6E59A5',   // seaweed
-    point: '#0EA5E9'      // ocean
   };
 
   // Scale display coordinates (from original image size to canvas size)
@@ -145,12 +143,12 @@ const Canvas: React.FC<CanvasProps> = ({
       const containerWidth = container.clientWidth;
       const containerHeight = container.clientHeight;
       
-      // Calculate scale to fit the image while maintaining aspect ratio
+      // Calculate scale to fill the container completely
       const scaleX = containerWidth / img.width;
       const scaleY = containerHeight / img.height;
-      const newScale = Math.min(scaleX, scaleY, 1); // Don't scale up if image is smaller
+      const newScale = Math.max(scaleX, scaleY); // Use max to ensure full coverage
       
-      // Calculate new dimensions
+      // Calculate new dimensions to fill container
       const newWidth = img.width * newScale;
       const newHeight = img.height * newScale;
       
@@ -267,44 +265,16 @@ const Canvas: React.FC<CanvasProps> = ({
     ctx.lineWidth = 2;
     ctx.setLineDash(isTarget ? [5, 5] : []); // Dashed lines for ground truth
     
-    switch (type) {
-      case 'rectangle':
-        if (coordinates.length >= 2) {
-          const [start, end] = coordinates;
-          const width = end.x - start.x;
-          const height = end.y - start.y;
-          
-          ctx.beginPath();
-          ctx.rect(start.x, start.y, width, height);
-          ctx.fill();
-          ctx.stroke();
-        }
-        break;
-        
-      case 'polygon':
-        if (coordinates.length >= 2) {
-          ctx.beginPath();
-          ctx.moveTo(coordinates[0].x, coordinates[0].y);
-          
-          for (let i = 1; i < coordinates.length; i++) {
-            ctx.lineTo(coordinates[i].x, coordinates[i].y);
-          }
-          
-          if ((annotation as Annotation).isComplete || isTarget) {
-            ctx.closePath();
-          }
-          
-          ctx.fill();
-          ctx.stroke();
-        }
-        break;
-        
-      case 'point':
-        ctx.beginPath();
-        ctx.arc(coordinates[0].x, coordinates[0].y, 5, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.stroke();
-        break;
+    // Only handle rectangle case since that's all we support
+    if (coordinates.length >= 2) {
+      const [start, end] = coordinates;
+      const width = end.x - start.x;
+      const height = end.y - start.y;
+      
+      ctx.beginPath();
+      ctx.rect(start.x, start.y, width, height);
+      ctx.fill();
+      ctx.stroke();
     }
     
     // Draw label if annotation is complete
@@ -314,20 +284,8 @@ const Canvas: React.FC<CanvasProps> = ({
       ctx.strokeStyle = '#000000';
       ctx.lineWidth = 0.5;
       
-      let x, y;
-      
-      if (type === 'rectangle' && coordinates.length >= 2) {
-        x = coordinates[0].x;
-        y = coordinates[0].y - 5;
-      } else if (type === 'polygon' && coordinates.length > 0) {
-        x = coordinates[0].x;
-        y = coordinates[0].y - 5;
-      } else if (type === 'point' && coordinates.length > 0) {
-        x = coordinates[0].x + 10;
-        y = coordinates[0].y - 5;
-      } else {
-        return;
-      }
+      const x = coordinates[0].x;
+      const y = coordinates[0].y - 5;
       
       // Draw label background
       const labelWidth = ctx.measureText(label).width + 6;
@@ -343,7 +301,7 @@ const Canvas: React.FC<CanvasProps> = ({
 
   // Combined function to handle both mouse and touch start events
   const handlePointerDown = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
-    if (!selectedTool || !canvasRef.current) return;
+    if (!canvasRef.current) return;
     
     e.preventDefault(); // Prevent default browser behavior
     
@@ -371,50 +329,23 @@ const Canvas: React.FC<CanvasProps> = ({
     
     setIsDrawing(true);
     
-    // Create a new annotation
+    // Create a new annotation with the label's color
     const newAnnotation: Annotation = {
       id: generateId(),
-      type: selectedTool,
+      type: 'rectangle',
       coordinates: [{ x: offsetX, y: offsetY }],
       label: currentLabel || 'Unknown',
-      color: annotationColors[selectedTool],
+      color: labelColors[currentLabel] || annotationColors.rectangle,
       isComplete: false
     };
     
     setCurrentAnnotation(newAnnotation);
-    
-    // If it's a point, we complete it right away
-    if (selectedTool === 'point') {
-      newAnnotation.isComplete = true;
-      
-      // We need to keep the display coordinates for rendering
-      const displayCoordinates = [...newAnnotation.coordinates];
-      
-      // Scale the annotation to original image coordinates for proper scoring
-      const scoringCoordinates = scaleToScoring(newAnnotation.coordinates);
-      const scoringAnnotation = {
-        ...newAnnotation,
-        coordinates: scoringCoordinates,
-        // Add a reference to the display coordinates for future rendering
-        _displayCoordinates: displayCoordinates
-      };
-      
-      console.log('Canvas - Completing point annotation:', {
-        display: displayCoordinates,
-        scoring: scoringCoordinates
-      });
-      
-      onAnnotationComplete(scoringAnnotation);
-      setIsDrawing(false);
-      setCurrentAnnotation(null);
-    }
-    
     redrawCanvas();
   };
 
   // Combined function to handle both mouse and touch move events
   const handlePointerMove = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
-    if (!isDrawing || !currentAnnotation || !selectedTool) return;
+    if (!isDrawing || !currentAnnotation) return;
     
     e.preventDefault(); // Prevent default browser behavior
     
@@ -438,23 +369,21 @@ const Canvas: React.FC<CanvasProps> = ({
       offsetY = mouseY;
     }
     
-    if (selectedTool === 'rectangle') {
-      // For rectangle, we update the second coordinate (end point)
-      const updatedAnnotation = { ...currentAnnotation };
-      if (updatedAnnotation.coordinates.length === 1) {
-        updatedAnnotation.coordinates.push({ x: offsetX, y: offsetY });
-      } else {
-        updatedAnnotation.coordinates[1] = { x: offsetX, y: offsetY };
-      }
-      setCurrentAnnotation(updatedAnnotation);
+    // For rectangle, we update the second coordinate (end point)
+    const updatedAnnotation = { ...currentAnnotation };
+    if (updatedAnnotation.coordinates.length === 1) {
+      updatedAnnotation.coordinates.push({ x: offsetX, y: offsetY });
+    } else {
+      updatedAnnotation.coordinates[1] = { x: offsetX, y: offsetY };
     }
+    setCurrentAnnotation(updatedAnnotation);
     
     redrawCanvas();
   };
 
   // Combined function to handle both mouse and touch end events
   const handlePointerUp = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
-    if (!isDrawing || !currentAnnotation || !selectedTool) return;
+    if (!isDrawing || !currentAnnotation) return;
     
     e.preventDefault(); // Prevent default browser behavior
     
@@ -479,42 +408,36 @@ const Canvas: React.FC<CanvasProps> = ({
       const dy = offsetY - touchStartRef.current.y;
       const distance = Math.sqrt(dx * dx + dy * dy);
       
-      // If the touch didn't move much, it might be a tap rather than a drag
+      // If the touch didn't move much, don't complete the annotation
       if (distance < 10) {
-        // For very small movements, don't complete the annotation
-        // unless it's explicitly a point type
-        if (selectedTool !== 'point') {
-          setIsDrawing(false);
-          setCurrentAnnotation(null);
-          touchStartRef.current = null;
-          return;
-        }
+        setIsDrawing(false);
+        setCurrentAnnotation(null);
+        touchStartRef.current = null;
+        return;
       }
     }
     
-    if (selectedTool === 'rectangle') {
-      // Complete the rectangle
-      const updatedAnnotation = { ...currentAnnotation, isComplete: true };
-      
-      // We need to keep the display coordinates for rendering
-      const displayAnnotation = { ...updatedAnnotation };
-      
-      // Scale the annotation to original image coordinates for proper scoring
-      const scoringCoordinates = scaleToScoring(updatedAnnotation.coordinates);
-      const scoringAnnotation = {
-        ...updatedAnnotation,
-        coordinates: scoringCoordinates,
-        // Add a reference to the display coordinates for future rendering
-        _displayCoordinates: updatedAnnotation.coordinates
-      };
-      
-      console.log('Canvas - Completing annotation:', {
-        display: displayAnnotation,
-        scoring: scoringAnnotation
-      });
-      
-      onAnnotationComplete(scoringAnnotation);
-    }
+    // Complete the rectangle
+    const updatedAnnotation = { ...currentAnnotation, isComplete: true };
+    
+    // We need to keep the display coordinates for rendering
+    const displayAnnotation = { ...updatedAnnotation };
+    
+    // Scale the annotation to original image coordinates for proper scoring
+    const scoringCoordinates = scaleToScoring(updatedAnnotation.coordinates);
+    const scoringAnnotation = {
+      ...updatedAnnotation,
+      coordinates: scoringCoordinates,
+      // Add a reference to the display coordinates for future rendering
+      _displayCoordinates: updatedAnnotation.coordinates
+    };
+    
+    console.log('Canvas - Completing annotation:', {
+      display: displayAnnotation,
+      scoring: scoringAnnotation
+    });
+    
+    onAnnotationComplete(scoringAnnotation);
     
     setIsDrawing(false);
     setCurrentAnnotation(null);
@@ -529,101 +452,6 @@ const Canvas: React.FC<CanvasProps> = ({
       touchStartRef.current = null;
       console.log('Touch cancelled');
     }
-  };
-
-  // Handle double tap for completing polygon on touch devices
-  const handleDoubleTap = (e: React.TouchEvent<HTMLCanvasElement>) => {
-    if (!currentAnnotation || currentAnnotation.type !== 'polygon') return;
-    
-    e.preventDefault();
-    
-    if (currentAnnotation.coordinates.length >= 3) {
-      const updatedAnnotation = { ...currentAnnotation, isComplete: true };
-      
-      // We need to keep the display coordinates for rendering
-      const displayCoordinates = [...updatedAnnotation.coordinates];
-      
-      // Scale the annotation to original image coordinates for proper scoring
-      const scoringCoordinates = scaleToScoring(updatedAnnotation.coordinates);
-      const scoringAnnotation = {
-        ...updatedAnnotation,
-        coordinates: scoringCoordinates,
-        // Add a reference to the display coordinates for future rendering
-        _displayCoordinates: displayCoordinates
-      };
-      
-      console.log('Canvas - Completing polygon annotation:', {
-        display: displayCoordinates,
-        scoring: scoringCoordinates
-      });
-      
-      onAnnotationComplete(scoringAnnotation);
-    } else {
-      toast.error('A polygon needs at least 3 points');
-    }
-    
-    setIsDrawing(false);
-    setCurrentAnnotation(null);
-    touchStartRef.current = null;
-  };
-
-  // Handle mouse click for polygon
-  const handleClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!selectedTool || selectedTool !== 'polygon') return;
-    
-    const { offsetX, offsetY } = getCanvasCoordinates(e);
-    
-    if (!currentAnnotation) {
-      // Start a new polygon
-      const newAnnotation: Annotation = {
-        id: generateId(),
-        type: 'polygon',
-        coordinates: [{ x: offsetX, y: offsetY }],
-        label: currentLabel || 'Unknown',
-        color: annotationColors.polygon,
-        isComplete: false
-      };
-      setCurrentAnnotation(newAnnotation);
-      setIsDrawing(true);
-    } else {
-      // Add a point to the existing polygon
-      const updatedAnnotation = { ...currentAnnotation };
-      updatedAnnotation.coordinates.push({ x: offsetX, y: offsetY });
-      setCurrentAnnotation(updatedAnnotation);
-    }
-  };
-
-  // Handle double click to complete polygon
-  const handleDoubleClick = () => {
-    if (!currentAnnotation || currentAnnotation.type !== 'polygon') return;
-    
-    if (currentAnnotation.coordinates.length >= 3) {
-      const updatedAnnotation = { ...currentAnnotation, isComplete: true };
-      
-      // We need to keep the display coordinates for rendering
-      const displayCoordinates = [...updatedAnnotation.coordinates];
-      
-      // Scale the annotation to original image coordinates for proper scoring
-      const scoringCoordinates = scaleToScoring(updatedAnnotation.coordinates);
-      const scoringAnnotation = {
-        ...updatedAnnotation,
-        coordinates: scoringCoordinates,
-        // Add a reference to the display coordinates for future rendering
-        _displayCoordinates: displayCoordinates
-      };
-      
-      console.log('Canvas - Completing polygon annotation:', {
-        display: displayCoordinates,
-        scoring: scoringCoordinates
-      });
-      
-      onAnnotationComplete(scoringAnnotation);
-    } else {
-      toast.error('A polygon needs at least 3 points');
-    }
-    
-    setIsDrawing(false);
-    setCurrentAnnotation(null);
   };
 
   // Get canvas coordinates from mouse event
@@ -649,6 +477,7 @@ const Canvas: React.FC<CanvasProps> = ({
     <div 
       ref={containerRef} 
       className="flex items-center justify-center w-full h-full bg-gray-100 rounded-xl overflow-hidden relative"
+      style={{ padding: 0 }}
     >
       {/* <div className="absolute top-2 right-2 z-10">
         <button 
@@ -669,22 +498,19 @@ const Canvas: React.FC<CanvasProps> = ({
       
       <canvas
         ref={canvasRef}
-        className={`cursor-crosshair touch-canvas ${isAndroidTablet ? 'android-tablet-canvas' : ''}`}
+        className={`w-full h-full cursor-crosshair touch-canvas ${isAndroidTablet ? 'android-tablet-canvas' : ''}`}
         width={canvasSize.width}
         height={canvasSize.height}
         style={{ 
           display: isImageLoaded ? 'block' : 'none',
           opacity: isImageLoaded ? 1 : 0,
-          transition: 'opacity 0.2s ease-in-out'
+          transition: 'opacity 0.2s ease-in-out',
+          objectFit: 'fill'
         }}
-        // Mouse events
-        onClick={handleClick}
-        onDoubleClick={handleDoubleClick}
         onMouseDown={handlePointerDown}
         onMouseMove={handlePointerMove}
         onMouseUp={handlePointerUp}
         onMouseLeave={handlePointerUp}
-        // Touch events
         onTouchStart={handlePointerDown}
         onTouchMove={handlePointerMove}
         onTouchEnd={handlePointerUp}

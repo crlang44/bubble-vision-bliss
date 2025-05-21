@@ -11,11 +11,11 @@ import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 const GroundTruthEditor = () => {
-  const [selectedTool, setSelectedTool] = useState<AnnotationType | null>('rectangle');
+  const [selectedTool, setSelectedTool] = useState<AnnotationType>('rectangle');
   const [currentLabel, setCurrentLabel] = useState('Whale');
   const [annotations, setAnnotations] = useState<Annotation[]>([]);
   const [selectedImage, setSelectedImage] = useState<OceanImage | null>(null);
-  const [availableLabels, setAvailableLabels] = useState<string[]>(['Whale', 'Fish', 'Coral', 'Bubbles', 'Wave Crest', 'Sea Foam', 'River', 'Mountain']);
+  const [availableLabels, setAvailableLabels] = useState<string[]>(['Whale', 'Fish']);
   const [customLabel, setCustomLabel] = useState('');
   const [showGroundTruth, setShowGroundTruth] = useState(true);
   const [score, setScore] = useState(0);
@@ -76,10 +76,6 @@ const GroundTruthEditor = () => {
       point: '#0EA5E9'
     };
     return colors[type];
-  };
-  
-  const handleSelectTool = (tool: AnnotationType | null) => {
-    setSelectedTool(tool);
   };
   
   const handleClearAnnotations = () => {
@@ -356,7 +352,7 @@ export const oceanImages: OceanImage[] = ${JSON.stringify(updatedOceanImages, nu
               <CardContent>
                 <AnnotationTools
                   selectedTool={selectedTool}
-                  onSelectTool={handleSelectTool}
+                  onSelectTool={() => {}}
                   onClearAnnotations={handleClearAnnotations}
                   currentLabel={currentLabel}
                   onLabelChange={handleLabelChange}

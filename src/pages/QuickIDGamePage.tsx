@@ -99,7 +99,7 @@ const QuickIDGamePage: React.FC = () => {
               Game Complete!
             </DialogTitle>
             <DialogDescription className="text-center text-gray-700 mt-2">
-              You completed the Quick ID challenge!
+              You've completed the Quick ID challenge!
             </DialogDescription>
           </DialogHeader>
 
