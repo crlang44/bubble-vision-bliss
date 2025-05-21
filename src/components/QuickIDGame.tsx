@@ -75,10 +75,11 @@ const gameImages: GameImage[] = [
   { id: "18", imagePath: sharkHard2, correctAnswer: "shark" }, // New Hard
 ];
 
-// Create a cache to store preloaded images
+// Create a cache to store preloaded images - keeping this for backward compatibility
 const imageCache: Record<string, HTMLImageElement> = {};
 
-// Preload images for faster switching
+// Preload images for faster switching - this will be replaced by our new approach
+// but keeping for backward compatibility
 const preloadImages = () => {
   gameImages.forEach((image) => {
     if (!imageCache[image.imagePath]) {
@@ -89,7 +90,7 @@ const preloadImages = () => {
   });
 };
 
-// Add a function to preload a specific image
+// Add a function to preload a specific image - keeping for backward compatibility
 const preloadSpecificImage = (imagePath: string) => {
   if (!imageCache[imagePath]) {
     const img = new Image();
@@ -160,26 +161,12 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({
     allImagesSeen: false,
   });
 
-  // Preload all images when component mounts
+  // We no longer need to preload images in a separate effect since we're rendering all images
+  // in the DOM directly. The browser will naturally load all the images when they're added to the DOM.
+  // This effect is kept for backward compatibility but doesn't do much now.
   useEffect(() => {
-    // Preload all images at once
-    preloadImages();
-    
-    // Add event listeners to track when images are loaded
-    Object.values(imageCache).forEach(img => {
-      if (!img.complete) {
-        img.addEventListener('load', () => {
-          // Image has loaded
-        });
-      }
-    });
-    
-    return () => {
-      // Clean up event listeners
-      Object.values(imageCache).forEach(img => {
-        img.removeEventListener('load', () => {});
-      });
-    };
+    // Our new approach renders all images in the DOM, so we don't need to manually preload them
+    // The browser will load them automatically when the component renders
   }, []);
 
   // Sync state with ref
@@ -204,44 +191,26 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({
     }
   }, [currentImageIndex, gameStarted]); // Trigger when image changes or game starts
 
-  // Preload next image whenever current image index changes
+  // With our new approach, we don't need to explicitly preload the next image
+  // since all images are already rendered in the DOM (just with display:none)
+  // This effect is kept for backward compatibility but simplified
   useEffect(() => {
     if (!gameStarted) return;
-
-    // Calculate the next image index
-    const nextIndex = (currentImageIndex + 1) % gameImages.length;
-    const nextImage = gameImages[nextIndex];
-
-    // Preload the next image
-    const nextImg = preloadSpecificImage(nextImage.imagePath);
     
-    // Only set the onload handler if the image isn't already loaded
-    if (!nextImg.complete) {
-      nextImg.onload = () => {
-        setNextImagePreloaded(true);
-      };
-      
-      return () => {
-        nextImg.onload = null;
-      };
-    } else {
-      // Image is already loaded from cache
-      setNextImagePreloaded(true);
-    }
+    // All images are already in the DOM, so we can just mark the next image as preloaded
+    setNextImagePreloaded(true);
+    
   }, [currentImageIndex, gameStarted]);
 
   // Update loading state when current image changes
   useEffect(() => {
     if (!gameStarted) return;
     
-    // Get the current image from cache
-    const currentImagePath = gameImages[currentImageIndex].imagePath;
-    const cachedImage = imageCache[currentImagePath];
+    // With our new approach, we can set isImageLoading to false immediately
+    // since all images are already in the DOM
+    // The actual loading state is handled by the onLoad handler in each image element
+    setIsImageLoading(false);
     
-    // If the image is already loaded in cache, we can show it immediately
-    if (cachedImage && cachedImage.complete) {
-      setIsImageLoading(false);
-    }
   }, [currentImageIndex, gameStarted]);
 
   // Initialize game
@@ -324,20 +293,16 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({
       imageTimerRef.current = null;
     }
 
-    // Set loading state for the next image transition
+    // With our new approach, we don't need to set loading state since all images are already loaded
+    // But we'll keep this for backward compatibility with the opacity transition
     setIsImageLoading(true);
     
     // Move to next image or end game if no more images
     const nextIndex = (currentImageIndex + 1) % gameImages.length;
     
-    // Check if the next image is already in cache and loaded
-    const nextImagePath = gameImages[nextIndex].imagePath;
-    const cachedImage = imageCache[nextImagePath];
-    
-    if (cachedImage && cachedImage.complete) {
-      // If image is already loaded in cache, we can show it immediately
-      setIsImageLoading(false);
-    }
+    // With our new approach, all images are already in the DOM
+    // We can immediately set isImageLoading to false since we're just toggling visibility
+    setIsImageLoading(false);
 
     // Set next image
     setCurrentImageIndex(nextIndex);
@@ -548,20 +513,32 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({
           <div className="bg-white rounded-xl shadow-lg overflow-hidden mb-4">
             {gameStarted ? (
               <div className="p-4 flex flex-col items-center">
-                {/* Current image with improved loading */}
+                {/* Current image with preloaded images */}
                 <div className="relative h-[350px] w-full flex items-center justify-center bg-gray-100 rounded-lg mb-6">
-                  {/* Use the cached image directly without triggering a new request */}
-                  <div
-                    key={gameImages[currentImageIndex].id}
-                    className="max-h-full max-w-full h-full w-full"
-                    style={{
-                      backgroundImage: `url(${gameImages[currentImageIndex].imagePath})`,
-                      backgroundSize: 'cover',
-                      backgroundPosition: 'center',
-                      opacity: isImageLoading ? 0 : 1,
-                      transition: 'opacity 200ms'
-                    }}
-                  />
+                  {/* Render all images but only show the current one */}
+                  {gameImages.map((image, index) => (
+                    <div
+                      key={image.id}
+                      className="absolute inset-0 max-h-full max-w-full h-full w-full"
+                      style={{
+                        display: index === currentImageIndex ? 'block' : 'none',
+                        opacity: isImageLoading ? 0 : 1,
+                        transition: 'opacity 200ms'
+                      }}
+                    >
+                      <img 
+                        src={image.imagePath}
+                        alt={`${image.correctAnswer} image`}
+                        className="h-full w-full object-cover"
+                        style={{ objectPosition: 'center' }}
+                        onLoad={() => {
+                          if (index === currentImageIndex) {
+                            setIsImageLoading(false);
+                          }
+                        }}
+                      />
+                    </div>
+                  ))}
 
                   {/* Feedback overlay */}
                   {showFeedback && (
