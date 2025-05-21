@@ -75,31 +75,7 @@ const gameImages: GameImage[] = [
   { id: "18", imagePath: sharkHard2, correctAnswer: "shark" }, // New Hard
 ];
 
-// Create a cache to store preloaded images - keeping this for backward compatibility
-const imageCache: Record<string, HTMLImageElement> = {};
-
-// Preload images for faster switching - this will be replaced by our new approach
-// but keeping for backward compatibility
-const preloadImages = () => {
-  gameImages.forEach((image) => {
-    if (!imageCache[image.imagePath]) {
-      const img = new Image();
-      img.src = image.imagePath;
-      imageCache[image.imagePath] = img;
-    }
-  });
-};
-
-// Add a function to preload a specific image - keeping for backward compatibility
-const preloadSpecificImage = (imagePath: string) => {
-  if (!imageCache[imagePath]) {
-    const img = new Image();
-    img.src = imagePath;
-    imageCache[imagePath] = img;
-    return img;
-  }
-  return imageCache[imagePath];
-};
+// No image cache needed - we're using DOM elements with display toggling
 
 const QuickIDGame: React.FC<QuickIDGameProps> = ({ 
   onGameComplete,
@@ -135,8 +111,7 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({
   // Track if all images have been seen
   const [seenImages, setSeenImages] = useState<Set<string>>(new Set());
   const [allImagesSeen, setAllImagesSeen] = useState(false);
-  // Add state for next image preloading
-  const [nextImagePreloaded, setNextImagePreloaded] = useState(false);
+  // State for image loading
   const [isImageLoading, setIsImageLoading] = useState(true);
   // Fixed: Initialize bestScore as 0 if no saved score exists
   const [bestScore, setBestScore] = useState(() => {
@@ -152,7 +127,6 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({
   // Refs
   const gameTimerRef = useRef<NodeJS.Timeout | null>(null);
   const imageTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const nextImageRef = useRef<HTMLImageElement | null>(null);
   // Use refs to track game state for timer
   const gameStateRef = useRef({
     score: 0,
@@ -160,14 +134,6 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({
     correctAnswersCount: 0,
     allImagesSeen: false,
   });
-
-  // We no longer need to preload images in a separate effect since we're rendering all images
-  // in the DOM directly. The browser will naturally load all the images when they're added to the DOM.
-  // This effect is kept for backward compatibility but doesn't do much now.
-  useEffect(() => {
-    // Our new approach renders all images in the DOM, so we don't need to manually preload them
-    // The browser will load them automatically when the component renders
-  }, []);
 
   // Sync state with ref
   useEffect(() => {
@@ -191,23 +157,11 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({
     }
   }, [currentImageIndex, gameStarted]); // Trigger when image changes or game starts
 
-  // With our new approach, we don't need to explicitly preload the next image
-  // since all images are already rendered in the DOM (just with display:none)
-  // This effect is kept for backward compatibility but simplified
+  // Reset loading state when current image changes
   useEffect(() => {
     if (!gameStarted) return;
     
-    // All images are already in the DOM, so we can just mark the next image as preloaded
-    setNextImagePreloaded(true);
-    
-  }, [currentImageIndex, gameStarted]);
-
-  // Update loading state when current image changes
-  useEffect(() => {
-    if (!gameStarted) return;
-    
-    // With our new approach, we can set isImageLoading to false immediately
-    // since all images are already in the DOM
+    // Images are already in the DOM, just reset loading state
     // The actual loading state is handled by the onLoad handler in each image element
     setIsImageLoading(false);
     
@@ -293,15 +247,13 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({
       imageTimerRef.current = null;
     }
 
-    // With our new approach, we don't need to set loading state since all images are already loaded
-    // But we'll keep this for backward compatibility with the opacity transition
+    // Briefly set loading state for opacity transition
     setIsImageLoading(true);
     
-    // Move to next image or end game if no more images
+    // Move to next image
     const nextIndex = (currentImageIndex + 1) % gameImages.length;
     
-    // With our new approach, all images are already in the DOM
-    // We can immediately set isImageLoading to false since we're just toggling visibility
+    // Images are already in the DOM, just toggle visibility
     setIsImageLoading(false);
 
     // Set next image
