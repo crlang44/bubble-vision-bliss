@@ -172,7 +172,7 @@ const ScoreBoard: React.FC<ScoreBoardProps> = ({
   }
 
   return (
-    <div className="bg-white rounded-xl shadow-lg p-4">
+    <div>
       <div className="flex flex-col gap-4 sm:flex-row sm:items-stretch sm:justify-between divide-y sm:divide-y-0 sm:divide-x divide-gray-200">
         {/* Total Score */}
         <div className="flex-1 flex flex-col items-center justify-center pb-4 sm:pb-0 sm:pr-6">
@@ -181,14 +181,6 @@ const ScoreBoard: React.FC<ScoreBoardProps> = ({
             <span className="text-ocean-dark font-bold text-lg">Total Score</span>
           </div>
           <span className={`text-3xl font-bold text-ocean-dark ${isAnimating ? 'animate-pulse' : ''}`}>{displayCumulativeScore}</span>
-        </div>
-        {/* Best Score */}
-        <div className="flex-1 flex flex-col items-center justify-center py-4 sm:py-0 sm:px-6">
-          <div className="flex items-center gap-2 mb-1">
-            <Trophy className="text-yellow-500 w-5 h-5" />
-            <span className="text-gray-700 font-medium">Best Score</span>
-          </div>
-          <span className="text-2xl font-bold text-yellow-700">{bestScore}</span>
         </div>
         {/* Annotation Accuracy */}
         <div className="flex-1 flex flex-col items-center justify-center py-4 sm:py-0 sm:px-6">
