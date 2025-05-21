@@ -57,6 +57,8 @@ const Index = () => {
   const [hasStartedAnnotating, setHasStartedAnnotating] = useState(false);
   // Track timer reset key to force timer component to reset
   const [timerResetKey, setTimerResetKey] = useState(0);
+  // Track if the game has started
+  const [gameStarted, setGameStarted] = useState(false);
   
   const TIMER_DURATION = 30; // 1 minute in seconds
   
@@ -92,7 +94,7 @@ const Index = () => {
       setCurrentLabel(labels[0]);
     }
     
-    // Don't start timer automatically - wait for first annotation
+    // Don't start timer automatically on image change
     setIsTimerRunning(false);
     setHasStartedAnnotating(false);
   }, [selectedImage, showInstructions]);
@@ -123,11 +125,7 @@ const Index = () => {
     const newAnnotations = [...annotations, annotation];
     setAnnotations(newAnnotations);
     
-    // Start timer on first annotation
-    if (!hasStartedAnnotating && !showInstructions) {
-      setHasStartedAnnotating(true);
-      setIsTimerRunning(true);
-    }
+    // No longer start timer on first annotation
     
     // Show first annotation tip if it's the first annotation for this session
     if (newAnnotations.length === 1 && !hasShownFirstAnnotationTip) {
@@ -195,9 +193,9 @@ const Index = () => {
   const handleSubmit = () => {
     if (!selectedImage) return;
     
-    // Don't pause the timer when submitting
-    // DO NOT add any code here that would stop the timer
-    console.log("Submit clicked, timer should keep running");
+    // Pause the timer when submitting
+    setIsTimerRunning(false);
+    console.log("Submit clicked, timer paused");
     
     setGameComplete(true);
     setShowGroundTruth(true);
@@ -282,9 +280,10 @@ const Index = () => {
     if (currentImages.length > 0) {
       setSelectedImage(currentImages[0]);
     }
-    // Reset timer state but don't start it yet - wait for first annotation
+    // Reset timer state but don't start it yet - wait for Start Game
     setIsTimerRunning(false);
     setHasStartedAnnotating(false);
+    setGameStarted(false);
     // Increment timer key to force timer component to reset
     setTimerResetKey(prev => prev + 1);
   };
@@ -304,6 +303,8 @@ const Index = () => {
     setSelectedImage(currentImages[nextIndex]);
     setAnnotations([]);
     setShowGroundTruth(false);
+    // Start the timer again when moving to the next image
+    setIsTimerRunning(true);
   };
   
   const handleGoToQuickIDGame = () => {
@@ -356,14 +357,38 @@ const Index = () => {
               setShowInstructions(false);
               setHasSeenInstructions(true);
               localStorage.setItem('hasSeenInstructions', 'true');
-              // Don't start timer when closing instructions - wait for first annotation
+              // Don't start timer when closing instructions - wait for Start Game
               setIsTimerRunning(false);
             }} />
           </div>
         )}
         
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-          <div className={`${isTablet ? 'col-span-full' : 'lg:col-span-4'} space-y-4`}>
+        {/* Start Game screen */}
+        {!gameStarted && !showInstructions && (
+          <div className="flex items-center justify-center min-h-[60vh]">
+            <div className="bg-white rounded-xl shadow-xl p-8 max-w-md w-full flex flex-col items-center">
+              <h2 className="text-3xl font-bold text-ocean-dark mb-4 text-center">Ocean Annotation Challenge</h2>
+              <p className="text-gray-700 text-center mb-6">
+                Draw boxes around all objects as quickly and accurately as you can!<br />
+                The faster and more precise you are, the higher your score.
+              </p>
+              <button
+                className="bg-ocean-dark hover:bg-ocean-medium text-white text-lg font-semibold px-8 py-4 rounded-xl shadow-lg transition-all w-full"
+                onClick={() => {
+                  setGameStarted(true);
+                  setIsTimerRunning(true);
+                }}
+              >
+                Start Game
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Main annotation UI, only show if gameStarted */}
+        {gameStarted && (
+        <div className="flex justify-center">
+          <div className="w-full max-w-4xl space-y-4">
             <div className="bg-white rounded-xl p-3 shadow-md">
               <Timer 
                 key={timerResetKey}
@@ -374,7 +399,7 @@ const Index = () => {
               />
             </div>
             
-            <div className="relative w-full aspect-[16/9] bg-white rounded-xl shadow-lg overflow-hidden">
+            <div className="relative w-full aspect-[16/9] bg-white rounded-xl shadow-lg overflow-hidden flex items-center justify-center">
               {selectedImage ? (
                 <Canvas
                   imageUrl={selectedImage.imagePath}
@@ -397,11 +422,11 @@ const Index = () => {
             </div>
             
             <div className="bg-white rounded-xl p-3 shadow-md">
-              <div className="flex items-center justify-between">
-                {/* Left side: Annotation Tools */}
+              <div className="flex flex-col items-center justify-between">
+                {/* Left side: Annotation Tools or ScoreBoard */}
                 {!gameComplete && selectedImage ? (
-                  <div className="flex flex-col gap-3">
-                    <p className="text-sm text-gray-700">
+                  <div className="flex flex-col gap-3 w-full items-center">
+                    <p className="text-sm text-gray-700 text-center">
                       Choose the object below and Tap and Drag to draw boxes around {selectedImage.targetAnnotations.length} objects in the image above.
                     </p>
                     <div className="flex items-center gap-3">
@@ -438,59 +463,53 @@ const Index = () => {
                     </div>
                   </div>
                 ) : (
-                  <p className="text-sm text-gray-700">
-                    {selectedImage?.description || 'Select an image to get started'}
-                  </p>
-                )}
-                
-                {/* Right side: Submit */}
-                {!gameComplete ? (
-                  <Button 
-                    onClick={handleSubmit}
-                    className="btn-coral flex items-center gap-1 whitespace-nowrap"
-                    disabled={!selectedImage || annotations.length === 0}
-                  >
-                    <CheckCircle className="h-4 w-4" /> Submit
-                  </Button>
-                ) : (
-                  <div className="flex gap-2">
-                    <Button 
-                      onClick={handleNewImage}
-                      className="btn-coral flex items-center gap-1"
-                      disabled={isLastImage && allImagesAnnotated}
-                    >
-                      <Fish className="h-4 w-4" /> 
-                      {isLastImage && allImagesAnnotated ? 'All Images Complete!' : 'Next Image'}
-                    </Button>
-                    {isLastImage && allImagesAnnotated && (
-                      <Button 
-                        onClick={handlePlayAgain}
-                        className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white flex items-center gap-1"
-                      >
-                        <RefreshCcw className="h-4 w-4" /> Replay
-                      </Button>
-                    )}
+                  <div className="w-full flex justify-center">
+                    <ScoreBoard 
+                      userAnnotations={annotations}
+                      targetAnnotations={selectedImage?.targetAnnotations || []}
+                      timeBonus={timeBonus}
+                      isComplete={gameComplete}
+                      cumulativeScore={cumulativeScore}
+                      onScoreChange={handleScoreUpdate}
+                    />
                   </div>
                 )}
+                {/* Right side: Submit/Next/Replay Buttons */}
+                <div className="flex gap-2 mt-4">
+                  {!gameComplete ? (
+                    <Button 
+                      onClick={handleSubmit}
+                      className="btn-coral flex items-center gap-1 whitespace-nowrap"
+                      disabled={!selectedImage || annotations.length === 0}
+                    >
+                      <CheckCircle className="h-4 w-4" /> Submit
+                    </Button>
+                  ) : (
+                    <>
+                      <Button 
+                        onClick={handleNewImage}
+                        className="btn-coral flex items-center gap-1"
+                        disabled={isLastImage && allImagesAnnotated}
+                      >
+                        <Fish className="h-4 w-4" /> 
+                        {isLastImage && allImagesAnnotated ? 'All Images Complete!' : 'Next Image'}
+                      </Button>
+                      {isLastImage && allImagesAnnotated && (
+                        <Button 
+                          onClick={handlePlayAgain}
+                          className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white flex items-center gap-1"
+                        >
+                          <RefreshCcw className="h-4 w-4" /> Replay
+                        </Button>
+                      )}
+                    </>
+                  )}
+                </div>
               </div>
             </div>
           </div>
-          
-          <div className="lg:col-span-1">
-            {gameComplete && (
-              <div className="space-y-4">
-                <ScoreBoard 
-                  userAnnotations={annotations}
-                  targetAnnotations={selectedImage?.targetAnnotations || []}
-                  timeBonus={timeBonus}
-                  isComplete={gameComplete}
-                  cumulativeScore={cumulativeScore}
-                  onScoreChange={handleScoreUpdate}
-                />
-              </div>
-            )}
-          </div>
         </div>
+        )}
       </div>
 
       {/* Game Completion Dialog */}

@@ -49,6 +49,9 @@ const Canvas: React.FC<CanvasProps> = ({
   const touchStartRef = useRef<{x: number, y: number} | null>(null);
   const touchStartTimeRef = useRef<number>(0);
 
+  // Store previous canvas size for rescaling
+  const prevCanvasSizeRef = useRef<{ width: number; height: number }>({ width: 0, height: 0 });
+
   // Update local state when prop changes
   useEffect(() => {
     setLocalShowGroundTruth(showGroundTruth);
@@ -177,6 +180,57 @@ const Canvas: React.FC<CanvasProps> = ({
       img.onerror = null;
     };
   }, [imageUrl]);
+
+  // Make canvas responsive to window resize
+  useEffect(() => {
+    const handleResize = () => {
+      if (!imageRef.current || !containerRef.current) return;
+      const img = imageRef.current;
+      const container = containerRef.current;
+      const containerWidth = container.clientWidth;
+      const containerHeight = container.clientHeight;
+      const scaleX = containerWidth / img.width;
+      const scaleY = containerHeight / img.height;
+      const newScale = Math.max(scaleX, scaleY);
+      const newWidth = img.width * newScale;
+      const newHeight = img.height * newScale;
+
+      // Rescale annotation coordinates if canvas size changed
+      const prevSize = prevCanvasSizeRef.current;
+      if (prevSize.width && prevSize.height && (prevSize.width !== newWidth || prevSize.height !== newHeight)) {
+        const rescale = (coord) => ({
+          x: (coord.x / prevSize.width) * newWidth,
+          y: (coord.y / prevSize.height) * newHeight
+        });
+        // Rescale all annotations
+        onAnnotationUpdate(
+          annotations.map(ann => ({
+            ...ann,
+            coordinates: ann.coordinates.map(rescale),
+            _displayCoordinates: ann._displayCoordinates
+              ? ann._displayCoordinates.map(rescale)
+              : undefined
+          }))
+        );
+      }
+      prevCanvasSizeRef.current = { width: newWidth, height: newHeight };
+      setCanvasSize({ width: newWidth, height: newHeight });
+      setScale(newScale);
+      // Redraw canvas after resize
+      requestAnimationFrame(() => {
+        redrawCanvas();
+      });
+    };
+    window.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [isImageLoaded, annotations, onAnnotationUpdate]);
+
+  // Update prevCanvasSizeRef when canvas size changes (e.g., on image load)
+  useEffect(() => {
+    prevCanvasSizeRef.current = { ...canvasSize };
+  }, [canvasSize]);
 
   // Initial render of the image when isImageLoaded changes
   useEffect(() => {
@@ -498,7 +552,7 @@ const Canvas: React.FC<CanvasProps> = ({
       
       <canvas
         ref={canvasRef}
-        className={`w-full h-full cursor-crosshair touch-canvas ${isAndroidTablet ? 'android-tablet-canvas' : ''}`}
+        className={`cursor-crosshair touch-canvas ${isAndroidTablet ? 'android-tablet-canvas' : ''}`}
         width={canvasSize.width}
         height={canvasSize.height}
         style={{ 

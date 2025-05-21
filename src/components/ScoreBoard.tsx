@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef, useState } from 'react';
 import { Annotation, TargetAnnotation, calculateScore } from '../utils/annotationUtils';
 import { Trophy, Target, Clock, Award } from 'lucide-react';
@@ -145,82 +144,89 @@ const ScoreBoard: React.FC<ScoreBoardProps> = ({
   
   // Use for display
   const finalScore = calculatedFinalScore;
-  
-  console.log('Final calculated score:', finalScore, 'Normalized annotation score:', normalizedScore, 'Time bonus:', actualTimeBonus);
-  
+
+  // Calculate best score (from localStorage, fallback to 0)
+  const bestScore = Number(localStorage.getItem('oceanAnnotationBestScore')) || 0;
+
+  // Calculate overall annotation accuracy (average of annotationScores)
+  const accuracy = annotationScores.length
+    ? Math.round(annotationScores.reduce((sum, item) => sum + item.score, 0) / annotationScores.length)
+    : 0;
+
+  // Feedback message and color/icon
+  let feedbackMsg = '';
+  let feedbackColor = '';
+  let feedbackIcon = null;
+  if (finalScore >= 100) {
+    feedbackMsg = "Amazing job! You're an annotation expert!";
+    feedbackColor = 'text-green-600';
+    feedbackIcon = <Award className="w-6 h-6 text-green-500" />;
+  } else if (finalScore >= 70) {
+    feedbackMsg = 'Good work! Keep practicing to improve!';
+    feedbackColor = 'text-blue-600';
+    feedbackIcon = <Award className="w-6 h-6 text-blue-500" />;
+  } else {
+    feedbackMsg = 'Nice try! Practice makes perfect!';
+    feedbackColor = 'text-amber-600';
+    feedbackIcon = <Award className="w-6 h-6 text-amber-500" />;
+  }
+
   return (
     <div className="bg-white rounded-xl shadow-lg p-4">
-      {/* Prominent cumulative score at the top */}
-      <div className="bg-ocean-gradient rounded-lg p-3 mb-4 shadow-inner">
-        <div className="flex justify-between items-center">
-          <div className="flex items-center gap-2">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-stretch sm:justify-between divide-y sm:divide-y-0 sm:divide-x divide-gray-200">
+        {/* Total Score */}
+        <div className="flex-1 flex flex-col items-center justify-center pb-4 sm:pb-0 sm:pr-6">
+          <div className="flex items-center gap-2 mb-1">
             <Award className="text-yellow-300 w-6 h-6" />
-            <span className="text-white font-bold text-lg">Total Score:</span>
+            <span className="text-ocean-dark font-bold text-lg">Total Score</span>
           </div>
-          <div className="flex items-center">
-            <span className={`text-3xl font-bold text-white ${isAnimating ? 'animate-pulse' : ''}`}>
-              {displayCumulativeScore}
-            </span>
-          </div>
+          <span className={`text-3xl font-bold text-ocean-dark ${isAnimating ? 'animate-pulse' : ''}`}>{displayCumulativeScore}</span>
         </div>
-      </div>
-      
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="text-xl font-bold text-ocean-dark">Round Score</h3>
-        <div className="flex items-center gap-1">
-          <Trophy className="text-yellow-500 w-5 h-5" />
-          <span className="text-2xl font-bold">{finalScore}</span>
-          <span className="text-gray-500">/125</span>
-        </div>
-      </div>
-      
-      <div className="space-y-3 mb-4">
-        <h4 className="text-sm font-medium text-gray-600 flex items-center gap-1">
-          <Target className="w-4 h-4" /> Annotation Accuracy
-        </h4>
-        
-        {annotationScores.map((item, index) => (
-          <div key={index} className="flex justify-between items-center">
-            <div className="flex items-center gap-2">
-              <div className={`w-3 h-3 rounded-full ${item.found ? 'bg-green-500' : 'bg-red-500'}`}></div>
-              <span className="text-sm">{item.label}</span>
-            </div>
-            <span className="font-medium">{item.score}%</span>
+        {/* Best Score */}
+        <div className="flex-1 flex flex-col items-center justify-center py-4 sm:py-0 sm:px-6">
+          <div className="flex items-center gap-2 mb-1">
+            <Trophy className="text-yellow-500 w-5 h-5" />
+            <span className="text-gray-700 font-medium">Best Score</span>
           </div>
-        ))}
-        
-        <div className="h-px bg-gray-200 my-2"></div>
-        
-        <div className="flex justify-between items-center">
-          <div className="flex items-center gap-1">
+          <span className="text-2xl font-bold text-yellow-700">{bestScore}</span>
+        </div>
+        {/* Annotation Accuracy */}
+        <div className="flex-1 flex flex-col items-center justify-center py-4 sm:py-0 sm:px-6">
+          <div className="flex items-center gap-2 mb-1">
+            <Target className="w-4 h-4 text-ocean-medium" />
+            <span className="text-gray-700 font-medium">Accuracy</span>
+          </div>
+          <span className="text-2xl font-bold text-ocean-dark">{accuracy}%</span>
+        </div>
+        {/* Time Bonus */}
+        <div className="flex-1 flex flex-col items-center justify-center py-4 sm:py-0 sm:px-6">
+          <div className="flex items-center gap-2 mb-1">
             <Clock className="w-4 h-4 text-ocean-medium" />
-            <span className="text-sm">Time Bonus</span>
+            <span className="text-gray-700 font-medium">Time Bonus</span>
           </div>
-          <span className="font-medium">{actualTimeBonus} pts</span>
+          <span className="text-2xl font-bold text-ocean-dark">+{actualTimeBonus} pts</span>
+        </div>
+        {/* Feedback Message */}
+        <div className="flex-1 flex flex-col items-center justify-center pt-4 sm:pt-0 sm:pl-6">
+          <div className={`flex items-center gap-2 mb-1 ${feedbackColor}`}>{feedbackIcon}<span className="font-semibold">{feedbackMsg}</span></div>
         </div>
       </div>
-      
-      <div className="bg-gray-50 p-3 rounded-lg">
-        <div className="flex justify-between items-center">
-          <span className="font-medium">Total Round Score:</span>
-          <span className="text-xl font-bold text-ocean-dark">{finalScore}</span>
+      {/* Annotation breakdown (optional, can be toggled or shown below) */}
+      <div className="mt-4">
+        <h4 className="text-sm font-medium text-gray-600 flex items-center gap-1 mb-2">
+          <Target className="w-4 h-4" /> Annotation Breakdown
+        </h4>
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+          {annotationScores.map((item, index) => (
+            <div key={index} className="flex justify-between items-center bg-gray-50 rounded px-2 py-1">
+              <div className="flex items-center gap-2">
+                <div className={`w-3 h-3 rounded-full ${item.found ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                <span className="text-sm">{item.label}</span>
+              </div>
+              <span className="font-medium">{item.score}%</span>
+            </div>
+          ))}
         </div>
-        
-        {finalScore >= 100 && (
-          <div className="text-center mt-3 text-green-600 font-medium">
-            Excellent work! You're an annotation expert!
-          </div>
-        )}
-        {finalScore >= 70 && finalScore < 100 && (
-          <div className="text-center mt-3 text-blue-600 font-medium">
-            Good job! Keep practicing to improve!
-          </div>
-        )}
-        {finalScore < 70 && (
-          <div className="text-center mt-3 text-amber-600 font-medium">
-            Nice try! Practice makes perfect!
-          </div>
-        )}
       </div>
     </div>
   );
