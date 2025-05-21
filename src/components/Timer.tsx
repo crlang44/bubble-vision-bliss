@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { AlertCircle, Clock } from 'lucide-react';
 import { Progress } from "@/components/ui/progress";
@@ -8,9 +7,10 @@ interface TimerProps {
   onTimeUp: () => void;
   isRunning: boolean;
   onTimerUpdate?: (timeLeft: number) => void;
+  label?: string; // Optional label for timer
 }
 
-const Timer: React.FC<TimerProps> = ({ duration, onTimeUp, isRunning, onTimerUpdate }) => {
+const Timer: React.FC<TimerProps> = ({ duration, onTimeUp, isRunning, onTimerUpdate, label = "Time Remaining:" }) => {
   const [timeLeft, setTimeLeft] = useState(duration);
   const [isWarning, setIsWarning] = useState(false);
   const [intervalId, setIntervalId] = useState<number | null>(null);
@@ -41,8 +41,8 @@ const Timer: React.FC<TimerProps> = ({ duration, onTimeUp, isRunning, onTimerUpd
       setTimeLeft(prevTime => {
         const newTime = prevTime <= 1 ? 0 : prevTime - 1;
     
-        // Add a warning when less than 30 seconds remain
-        if (newTime <= duration / 2 && !isWarning) {
+        // Add a warning when less than 30% remain
+        if (newTime <= duration * 0.3 && !isWarning) {
           setIsWarning(true);
         }
         
@@ -72,12 +72,8 @@ const Timer: React.FC<TimerProps> = ({ duration, onTimeUp, isRunning, onTimerUpd
     };
   }, [isRunning, onTimeUp, isWarning, onTimerUpdate, duration]);
   
-  // Format time as minutes:seconds
-  const formatTime = (seconds: number): string => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
-  };
+  // Format time as seconds only
+  const formatTime = (seconds: number): string => `${seconds} sec${seconds !== 1 ? 's' : ''}`;
   
   // Calculate percentage for progress bar
   const timePercentage = (timeLeft / duration) * 100;
@@ -91,21 +87,19 @@ const Timer: React.FC<TimerProps> = ({ duration, onTimeUp, isRunning, onTimerUpd
   
   return (
     <div className="w-full">
-      <div className="flex justify-between items-center mb-1">
-        <span className="text-sm font-medium text-gray-700 flex items-center">
-          <Clock className="w-4 h-4 mr-1" />
-          Time Left
-        </span>
-        <span className={`text-sm font-medium ${isWarning ? 'text-red-500 animate-pulse' : 'text-gray-700'} flex items-center`}>
-          {isWarning && <AlertCircle className="w-4 h-4 text-red-500 mr-1" />}
-          {formatTime(timeLeft)}
-        </span>
+      <div className="flex items-center justify-between mb-1">
+        <div className="flex items-center gap-2">
+          <Clock className="text-ocean-dark h-5 w-5" />
+          <span className="font-semibold">{label}</span>
+        </div>
+        <div className={`text-xl font-bold ${isWarning ? 'text-red-500 animate-pulse' : 'text-ocean-dark'}`}>{timeLeft} seconds</div>
       </div>
-      <Progress 
-        value={timePercentage} 
-        className="h-2" 
-        indicatorClassName={getProgressColor()} 
-      />
+      <div className="w-full bg-gray-200 h-2 rounded-full mt-2">
+        <div
+          className={getProgressColor() + " h-2 rounded-full transition-all duration-1000"}
+          style={{ width: `${timePercentage}%` }}
+        ></div>
+      </div>
     </div>
   );
 };
