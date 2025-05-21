@@ -62,10 +62,6 @@ const Index = () => {
 
   const TIMER_DURATION = 30; // 1 minute in seconds
 
-  const [isTimerStuck, setIsTimerStuck] = useState(false);
-  const [isGameStuck, setIsGameStuck] = useState(false);
-  const [isToolsStuck, setIsToolsStuck] = useState(false);
-
   // Load initial images based on round
   useEffect(() => {
     // Get images for the current round, ensuring they all have annotations
@@ -93,9 +89,7 @@ const Index = () => {
     if (labels.length > 0) {
       setCurrentLabel(labels[0]);
     }
-
-    // Don't start timer automatically on image change
-    setIsTimerRunning(false);
+    setIsTimerRunning(true);
     setHasStartedAnnotating(false);
   }, [selectedImage, showInstructions]);
 
