@@ -75,19 +75,29 @@ const gameImages: GameImage[] = [
   { id: "18", imagePath: sharkHard2, correctAnswer: "shark" }, // New Hard
 ];
 
+// Create a cache to store preloaded images
+const imageCache: Record<string, HTMLImageElement> = {};
+
 // Preload images for faster switching
 const preloadImages = () => {
   gameImages.forEach((image) => {
-    const img = new Image();
-    img.src = image.imagePath;
+    if (!imageCache[image.imagePath]) {
+      const img = new Image();
+      img.src = image.imagePath;
+      imageCache[image.imagePath] = img;
+    }
   });
 };
 
 // Add a function to preload a specific image
 const preloadSpecificImage = (imagePath: string) => {
-  const img = new Image();
-  img.src = imagePath;
-  return img;
+  if (!imageCache[imagePath]) {
+    const img = new Image();
+    img.src = imagePath;
+    imageCache[imagePath] = img;
+    return img;
+  }
+  return imageCache[imagePath];
 };
 
 const QuickIDGame: React.FC<QuickIDGameProps> = ({ 
@@ -152,7 +162,24 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({
 
   // Preload all images when component mounts
   useEffect(() => {
+    // Preload all images at once
     preloadImages();
+    
+    // Add event listeners to track when images are loaded
+    Object.values(imageCache).forEach(img => {
+      if (!img.complete) {
+        img.addEventListener('load', () => {
+          // Image has loaded
+        });
+      }
+    });
+    
+    return () => {
+      // Clean up event listeners
+      Object.values(imageCache).forEach(img => {
+        img.removeEventListener('load', () => {});
+      });
+    };
   }, []);
 
   // Sync state with ref
@@ -187,13 +214,34 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({
 
     // Preload the next image
     const nextImg = preloadSpecificImage(nextImage.imagePath);
-    nextImg.onload = () => {
+    
+    // Only set the onload handler if the image isn't already loaded
+    if (!nextImg.complete) {
+      nextImg.onload = () => {
+        setNextImagePreloaded(true);
+      };
+      
+      return () => {
+        nextImg.onload = null;
+      };
+    } else {
+      // Image is already loaded from cache
       setNextImagePreloaded(true);
-    };
+    }
+  }, [currentImageIndex, gameStarted]);
 
-    return () => {
-      nextImg.onload = null;
-    };
+  // Update loading state when current image changes
+  useEffect(() => {
+    if (!gameStarted) return;
+    
+    // Get the current image from cache
+    const currentImagePath = gameImages[currentImageIndex].imagePath;
+    const cachedImage = imageCache[currentImagePath];
+    
+    // If the image is already loaded in cache, we can show it immediately
+    if (cachedImage && cachedImage.complete) {
+      setIsImageLoading(false);
+    }
   }, [currentImageIndex, gameStarted]);
 
   // Initialize game
@@ -276,8 +324,20 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({
       imageTimerRef.current = null;
     }
 
+    // Set loading state for the next image transition
+    setIsImageLoading(true);
+    
     // Move to next image or end game if no more images
     const nextIndex = (currentImageIndex + 1) % gameImages.length;
+    
+    // Check if the next image is already in cache and loaded
+    const nextImagePath = gameImages[nextIndex].imagePath;
+    const cachedImage = imageCache[nextImagePath];
+    
+    if (cachedImage && cachedImage.complete) {
+      // If image is already loaded in cache, we can show it immediately
+      setIsImageLoading(false);
+    }
 
     // Set next image
     setCurrentImageIndex(nextIndex);
@@ -490,22 +550,26 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({
               <div className="p-4 flex flex-col items-center">
                 {/* Current image with improved loading */}
                 <div className="relative h-[350px] w-full flex items-center justify-center bg-gray-100 rounded-lg mb-6">
-                  {/* Preload hint for next image */}
-                  <link 
-                    rel="preload" 
-                    as="image" 
-                    href={gameImages[(currentImageIndex + 1) % gameImages.length].imagePath} 
-                  />
-                  
-                  {/* Actual image (with hidden previous image to prevent flicker) */}
-                  <img
+                  {/* Use the cached image directly without triggering a new request */}
+                  <div
                     key={gameImages[currentImageIndex].id}
+<<<<<<< HEAD
                     src={gameImages[currentImageIndex].imagePath}
                     alt="Identify this"
                     className="max-h-full max-w-full object-cover transition-opacity duration-200 h-full w-full"
                     style={{ opacity: 1 }}
                     onLoad={() => setIsImageLoading(false)}
                     loading="lazy"
+=======
+                    className="max-h-full max-w-full h-full w-full"
+                    style={{
+                      backgroundImage: `url(${gameImages[currentImageIndex].imagePath})`,
+                      backgroundSize: 'cover',
+                      backgroundPosition: 'center',
+                      opacity: isImageLoading ? 0 : 1,
+                      transition: 'opacity 200ms'
+                    }}
+>>>>>>> main
                   />
 
                   {/* Feedback overlay */}
