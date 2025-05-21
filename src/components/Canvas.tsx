@@ -133,9 +133,10 @@ const Canvas: React.FC<CanvasProps> = ({
     // Reset local ground truth display when image changes
     setLocalShowGroundTruth(showGroundTruth);
     
+    // Create a new image and set up loading
     const img = new Image();
-    img.src = imageUrl;
     
+    // Set up loading handlers before setting src
     img.onload = () => {
       if (!containerRef.current) return;
       
@@ -159,13 +160,23 @@ const Canvas: React.FC<CanvasProps> = ({
       setIsImageLoaded(true);
       
       // Draw the initial canvas immediately after image loads
-      setTimeout(() => {
+      requestAnimationFrame(() => {
         redrawCanvas();
-      }, 0);
+      });
     };
     
     img.onerror = () => {
       toast.error('Failed to load image');
+      setIsImageLoaded(false);
+    };
+
+    // Set src after handlers are set up
+    img.src = imageUrl;
+    
+    // Cleanup
+    return () => {
+      img.onload = null;
+      img.onerror = null;
     };
   }, [imageUrl]);
 
@@ -653,12 +664,19 @@ const Canvas: React.FC<CanvasProps> = ({
         </button>
       </div> */}
       
+      {/* Preload hint for the current image */}
+      <link rel="preload" as="image" href={imageUrl} />
+      
       <canvas
         ref={canvasRef}
         className={`cursor-crosshair touch-canvas ${isAndroidTablet ? 'android-tablet-canvas' : ''}`}
         width={canvasSize.width}
         height={canvasSize.height}
-        style={{ display: isImageLoaded ? 'block' : 'none' }}
+        style={{ 
+          display: isImageLoaded ? 'block' : 'none',
+          opacity: isImageLoaded ? 1 : 0,
+          transition: 'opacity 0.2s ease-in-out'
+        }}
         // Mouse events
         onClick={handleClick}
         onDoubleClick={handleDoubleClick}

@@ -83,6 +83,13 @@ const preloadImages = () => {
   });
 };
 
+// Add a function to preload a specific image
+const preloadSpecificImage = (imagePath: string) => {
+  const img = new Image();
+  img.src = imagePath;
+  return img;
+};
+
 const QuickIDGame: React.FC<QuickIDGameProps> = ({ 
   onGameComplete,
   showInstructions: externalShowInstructions,
@@ -178,24 +185,14 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({
     const nextIndex = (currentImageIndex + 1) % gameImages.length;
     const nextImage = gameImages[nextIndex];
 
-    // Create an image element for preloading
-    if (!nextImageRef.current) {
-      nextImageRef.current = new Image();
-    }
-
-    // Set up onload handler
-    nextImageRef.current.onload = () => {
+    // Preload the next image
+    const nextImg = preloadSpecificImage(nextImage.imagePath);
+    nextImg.onload = () => {
       setNextImagePreloaded(true);
     };
 
-    // Set the src to trigger preloading
-    nextImageRef.current.src = nextImage.imagePath;
-
     return () => {
-      // Clean up onload handler
-      if (nextImageRef.current) {
-        nextImageRef.current.onload = null;
-      }
+      nextImg.onload = null;
     };
   }, [currentImageIndex, gameStarted]);
 
@@ -493,9 +490,16 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({
               <div className="p-4 flex flex-col items-center">
                 {/* Current image with improved loading */}
                 <div className="relative h-[350px] w-full flex items-center justify-center bg-gray-100 rounded-lg mb-6">
+                  {/* Preload hint for next image */}
+                  <link 
+                    rel="preload" 
+                    as="image" 
+                    href={gameImages[(currentImageIndex + 1) % gameImages.length].imagePath} 
+                  />
+                  
                   {/* Actual image (with hidden previous image to prevent flicker) */}
                   <img
-                    key={gameImages[currentImageIndex].id} // Add key to force re-render
+                    key={gameImages[currentImageIndex].id}
                     src={gameImages[currentImageIndex].imagePath}
                     alt="Identify this"
                     className="max-h-full max-w-full object-cover transition-opacity duration-200 h-full w-full"
