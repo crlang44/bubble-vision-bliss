@@ -24,7 +24,7 @@ const ImageSelector: React.FC<ImageSelectorProps> = ({
       {!inSidebar && (
         <h3 className="text-lg font-bold text-ocean-dark flex items-center gap-2 mb-4 flex-shrink-0">
           <Waves className="text-ocean-medium" /> 
-          Images to annotate
+          Images to Annotate
         </h3>
       )}
       

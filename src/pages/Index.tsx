@@ -8,7 +8,7 @@ import {
   DialogTitle
 } from '@/components/ui/dialog';
 import { useIsTablet } from '@/hooks/use-mobile';
-import { CheckCircle, Fish, RefreshCcw, Trophy, Zap } from 'lucide-react';
+import { CheckCircle, Fish, RefreshCcw, Trophy, Zap, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import AnnotationTools from '../components/AnnotationTools';
 import BubbleBackground from '../components/BubbleBackground';
@@ -31,7 +31,7 @@ const Index = () => {
   const [hasSeenInstructions, setHasSeenInstructions] = useState(() => {
     return localStorage.getItem('hasSeenInstructions') === 'true';
   });
-  const [selectedTool, setSelectedTool] = useState<AnnotationType | null>('rectangle');
+  const [selectedTool, setSelectedTool] = useState<AnnotationType>('rectangle');
   const [currentLabel, setCurrentLabel] = useState('Whale');
   const [annotations, setAnnotations] = useState<Annotation[]>([]);
   const [selectedImage, setSelectedImage] = useState<OceanImage | null>(null);
@@ -113,10 +113,6 @@ const Index = () => {
       }, 2000);
     }
   }, [annotatedImages, currentImages, cumulativeScore, bestScore]);
-  
-  const handleSelectTool = (tool: AnnotationType | null) => {
-    setSelectedTool(tool);
-  };
   
   const handleClearAnnotations = () => {
     setAnnotations([]);
@@ -410,53 +406,83 @@ const Index = () => {
               )}
             </div>
             
-            <div className="bg-white rounded-xl p-4 shadow-md flex justify-between items-center">
-              <p className="text-sm text-gray-700">
-                {selectedImage?.description || 'Select an image to get started'}
-              </p>
-              
-              {!gameComplete ? (
-                <Button 
-                  onClick={handleSubmit}
-                  className="btn-coral flex items-center gap-1"
-                  disabled={!selectedImage || annotations.length === 0}
-                >
-                  <CheckCircle className="h-4 w-4" /> Submit
-                </Button>
-              ) : (
-                <div className="flex gap-2">
-                  <Button 
-                    onClick={handleNewImage}
-                    className="btn-coral flex items-center gap-1"
-                    disabled={isLastImage && allImagesAnnotated}
-                  >
-                    <Fish className="h-4 w-4" /> 
-                    {isLastImage && allImagesAnnotated ? 'All Images Complete!' : 'Next Image'}
-                  </Button>
-                  {isLastImage && allImagesAnnotated && (
-                    <Button 
-                      onClick={handlePlayAgain}
-                      className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white flex items-center gap-1"
+            <div className="bg-white rounded-xl p-3 shadow-md">
+              <div className="flex items-center justify-between">
+                {/* Left side: Annotation Tools */}
+                {!gameComplete && selectedImage ? (
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2">
+                      {availableLabels.map((label) => (
+                        <Button
+                          key={label}
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleLabelChange(label)}
+                          className={`text-xs ${currentLabel === label ? 'bg-blue-100 border-blue-300' : ''}`}
+                        >
+                          {label}
+                        </Button>
+                      ))}
+                    </div>
+                    
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={handleClearAnnotations}
+                      className="text-gray-500 hover:text-red-500 h-8 w-8"
                     >
-                      <RefreshCcw className="h-4 w-4" /> Replay
+                      <Trash2 className="h-4 w-4" />
                     </Button>
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-700">
+                    {selectedImage?.description || 'Select an image to get started'}
+                  </p>
+                )}
+                
+                {/* Right side: Instructions & Submit */}
+                <div className="flex items-center gap-3">
+                  {!gameComplete && selectedImage && (
+                    <p className="text-sm text-gray-700">
+                      {selectedImage?.description || 'Tap and drag to draw a bounding box'}
+                    </p>
+                  )}
+                  
+                  {!gameComplete ? (
+                    <Button 
+                      onClick={handleSubmit}
+                      className="btn-coral flex items-center gap-1 whitespace-nowrap"
+                      disabled={!selectedImage || annotations.length === 0}
+                    >
+                      <CheckCircle className="h-4 w-4" /> Submit
+                    </Button>
+                  ) : (
+                    <div className="flex gap-2">
+                      <Button 
+                        onClick={handleNewImage}
+                        className="btn-coral flex items-center gap-1"
+                        disabled={isLastImage && allImagesAnnotated}
+                      >
+                        <Fish className="h-4 w-4" /> 
+                        {isLastImage && allImagesAnnotated ? 'All Images Complete!' : 'Next Image'}
+                      </Button>
+                      {isLastImage && allImagesAnnotated && (
+                        <Button 
+                          onClick={handlePlayAgain}
+                          className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white flex items-center gap-1"
+                        >
+                          <RefreshCcw className="h-4 w-4" /> Replay
+                        </Button>
+                      )}
+                    </div>
                   )}
                 </div>
-              )}
+              </div>
             </div>
           </div>
           
           <div className="lg:col-span-1">
-            {!gameComplete ? (
-              <AnnotationTools
-                selectedTool={selectedTool}
-                onSelectTool={handleSelectTool}
-                onClearAnnotations={handleClearAnnotations}
-                currentLabel={currentLabel}
-                onLabelChange={handleLabelChange}
-                labels={availableLabels}
-              />
-            ) : (
+            {gameComplete && (
               <div className="space-y-4">
                 <ScoreBoard 
                   userAnnotations={annotations}
@@ -490,7 +516,7 @@ const Index = () => {
               Game Complete!
             </DialogTitle>
             <DialogDescription className="text-center text-gray-700 mt-2">
-              You completed the ocean annotation challenge!
+              You've completed the ocean annotation challenge!
             </DialogDescription>
           </DialogHeader>
           

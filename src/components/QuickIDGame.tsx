@@ -553,14 +553,6 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({
                   {/* Use the cached image directly without triggering a new request */}
                   <div
                     key={gameImages[currentImageIndex].id}
-<<<<<<< HEAD
-                    src={gameImages[currentImageIndex].imagePath}
-                    alt="Identify this"
-                    className="max-h-full max-w-full object-cover transition-opacity duration-200 h-full w-full"
-                    style={{ opacity: 1 }}
-                    onLoad={() => setIsImageLoading(false)}
-                    loading="lazy"
-=======
                     className="max-h-full max-w-full h-full w-full"
                     style={{
                       backgroundImage: `url(${gameImages[currentImageIndex].imagePath})`,
@@ -569,7 +561,6 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({
                       opacity: isImageLoading ? 0 : 1,
                       transition: 'opacity 200ms'
                     }}
->>>>>>> main
                   />
 
                   {/* Feedback overlay */}
