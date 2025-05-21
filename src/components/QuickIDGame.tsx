@@ -505,6 +505,7 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({
                     className="max-h-full max-w-full object-cover transition-opacity duration-200 h-full w-full"
                     style={{ opacity: 1 }}
                     onLoad={() => setIsImageLoading(false)}
+                    loading="lazy"
                   />
 
                   {/* Feedback overlay */}

@@ -38,7 +38,7 @@ const Index = () => {
   const [timeBonus, setTimeBonus] = useState(15);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
   const [gameComplete, setGameComplete] = useState(false);
-  const [availableLabels, setAvailableLabels] = useState<string[]>(['Whale', 'Fish', 'Coral']);
+  const [availableLabels, setAvailableLabels] = useState<string[]>(['Whale', 'Fish']);
   const [showGroundTruth, setShowGroundTruth] = useState(false);
   const [currentRound, setCurrentRound] = useState(1);
   const [currentImages, setCurrentImages] = useState<OceanImage[]>([]);
@@ -81,7 +81,7 @@ const Index = () => {
     if (!selectedImage) return;
     
     const labels = selectedImage.targetAnnotations.map(annotation => annotation.label);
-    const allLabels = [...new Set([...labels, 'Fish', 'Coral', 'Rock', 'Seaweed', 'Bubbles'])];
+    const allLabels = [...new Set([...labels, 'Fish'])];
     setAvailableLabels(allLabels);
     
     setAnnotations([]);

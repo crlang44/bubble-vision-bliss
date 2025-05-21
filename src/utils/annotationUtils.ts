@@ -1,5 +1,4 @@
-
-export type AnnotationType = 'rectangle' | 'polygon' | 'point';
+export type AnnotationType = 'rectangle' | 'point';
 export type Coordinate = { x: number; y: number };
 
 export interface Annotation {

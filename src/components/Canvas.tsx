@@ -62,7 +62,6 @@ const Canvas: React.FC<CanvasProps> = ({
   // Colors for different annotation types
   const annotationColors = {
     rectangle: '#FF719A', // coral
-    polygon: '#6E59A5',   // seaweed
     point: '#0EA5E9'      // ocean
   };
 
@@ -145,12 +144,12 @@ const Canvas: React.FC<CanvasProps> = ({
       const containerWidth = container.clientWidth;
       const containerHeight = container.clientHeight;
       
-      // Calculate scale to fit the image while maintaining aspect ratio
+      // Calculate scale to fill the container completely
       const scaleX = containerWidth / img.width;
       const scaleY = containerHeight / img.height;
-      const newScale = Math.min(scaleX, scaleY, 1); // Don't scale up if image is smaller
+      const newScale = Math.max(scaleX, scaleY); // Use max to ensure full coverage
       
-      // Calculate new dimensions
+      // Calculate new dimensions to fill container
       const newWidth = img.width * newScale;
       const newHeight = img.height * newScale;
       
@@ -281,24 +280,6 @@ const Canvas: React.FC<CanvasProps> = ({
         }
         break;
         
-      case 'polygon':
-        if (coordinates.length >= 2) {
-          ctx.beginPath();
-          ctx.moveTo(coordinates[0].x, coordinates[0].y);
-          
-          for (let i = 1; i < coordinates.length; i++) {
-            ctx.lineTo(coordinates[i].x, coordinates[i].y);
-          }
-          
-          if ((annotation as Annotation).isComplete || isTarget) {
-            ctx.closePath();
-          }
-          
-          ctx.fill();
-          ctx.stroke();
-        }
-        break;
-        
       case 'point':
         ctx.beginPath();
         ctx.arc(coordinates[0].x, coordinates[0].y, 5, 0, Math.PI * 2);
@@ -317,9 +298,6 @@ const Canvas: React.FC<CanvasProps> = ({
       let x, y;
       
       if (type === 'rectangle' && coordinates.length >= 2) {
-        x = coordinates[0].x;
-        y = coordinates[0].y - 5;
-      } else if (type === 'polygon' && coordinates.length > 0) {
         x = coordinates[0].x;
         y = coordinates[0].y - 5;
       } else if (type === 'point' && coordinates.length > 0) {
@@ -533,97 +511,20 @@ const Canvas: React.FC<CanvasProps> = ({
 
   // Handle double tap for completing polygon on touch devices
   const handleDoubleTap = (e: React.TouchEvent<HTMLCanvasElement>) => {
-    if (!currentAnnotation || currentAnnotation.type !== 'polygon') return;
-    
-    e.preventDefault();
-    
-    if (currentAnnotation.coordinates.length >= 3) {
-      const updatedAnnotation = { ...currentAnnotation, isComplete: true };
-      
-      // We need to keep the display coordinates for rendering
-      const displayCoordinates = [...updatedAnnotation.coordinates];
-      
-      // Scale the annotation to original image coordinates for proper scoring
-      const scoringCoordinates = scaleToScoring(updatedAnnotation.coordinates);
-      const scoringAnnotation = {
-        ...updatedAnnotation,
-        coordinates: scoringCoordinates,
-        // Add a reference to the display coordinates for future rendering
-        _displayCoordinates: displayCoordinates
-      };
-      
-      console.log('Canvas - Completing polygon annotation:', {
-        display: displayCoordinates,
-        scoring: scoringCoordinates
-      });
-      
-      onAnnotationComplete(scoringAnnotation);
-    } else {
-      toast.error('A polygon needs at least 3 points');
-    }
-    
-    setIsDrawing(false);
-    setCurrentAnnotation(null);
-    touchStartRef.current = null;
+    // No longer needed since polygon is removed
+    return;
   };
 
   // Handle mouse click for polygon
   const handleClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!selectedTool || selectedTool !== 'polygon') return;
-    
-    const { offsetX, offsetY } = getCanvasCoordinates(e);
-    
-    if (!currentAnnotation) {
-      // Start a new polygon
-      const newAnnotation: Annotation = {
-        id: generateId(),
-        type: 'polygon',
-        coordinates: [{ x: offsetX, y: offsetY }],
-        label: currentLabel || 'Unknown',
-        color: annotationColors.polygon,
-        isComplete: false
-      };
-      setCurrentAnnotation(newAnnotation);
-      setIsDrawing(true);
-    } else {
-      // Add a point to the existing polygon
-      const updatedAnnotation = { ...currentAnnotation };
-      updatedAnnotation.coordinates.push({ x: offsetX, y: offsetY });
-      setCurrentAnnotation(updatedAnnotation);
-    }
+    // No longer needed since polygon is removed
+    return;
   };
 
   // Handle double click to complete polygon
   const handleDoubleClick = () => {
-    if (!currentAnnotation || currentAnnotation.type !== 'polygon') return;
-    
-    if (currentAnnotation.coordinates.length >= 3) {
-      const updatedAnnotation = { ...currentAnnotation, isComplete: true };
-      
-      // We need to keep the display coordinates for rendering
-      const displayCoordinates = [...updatedAnnotation.coordinates];
-      
-      // Scale the annotation to original image coordinates for proper scoring
-      const scoringCoordinates = scaleToScoring(updatedAnnotation.coordinates);
-      const scoringAnnotation = {
-        ...updatedAnnotation,
-        coordinates: scoringCoordinates,
-        // Add a reference to the display coordinates for future rendering
-        _displayCoordinates: displayCoordinates
-      };
-      
-      console.log('Canvas - Completing polygon annotation:', {
-        display: displayCoordinates,
-        scoring: scoringCoordinates
-      });
-      
-      onAnnotationComplete(scoringAnnotation);
-    } else {
-      toast.error('A polygon needs at least 3 points');
-    }
-    
-    setIsDrawing(false);
-    setCurrentAnnotation(null);
+    // No longer needed since polygon is removed
+    return;
   };
 
   // Get canvas coordinates from mouse event
@@ -649,6 +550,7 @@ const Canvas: React.FC<CanvasProps> = ({
     <div 
       ref={containerRef} 
       className="flex items-center justify-center w-full h-full bg-gray-100 rounded-xl overflow-hidden relative"
+      style={{ padding: 0 }}
     >
       {/* <div className="absolute top-2 right-2 z-10">
         <button 
@@ -669,13 +571,14 @@ const Canvas: React.FC<CanvasProps> = ({
       
       <canvas
         ref={canvasRef}
-        className={`cursor-crosshair touch-canvas ${isAndroidTablet ? 'android-tablet-canvas' : ''}`}
+        className={`w-full h-full cursor-crosshair touch-canvas ${isAndroidTablet ? 'android-tablet-canvas' : ''}`}
         width={canvasSize.width}
         height={canvasSize.height}
         style={{ 
           display: isImageLoaded ? 'block' : 'none',
           opacity: isImageLoaded ? 1 : 0,
-          transition: 'opacity 0.2s ease-in-out'
+          transition: 'opacity 0.2s ease-in-out',
+          objectFit: 'fill'
         }}
         // Mouse events
         onClick={handleClick}

@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 
 export default {
@@ -70,7 +69,6 @@ export default {
 				},
 				coral: '#FF719A',
 				sand: '#FEF7CD',
-				seaweed: '#6E59A5',
 			},
 			borderRadius: {
 				lg: 'var(--radius)',

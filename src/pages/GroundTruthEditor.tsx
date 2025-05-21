@@ -15,7 +15,7 @@ const GroundTruthEditor = () => {
   const [currentLabel, setCurrentLabel] = useState('Whale');
   const [annotations, setAnnotations] = useState<Annotation[]>([]);
   const [selectedImage, setSelectedImage] = useState<OceanImage | null>(null);
-  const [availableLabels, setAvailableLabels] = useState<string[]>(['Whale', 'Fish', 'Coral', 'Bubbles', 'Wave Crest', 'Sea Foam', 'River', 'Mountain']);
+  const [availableLabels, setAvailableLabels] = useState<string[]>(['Whale', 'Fish']);
   const [customLabel, setCustomLabel] = useState('');
   const [showGroundTruth, setShowGroundTruth] = useState(true);
   const [score, setScore] = useState(0);
