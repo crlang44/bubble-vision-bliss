@@ -40,17 +40,6 @@ const NavBar: React.FC<NavBarProps> = ({
             <div className="bg-white/20 text-white px-2 py-0.5 rounded-full text-xs font-medium flex items-center gap-1">
               <Trophy className="h-4 w-4" />
               <span>Score: {cumulativeScore}</span>
-              {onResetScore && (
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  className="h-4 w-4 text-white hover:bg-white/20 ml-1" 
-                  onClick={onResetScore}
-                  title="Reset Score"
-                >
-                  <RefreshCcw className="h-3 w-3" />
-                </Button>
-              )}
             </div>
             
             {/* Best score display */}

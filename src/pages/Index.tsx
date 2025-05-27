@@ -255,11 +255,6 @@ const Index = () => {
     setCumulativeScore(prevScore => prevScore + score);
   };
 
-  const handleResetCumulativeScore = () => {
-    setCumulativeScore(0);
-    // toast.success('Cumulative score has been reset to 0'); // Commented out
-  };
-
   const handlePlayAgain = () => {
     // Reset all game state
     setGameComplete(false);
@@ -323,7 +318,6 @@ const Index = () => {
           pageType="annotation"
           cumulativeScore={cumulativeScore}
           bestScore={bestScore}
-          onResetScore={handleResetCumulativeScore}
           setShowInstructions={setShowInstructions}
         />
       </div>
