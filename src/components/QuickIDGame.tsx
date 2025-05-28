@@ -387,7 +387,7 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({
   const Instructions = ({ onClose }: { onClose: () => void }) => (
     <div className="bg-white rounded-xl p-6 max-w-lg w-full shadow-xl">
       <h2 className="text-2xl font-bold text-ocean-dark mb-4">
-        Quick ID Challenge
+        Quick ID
       </h2>
 
       <div className="space-y-4 mb-6">
