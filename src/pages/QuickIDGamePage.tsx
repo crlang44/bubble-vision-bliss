@@ -29,7 +29,7 @@ const QuickIDGamePage: React.FC = () => {
 
   // Set page title via document API
   useEffect(() => {
-    document.title = "Quick ID Challenge - Ocean Explorer";
+    document.title = "Quick ID - Ocean Explorer";
   }, []);
 
   // Show completion dialog only when all images are annotated
@@ -62,7 +62,7 @@ const QuickIDGamePage: React.FC = () => {
   };
 
   const handleGoToAnnotationGame = () => {
-    window.location.href = routes.home;
+    window.location.href = routes.oceanAnnotation;
   };
 
   return (

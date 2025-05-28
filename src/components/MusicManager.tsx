@@ -9,7 +9,7 @@ const MusicManager: React.FC = () => {
 
   useEffect(() => {
     // Change track based on current route
-    if (location.pathname === '/quick-id-game') {
+    if (location.pathname === '/quick-id') {
       changeTrack('quickId');
     } else {
       changeTrack('main');
