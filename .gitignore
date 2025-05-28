@@ -39,3 +39,13 @@ bun.lockb
 *.njsproj
 *.sln
 *.sw?
+
+# Android
+android/build/
+android/.gradle/
+android/local.properties
+android/app/build/
+android/captures/
+android/*.iml
+android/.idea/
+android/gradle.properties.local
