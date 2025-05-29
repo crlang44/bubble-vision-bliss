@@ -44,7 +44,7 @@ export interface OceanImage {
 const categoryMap: Record<number, string> = {
   1: 'Great White Shark',
   2: 'Kelp',
-  3: 'Human',
+  3: 'Swimmer',
   4: 'Surfer',
   5: 'Dolphin',
   6: 'Bat Ray',
