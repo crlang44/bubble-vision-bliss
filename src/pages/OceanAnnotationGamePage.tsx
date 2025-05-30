@@ -18,7 +18,7 @@ import Instructions from '../components/Instructions';
 import NavBar from '../components/NavBar';
 import ScoreBoard from '../components/ScoreBoard';
 import Timer from '../components/Timer';
-import { OceanImage, getProgressiveImageSet } from '../data/oceanImages';
+import { OceanImage, getProgressiveImageSet, getAllLabelsFromImageSet } from '../data/oceanImages';
 import { routes } from '../routes';
 import { Annotation, AnnotationType, calculateScore, labelColors } from '../utils/annotationUtils';
 
@@ -62,12 +62,23 @@ const OceanAnnotationGamePage = () => {
 
   const TIMER_DURATION = 30; // 1 minute in seconds
 
-  // Load initial images based on round
+  // Load initial images based on round and set available labels from the entire set
   useEffect(() => {
     // Get images for the current round, ensuring they all have annotations
     const imageSet = getProgressiveImageSet(currentRound);
     const validImages = imageSet.filter(img => img.targetAnnotations.length > 0);
     setCurrentImages(validImages);
+
+    // Set available labels from all images in the current set
+    if (validImages.length > 0) {
+      const allLabels = getAllLabelsFromImageSet(validImages);
+      setAvailableLabels(allLabels);
+      
+      // Set default current label to the first available label
+      if (allLabels.length > 0) {
+        setCurrentLabel(allLabels[0]);
+      }
+    }
 
     // Only select an image if we have valid images and no image is currently selected
     if (validImages.length > 0 && !selectedImage) {
@@ -78,17 +89,9 @@ const OceanAnnotationGamePage = () => {
   useEffect(() => {
     if (!selectedImage) return;
 
-    const labels = selectedImage.targetAnnotations.map(annotation => annotation.label);
-    const allLabels = [...new Set([...labels, 'Fish'])];
-    setAvailableLabels(allLabels);
-
     setAnnotations([]);
     setGameComplete(false);
     setTimeBonus(25); // Set initial time bonus to a lower value
-
-    if (labels.length > 0) {
-      setCurrentLabel(labels[0]);
-    }
     setIsTimerRunning(true);
     setHasStartedAnnotating(false);
   }, [selectedImage, showInstructions]);
