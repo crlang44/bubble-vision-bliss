@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Annotation, AnnotationType, Coordinate, generateId, TargetAnnotation, labelColors } from '../utils/annotationUtils';
 import { toast } from 'sonner';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, X } from 'lucide-react';
 import { useIsTouch, useIsAndroidTablet } from '../hooks/use-mobile';
 
 interface CanvasProps {
@@ -51,6 +51,10 @@ const Canvas: React.FC<CanvasProps> = ({
 
   // Store previous canvas size for rescaling
   const prevCanvasSizeRef = useRef<{ width: number; height: number }>({ width: 0, height: 0 });
+
+  const [cursorStyle, setCursorStyle] = useState<'crosshair'>('crosshair');
+
+  const LABEL_HEIGHT = 16;
 
   // Update local state when prop changes
   useEffect(() => {
@@ -105,15 +109,6 @@ const Canvas: React.FC<CanvasProps> = ({
         coordinates: scaleToDisplay(annotation.coordinates)
       }));
       setScaledTargetAnnotations(scaled);
-      
-      if (process.env.NODE_ENV !== 'production') {
-        console.log('Scaling target annotations:', {
-          original: targetAnnotations,
-          scaled,
-          canvasSize,
-          originalDimensions: { originalWidth, originalHeight }
-        });
-      }
     } else {
       setScaledTargetAnnotations([]);
     }
@@ -123,11 +118,9 @@ const Canvas: React.FC<CanvasProps> = ({
   useEffect(() => {
     // Only reload the image if the URL has actually changed
     if (imageUrl === prevImageUrlRef.current && isImageLoaded) {
-      console.log("Same image URL, skipping reload:", imageUrl);
       return;
     }
     
-    console.log("Loading new image:", imageUrl);
     setIsImageLoaded(false);
     prevImageUrlRef.current = imageUrl; // Update the ref with current URL
     
@@ -301,79 +294,38 @@ const Canvas: React.FC<CanvasProps> = ({
     // Draw ground truth annotations if localShowGroundTruth is true
     // Use the direct prop value instead of local state for more reliable updates
     if (showGroundTruth) {
-      console.log('Drawing ground truth annotations:', scaledTargetAnnotations.length);
       scaledTargetAnnotations.forEach(target => {
         drawAnnotation(ctx, target, true);
       });
     }
   };
 
-  // Modified drawAnnotation method to handle target annotations
-  const drawAnnotation = (ctx: CanvasRenderingContext2D, annotation: Annotation | TargetAnnotation, isTarget = false) => {
-    const { type, coordinates, label } = annotation;
-    
-    if (coordinates.length === 0) return;
-    
-    ctx.strokeStyle = isTarget ? 'rgba(0, 255, 0, 0.7)' : (annotation as Annotation).color;
-    ctx.fillStyle = isTarget ? 'rgba(0, 255, 0, 0.2)' : `${(annotation as Annotation).color}20`;
-    ctx.lineWidth = 2;
-    ctx.setLineDash(isTarget ? [5, 5] : []); // Dashed lines for ground truth
-    
-    // Only handle rectangle case since that's all we support
-    if (coordinates.length >= 2) {
-      const [start, end] = coordinates;
-      const width = end.x - start.x;
-      const height = end.y - start.y;
-      
-      ctx.beginPath();
-      ctx.rect(start.x, start.y, width, height);
-      ctx.fill();
-      ctx.stroke();
-    }
-    
-    // Draw label if annotation is complete
-    if ((annotation as Annotation).isComplete || isTarget) {
-      ctx.font = '12px sans-serif';
-      ctx.fillStyle = '#ffffff';
-      ctx.strokeStyle = '#000000';
-      ctx.lineWidth = 0.5;
-      
-      const x = coordinates[0].x;
-      const y = coordinates[0].y - 5;
-      
-      // Draw label background
-      const labelWidth = ctx.measureText(label).width + 6;
-      ctx.fillStyle = isTarget ? 'rgba(0, 255, 0, 0.7)' : (annotation as Annotation).color;
-      ctx.fillRect(x - 3, y - 12, labelWidth, 16);
-      
-      // Draw label text
-      ctx.fillStyle = '#ffffff';
-      ctx.fillText(label, x, y);
-    }
-    ctx.setLineDash([]);
+  // Function to check if a point is inside a rectangle
+  const isPointInRect = (point: { x: number, y: number }, rect: { x: number, y: number, width: number, height: number }) => {
+    return point.x >= rect.x && point.x <= rect.x + rect.width &&
+           point.y >= rect.y && point.y <= rect.y + rect.height;
   };
 
-  // Combined function to handle both mouse and touch start events
+  // Update mouse move logic - remove delete icon hover check
+  const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    const { offsetX, offsetY } = getCanvasCoordinates(e);
+    // Keep cursor as crosshair
+    setCursorStyle('crosshair');
+  };
+
   const handlePointerDown = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
-    if (!canvasRef.current) return;
-    
-    e.preventDefault(); // Prevent default browser behavior
+    e.preventDefault();
     
     let offsetX: number, offsetY: number;
     
     // Handle touch event
     if ('touches' in e) {
       const touch = e.touches[0];
-      const rect = canvasRef.current.getBoundingClientRect();
+      const rect = canvasRef.current?.getBoundingClientRect();
+      if (!rect) return;
+      
       offsetX = touch.clientX - rect.left;
       offsetY = touch.clientY - rect.top;
-      
-      // Store touch start position and time for later use
-      touchStartRef.current = { x: offsetX, y: offsetY };
-      touchStartTimeRef.current = Date.now();
-      
-      // Log touch event for debugging
-      console.log('Touch start:', { x: offsetX, y: offsetY });
     } else {
       // Handle mouse event
       const { offsetX: mouseX, offsetY: mouseY } = getCanvasCoordinates(e);
@@ -381,21 +333,96 @@ const Canvas: React.FC<CanvasProps> = ({
       offsetY = mouseY;
     }
     
+    // Start drawing
     setIsDrawing(true);
-    
-    // Create a new annotation with the label's color
-    const newAnnotation: Annotation = {
-      id: generateId(),
+    touchStartRef.current = { x: offsetX, y: offsetY };
+    setCurrentAnnotation({
+      id: Date.now().toString(),
       type: 'rectangle',
       coordinates: [{ x: offsetX, y: offsetY }],
       label: currentLabel || 'Unknown',
       color: labelColors[currentLabel] || annotationColors.rectangle,
       isComplete: false
-    };
-    
-    setCurrentAnnotation(newAnnotation);
-    redrawCanvas();
+    });
   };
+
+  // Utility to normalize rectangle coordinates
+  const getNormalizedRect = (start, end) => {
+    const left = Math.min(start.x, end.x);
+    const right = Math.max(start.x, end.x);
+    const top = Math.min(start.y, end.y);
+    const bottom = Math.max(start.y, end.y);
+    return { left, right, top, bottom };
+  };
+
+  const drawAnnotation = (ctx: CanvasRenderingContext2D, annotation: Annotation | TargetAnnotation, isTarget = false) => {
+    const { type, coordinates, label } = annotation;
+    if (coordinates.length === 0) return;
+    ctx.strokeStyle = isTarget ? 'rgba(0, 255, 0, 0.7)' : (annotation as Annotation).color;
+    ctx.fillStyle = isTarget ? 'rgba(0, 255, 0, 0.2)' : `${(annotation as Annotation).color}20`;
+    ctx.lineWidth = 2;
+    ctx.setLineDash(isTarget ? [5, 5] : []);
+    if (coordinates.length >= 2) {
+      const [start, end] = coordinates;
+      const { left, right, top, bottom } = getNormalizedRect(start, end);
+      const width = right - left;
+      const height = bottom - top;
+      ctx.beginPath();
+      ctx.rect(left, top, width, height);
+      ctx.fill();
+      ctx.stroke();
+      
+      // --- LABEL POSITIONING ---
+      if ((annotation as Annotation).isComplete || isTarget) {
+        ctx.font = '12px sans-serif';
+        ctx.fillStyle = '#ffffff';
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = 0.5;
+        const labelWidth = ctx.measureText(label).width + 6;
+        // Default: Top Left
+        let labelX = left;
+        let labelY = top - 5;
+        // If label would be cut off at the top, move to bottom right
+        if (labelY - LABEL_HEIGHT < 0) {
+          labelX = right - labelWidth + 3;
+          labelY = bottom + LABEL_HEIGHT - 5;
+        }
+        // Draw label background
+        ctx.fillStyle = isTarget ? 'rgba(0, 255, 0, 0.7)' : (annotation as Annotation).color;
+        ctx.fillRect(labelX - 3, labelY - 12, labelWidth, LABEL_HEIGHT);
+        // Draw label text
+        ctx.fillStyle = '#ffffff';
+        ctx.fillText(label, labelX, labelY);
+      }
+    }
+    ctx.setLineDash([]);
+  };
+
+  // Redraw canvas when annotations change
+  useEffect(() => {
+    if (isImageLoaded) {
+      redrawCanvas();
+    }
+  }, [annotations, currentAnnotation, isImageLoaded, scaledTargetAnnotations, showGroundTruth]);
+
+  // Utility: Get pointer position normalized to canvas coordinate system
+  function getNormalizedPointerPosition(e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>, canvas: HTMLCanvasElement) {
+    let clientX, clientY;
+    if ('touches' in e && e.touches.length > 0) {
+      clientX = e.touches[0].clientX;
+      clientY = e.touches[0].clientY;
+    } else if ('clientX' in e) {
+      clientX = e.clientX;
+      clientY = e.clientY;
+    }
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    return {
+      x: (clientX - rect.left) * scaleX,
+      y: (clientY - rect.top) * scaleY,
+    };
+  }
 
   // Combined function to handle both mouse and touch move events
   const handlePointerMove = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
@@ -413,9 +440,6 @@ const Canvas: React.FC<CanvasProps> = ({
       
       offsetX = touch.clientX - rect.left;
       offsetY = touch.clientY - rect.top;
-      
-      // Log touch move for debugging
-      console.log('Touch move:', { x: offsetX, y: offsetY });
     } else {
       // Handle mouse event
       const { offsetX: mouseX, offsetY: mouseY } = getCanvasCoordinates(e);
@@ -437,38 +461,39 @@ const Canvas: React.FC<CanvasProps> = ({
 
   // Combined function to handle both mouse and touch end events
   const handlePointerUp = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
-    if (!isDrawing || !currentAnnotation) return;
+    if (!isDrawing || !currentAnnotation || !touchStartRef.current) return;
     
     e.preventDefault(); // Prevent default browser behavior
     
-    // For touch events, verify it's not just a tap (for Android tablets)
-    if ('changedTouches' in e && touchStartRef.current) {
+    let endX: number, endY: number;
+    
+    // Handle touch event
+    if ('changedTouches' in e) {
       const touch = e.changedTouches[0];
       const rect = canvasRef.current?.getBoundingClientRect();
       if (!rect) return;
       
-      const offsetX = touch.clientX - rect.left;
-      const offsetY = touch.clientY - rect.top;
-      
-      // Log touch end for debugging
-      console.log('Touch end:', { 
-        x: offsetX, 
-        y: offsetY, 
-        duration: Date.now() - touchStartTimeRef.current 
-      });
-      
-      // Calculate the distance moved
-      const dx = offsetX - touchStartRef.current.x;
-      const dy = offsetY - touchStartRef.current.y;
-      const distance = Math.sqrt(dx * dx + dy * dy);
-      
-      // If the touch didn't move much, don't complete the annotation
-      if (distance < 10) {
-        setIsDrawing(false);
-        setCurrentAnnotation(null);
-        touchStartRef.current = null;
-        return;
-      }
+      endX = touch.clientX - rect.left;
+      endY = touch.clientY - rect.top;
+    } else {
+      // Handle mouse event
+      const { offsetX: mouseX, offsetY: mouseY } = getCanvasCoordinates(e);
+      endX = mouseX;
+      endY = mouseY;
+    }
+    
+    // Calculate the distance moved
+    const dx = endX - touchStartRef.current.x;
+    const dy = endY - touchStartRef.current.y;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    
+    // If the pointer didn't move enough, don't complete the annotation
+    const MIN_DRAG_DISTANCE = 10; // Minimum distance in pixels
+    if (distance < MIN_DRAG_DISTANCE) {
+      setIsDrawing(false);
+      setCurrentAnnotation(null);
+      touchStartRef.current = null;
+      return;
     }
     
     // Complete the rectangle
@@ -486,11 +511,6 @@ const Canvas: React.FC<CanvasProps> = ({
       _displayCoordinates: updatedAnnotation.coordinates
     };
     
-    console.log('Canvas - Completing annotation:', {
-      display: displayAnnotation,
-      scoring: scoringAnnotation
-    });
-    
     onAnnotationComplete(scoringAnnotation);
     
     setIsDrawing(false);
@@ -504,7 +524,6 @@ const Canvas: React.FC<CanvasProps> = ({
       setIsDrawing(false);
       setCurrentAnnotation(null);
       touchStartRef.current = null;
-      console.log('Touch cancelled');
     }
   };
 
@@ -519,13 +538,6 @@ const Canvas: React.FC<CanvasProps> = ({
       offsetY: e.clientY - rect.top
     };
   };
-
-  // Redraw canvas when annotations change
-  useEffect(() => {
-    if (isImageLoaded) {
-      redrawCanvas();
-    }
-  }, [annotations, currentAnnotation, isImageLoaded, scaledTargetAnnotations, showGroundTruth]);
 
   return (
     <div 
@@ -552,19 +564,23 @@ const Canvas: React.FC<CanvasProps> = ({
       
       <canvas
         ref={canvasRef}
-        className={`cursor-crosshair touch-canvas ${isAndroidTablet ? 'android-tablet-canvas' : ''}`}
+        className={`touch-canvas ${isAndroidTablet ? 'android-tablet-canvas' : ''}`}
         width={canvasSize.width}
         height={canvasSize.height}
         style={{ 
           display: isImageLoaded ? 'block' : 'none',
           opacity: isImageLoaded ? 1 : 0,
           transition: 'opacity 0.2s ease-in-out',
-          objectFit: 'fill'
+          objectFit: 'fill',
+          cursor: cursorStyle
         }}
         onMouseDown={handlePointerDown}
-        onMouseMove={handlePointerMove}
+        onMouseMove={(e) => {
+          handlePointerMove(e);
+          handleMouseMove(e);
+        }}
         onMouseUp={handlePointerUp}
-        onMouseLeave={handlePointerUp}
+        onMouseLeave={handlePointerCancel}
         onTouchStart={handlePointerDown}
         onTouchMove={handlePointerMove}
         onTouchEnd={handlePointerUp}

@@ -8,7 +8,7 @@ import {
   DialogTitle
 } from '@/components/ui/dialog';
 import { useIsTablet } from '@/hooks/use-mobile';
-import { CheckCircle, Fish, RefreshCcw, Trophy, Zap, Trash2 } from 'lucide-react';
+import { CheckCircle, Fish, RefreshCcw, Trophy, Zap, Trash2, Target, MousePointer } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import AnnotationTools from '../components/AnnotationTools';
 import BubbleBackground from '../components/BubbleBackground';
@@ -311,6 +311,12 @@ const Index = () => {
     console.log("Timer running state changed:", isTimerRunning);
   }, [isTimerRunning]);
 
+  // Add this debug handler for annotation updates
+  const handleAnnotationUpdate = (updated) => {
+    console.log('Parent updating annotations:', updated.map(a => a.id));
+    setAnnotations(updated);
+  };
+
   return (
     <div className="min-h-screen bg-ocean-gradient relative">
       <div className="container mx-auto px-4 pt-4 relative z-50">
@@ -353,21 +359,39 @@ const Index = () => {
 
         {/* Start Game screen */}
         {!gameStarted && !showInstructions && (
-          <div className="flex items-center justify-center min-h-[60vh]">
-            <div className="bg-white rounded-xl shadow-xl p-8 max-w-md w-full flex flex-col items-center">
-              <h2 className="text-3xl font-bold text-ocean-dark mb-4 text-center">Ocean Annotation Challenge</h2>
-              <p className="text-gray-700 text-center mb-6">
-                Draw boxes around all objects as quickly and accurately as you can!<br />
-                The faster and more precise you are, the higher your score.
-              </p>
+          <div className="flex items-center justify-center min-h-[80vh] animate-fade-in">
+            <div className="bg-white rounded-xl shadow-xl p-10 max-w-2xl w-full flex flex-col items-center">
+              <div className="mb-8 animate-slide-down">
+                <Fish className="h-20 w-20 text-ocean-dark" />
+              </div>
+
+              <h2 className="text-4xl font-bold text-ocean-dark mb-6 text-center animate-slide-down [animation-delay:200ms]">
+                Ocean Explorer Challenge! 🌊
+              </h2>
+
+              <div className="space-y-5 mb-10 w-full max-w-xl">
+                <div className="flex items-center gap-4 bg-blue-50 p-4 rounded-lg animate-slide-up [animation-delay:400ms] hover:scale-102 transition-transform duration-300">
+                  <Target className="h-8 w-8 text-blue-500" />
+                  <p className="text-blue-700 text-lg">Find ocean creatures!</p>
+                </div>
+                <div className="flex items-center gap-4 bg-green-50 p-4 rounded-lg animate-slide-up [animation-delay:600ms] hover:scale-102 transition-transform duration-300">
+                  <MousePointer className="h-8 w-8 text-green-500" />
+                  <p className="text-green-700 text-lg">Draw boxes around them!</p>
+                </div>
+                <div className="flex items-center gap-4 bg-yellow-50 p-4 rounded-lg animate-slide-up [animation-delay:800ms] hover:scale-102 transition-transform duration-300">
+                  <Trophy className="h-8 w-8 text-yellow-500" />
+                  <p className="text-yellow-700 text-lg">Score points for being quick and accurate!</p>
+                </div>
+              </div>
+
               <button
-                className="bg-ocean-dark hover:bg-ocean-medium text-white text-lg font-semibold px-8 py-4 rounded-xl shadow-lg transition-all w-full"
+                className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white text-xl font-semibold px-12 py-5 rounded-xl shadow-lg transition-all w-full max-w-xl hover:scale-102 animate-slide-up [animation-delay:1000ms]"
                 onClick={() => {
                   setGameStarted(true);
                   setIsTimerRunning(true);
                 }}
               >
-                Start Game
+                Start Adventure! 🚀
               </button>
             </div>
           </div>
@@ -395,7 +419,7 @@ const Index = () => {
                     currentLabel={currentLabel}
                     onAnnotationComplete={handleAnnotationComplete}
                     annotations={annotations}
-                    onAnnotationUpdate={setAnnotations}
+                    onAnnotationUpdate={handleAnnotationUpdate}
                     targetAnnotations={selectedImage.targetAnnotations}
                     showGroundTruth={showGroundTruth}
                     onToggleGroundTruth={() => setShowGroundTruth(!showGroundTruth)}
@@ -571,6 +595,45 @@ const Index = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <style>{`
+        @keyframes slide-up {
+          from { 
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to { 
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        @keyframes slide-down {
+          from { 
+            opacity: 0;
+            transform: translateY(-20px);
+          }
+          to { 
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        @keyframes fade-in {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        .animate-slide-up {
+          animation: slide-up 0.5s ease-out forwards;
+        }
+        .animate-slide-down {
+          animation: slide-down 0.5s ease-out forwards;
+        }
+        .animate-fade-in {
+          animation: fade-in 0.5s ease-out forwards;
+        }
+        .hover\:scale-102:hover {
+          transform: scale(1.02);
+        }
+      `}</style>
     </div>
   );
 };

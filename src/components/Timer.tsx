@@ -30,11 +30,8 @@ const Timer: React.FC<TimerProps> = ({ duration, onTimeUp, isRunning, onTimerUpd
     
     // Only start if isRunning is true
     if (!isRunning) {
-      console.log('Timer stopped');
       return;
     }
-    
-    console.log('Timer starting/continuing');
     
     // Create a new interval
     const id = window.setInterval(() => {
@@ -66,7 +63,6 @@ const Timer: React.FC<TimerProps> = ({ duration, onTimeUp, isRunning, onTimerUpd
     // Clean up on unmount or when dependencies change
     return () => {
       if (id) {
-        console.log('Cleaning up timer interval');
         clearInterval(id);
       }
     };
@@ -87,19 +83,20 @@ const Timer: React.FC<TimerProps> = ({ duration, onTimeUp, isRunning, onTimerUpd
   
   return (
     <div className="w-full">
-      <div className="flex items-center justify-between mb-1">
+      <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
           <Clock className="text-ocean-dark h-5 w-5" />
           <span className="font-semibold">{label}</span>
         </div>
-        <div className={`text-xl font-bold ${isWarning ? 'text-red-500 animate-pulse' : 'text-ocean-dark'}`}>{timeLeft} seconds</div>
+        <div className={`text-xl font-bold ${isWarning ? 'text-red-500 animate-pulse' : 'text-ocean-dark'}`}>
+          {formatTime(timeLeft)}
+        </div>
       </div>
-      <div className="w-full bg-gray-200 h-2 rounded-full mt-2">
-        <div
-          className={getProgressColor() + " h-2 rounded-full transition-all duration-1000"}
-          style={{ width: `${timePercentage}%` }}
-        ></div>
-      </div>
+      <Progress 
+        value={timePercentage} 
+        className="h-2 bg-gray-200"
+        indicatorClassName={`${getProgressColor()} transition-all duration-1000 ease-linear`}
+      />
     </div>
   );
 };
