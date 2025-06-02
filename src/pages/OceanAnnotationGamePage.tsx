@@ -327,19 +327,7 @@ const OceanAnnotationGamePage = () => {
 
       <BubbleBackground bubbleCount={30} />
 
-      {/* {isTablet && (
-        <SidebarProvider defaultOpen={false}>
-          <TabletSidebar
-            images={currentImages}
-            onSelectImage={handleImageSelect}
-            selectedImageId={selectedImage?.id || null}
-          />
-          <TabletSidebarTrigger />
-        </SidebarProvider>
-      )} */}
-
       <div className="container mx-auto py-6 px-4 relative z-10">
-        {/* NavBar Component removed from here */}
 
         {showInstructions && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-40">
