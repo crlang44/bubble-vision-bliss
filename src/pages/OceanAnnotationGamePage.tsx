@@ -379,7 +379,7 @@ const OceanAnnotationGamePage = () => {
         {/* Main annotation UI, only show if gameStarted */}
         {gameStarted && (
           <div className="flex justify-center">
-            <div className="w-full max-w-4xl space-y-4">
+            <div className="w-full max-w-6xl space-y-4">
               <div className="bg-white rounded-xl p-3 shadow-md">
                 <Timer
                   key={timerResetKey}
@@ -390,38 +390,38 @@ const OceanAnnotationGamePage = () => {
                 />
               </div>
 
-              <div className="relative w-full aspect-[16/9] bg-white rounded-xl shadow-lg overflow-hidden flex items-center justify-center">
-                {selectedImage ? (
-                  <Canvas
-                    imageUrl={selectedImage.imagePath}
-                    selectedTool={selectedTool}
-                    currentLabel={currentLabel}
-                    onAnnotationComplete={handleAnnotationComplete}
-                    annotations={annotations}
-                    onAnnotationUpdate={setAnnotations}
-                    targetAnnotations={selectedImage.targetAnnotations}
-                    showGroundTruth={showGroundTruth}
-                    onToggleGroundTruth={() => setShowGroundTruth(!showGroundTruth)}
-                    originalWidth={selectedImage.originalWidth}
-                    originalHeight={selectedImage.originalHeight}
-                  />
-                ) : (
-                  <div className="flex items-center justify-center h-full">
-                    <p>Please select an image</p>
-                  </div>
-                )}
-              </div>
+              <div className="flex gap-4">
+                <div className="flex-1 relative aspect-[16/9] bg-white rounded-xl shadow-lg overflow-hidden flex items-center justify-center">
+                  {selectedImage ? (
+                    <Canvas
+                      imageUrl={selectedImage.imagePath}
+                      selectedTool={selectedTool}
+                      currentLabel={currentLabel}
+                      onAnnotationComplete={handleAnnotationComplete}
+                      annotations={annotations}
+                      onAnnotationUpdate={setAnnotations}
+                      targetAnnotations={selectedImage.targetAnnotations}
+                      showGroundTruth={showGroundTruth}
+                      onToggleGroundTruth={() => setShowGroundTruth(!showGroundTruth)}
+                      originalWidth={selectedImage.originalWidth}
+                      originalHeight={selectedImage.originalHeight}
+                    />
+                  ) : (
+                    <div className="flex items-center justify-center h-full">
+                      <p>Please select an image</p>
+                    </div>
+                  )}
+                </div>
 
-              <div className="bg-white rounded-xl p-3 shadow-md">
-                <div className="flex flex-col items-center justify-between">
-                  {/* Left side: Annotation Tools or ScoreBoard */}
+                <div className="w-80 bg-white rounded-xl p-4 shadow-md flex flex-col justify-between">
+                  {/* Annotation Tools or ScoreBoard */}
                   {!gameComplete && selectedImage ? (
-                    <div className="flex flex-col gap-3 w-full items-center">
+                    <div className="flex flex-col gap-3">
                       <p className="text-sm text-gray-700 text-center">
-                        Drag to draw boxes around objects in the image above. <br />
+                        Drag to draw boxes around objects in the image. <br />
                       </p>
-                      <div className="flex items-center gap-3">
-                        <div className="flex items-center gap-2">
+                      <div className="flex flex-col gap-3">
+                        <div className="flex flex-wrap gap-2 justify-center">
                           {availableLabels.map((label) => (
                             <Button
                               key={label}
@@ -444,11 +444,12 @@ const OceanAnnotationGamePage = () => {
 
                         <Button
                           variant="outline"
-                          size="icon"
+                          size="sm"
                           onClick={handleClearAnnotations}
-                          className="text-gray-500 hover:text-red-500 h-8 w-8"
+                          className="text-gray-500 hover:text-red-500 flex items-center gap-2"
                         >
                           <Trash2 className="h-4 w-4" />
+                          Clear All
                         </Button>
                       </div>
                       <p className="text-sm text-gray-700 text-center">
@@ -456,7 +457,7 @@ const OceanAnnotationGamePage = () => {
                       </p>
                     </div>
                   ) : (
-                    <div className="w-full flex justify-center">
+                    <div className="flex justify-center">
                       <ScoreBoard
                         userAnnotations={annotations}
                         targetAnnotations={selectedImage?.targetAnnotations || []}
@@ -467,12 +468,13 @@ const OceanAnnotationGamePage = () => {
                       />
                     </div>
                   )}
-                  {/* Right side: Submit/Next/Replay Buttons */}
-                  <div className="flex gap-2 mt-4">
+                  
+                  {/* Submit/Next/Replay Buttons */}
+                  <div className="flex flex-col gap-2 mt-4">
                     {!gameComplete ? (
                       <Button
                         onClick={handleSubmit}
-                        className="btn-coral flex items-center gap-1 whitespace-nowrap"
+                        className="btn-coral flex items-center gap-1 justify-center"
                         disabled={!selectedImage || annotations.length === 0}
                       >
                         <CheckCircle className="h-4 w-4" /> Submit
@@ -481,7 +483,7 @@ const OceanAnnotationGamePage = () => {
                       <>
                         <Button
                           onClick={handleNewImage}
-                          className="btn-coral flex items-center gap-1"
+                          className="btn-coral flex items-center gap-1 justify-center"
                           disabled={isLastImage && allImagesAnnotated}
                         >
                           <Fish className="h-4 w-4" />
@@ -490,7 +492,7 @@ const OceanAnnotationGamePage = () => {
                         {isLastImage && allImagesAnnotated && (
                           <Button
                             onClick={handlePlayAgain}
-                            className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white flex items-center gap-1"
+                            className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white flex items-center gap-1 justify-center"
                           >
                             <RefreshCcw className="h-4 w-4" /> Replay
                           </Button>
