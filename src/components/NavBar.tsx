@@ -33,39 +33,28 @@ const NavBar: React.FC<NavBarProps> = ({
       </div>
       
       <div className="flex gap-1 items-center">
-        {/* Score display - only show if scores are provided */}
-        {cumulativeScore !== undefined && (
-          <div className="flex gap-1">
-            {/* Current score display */}
-            <div className="bg-white/20 text-white px-2 py-0.5 rounded-full text-xs font-medium flex items-center gap-1">
-              <Trophy className="h-4 w-4" />
-              <span>Score: {cumulativeScore}</span>
-            </div>
-            
-            {/* Best score display */}
-            {bestScore > 0 && (
-              <div className="bg-yellow-100/30 text-white px-2 py-0.5 rounded-full text-xs font-medium flex items-center gap-1">
-                <Trophy className="h-4 w-4 text-yellow-300" />
-                <span>Best: {bestScore}</span>
-              </div>
-            )}
+        {/* Best score display - only show if best score is provided */}
+        {bestScore > 0 && (
+          <div className="bg-yellow-100/30 text-white px-2 py-0.5 rounded-full text-xs font-medium flex items-center gap-1">
+            <Trophy className="h-4 w-4 text-yellow-300" />
+            <span>Best: {bestScore}</span>
           </div>
         )}
-        
-        <Button
-          variant="outline"
-          onClick={() => setShowInstructions(true)}
-          className="bg-white/80 hover:bg-white px-2 py-1 text-xs"
-        >
-          How to Play
-        </Button>
         
         <Button
           variant="outline"
           onClick={() => window.location.href = isAnnotationPage ? routes.quickIdGame : routes.home}
           className="bg-white/80 hover:bg-white px-2 py-1 text-xs"
         >
-          {isAnnotationPage ? 'Quick ID Game' : 'Ocean Annotation'}
+          {isAnnotationPage ? 'Play Quick ID Game' : 'Play Ocean Annotation'}
+        </Button>
+
+        <Button
+          variant="outline"
+          onClick={() => setShowInstructions(true)}
+          className="bg-white/80 hover:bg-white rounded-full w-8 h-8 flex items-center justify-center shadow-sm hover:shadow-md transition-all duration-200 border-2 border-ocean-dark/20 hover:border-ocean-dark/40"
+        >
+          <span className="text-lg font-bold text-ocean-dark">?</span>
         </Button>
       </div>
     </header>

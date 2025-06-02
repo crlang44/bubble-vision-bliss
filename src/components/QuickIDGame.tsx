@@ -8,6 +8,11 @@ import {
   Trophy,
   Clock,
   AlertTriangle,
+  MousePointer,
+  Timer,
+  Sparkles,
+  X,
+  Target,
 } from "lucide-react";
 import { routes } from "../routes";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -385,39 +390,154 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({
 
   // Instructions component
   const Instructions = ({ onClose }: { onClose: () => void }) => (
-    <div className="bg-white rounded-xl p-6 max-w-lg w-full shadow-xl">
-      <h2 className="text-2xl font-bold text-ocean-dark mb-4">
-        Quick ID Challenge
-      </h2>
+    <>
+      <style>
+        {`
+          @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+          }
+          @keyframes twinkle {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+          }
+          @keyframes spin-slow {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+          }
+          @keyframes bounce-slow {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+          }
+          @keyframes pulse-slow {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+          }
+          @keyframes slide-up {
+            from { 
+              opacity: 0;
+              transform: translateY(20px);
+            }
+            to { 
+              opacity: 1;
+              transform: translateY(0);
+            }
+          }
+          @keyframes slide-down {
+            from { 
+              opacity: 0;
+              transform: translateY(-20px);
+            }
+            to { 
+              opacity: 1;
+              transform: translateY(0);
+            }
+          }
+          @keyframes fade-in {
+            from { opacity: 0; }
+            to { opacity: 1; }
+          }
+          .animate-float {
+            animation: float 3s ease-in-out infinite;
+          }
+          .animate-twinkle {
+            animation: twinkle 2s ease-in-out infinite;
+          }
+          .animate-spin-slow {
+            animation: spin-slow 8s linear infinite;
+          }
+          .animate-bounce-slow {
+            animation: bounce-slow 2s ease-in-out infinite;
+          }
+          .animate-pulse-slow {
+            animation: pulse-slow 2s ease-in-out infinite;
+          }
+          .animate-slide-up {
+            animation: slide-up 0.5s ease-out forwards;
+          }
+          .animate-slide-down {
+            animation: slide-down 0.5s ease-out forwards;
+          }
+          .animate-fade-in {
+            animation: fade-in 0.5s ease-out forwards;
+          }
+        `}
+      </style>
+      <div className="bg-white rounded-xl p-6 max-w-lg w-full shadow-xl animate-fade-in">
+        <div className="flex justify-between items-center mb-6 animate-slide-down">
+          <h2 className="text-2xl font-bold text-ocean-dark">Quick ID Challenge 🦈</h2>
+          <Button variant="ghost" size="icon" onClick={onClose} className="h-10 w-10 hover:scale-110 transition-transform">
+            <X className="h-6 w-6" />
+          </Button>
+        </div>
 
-      <div className="space-y-4 mb-6">
+        <div className="grid grid-cols-1 gap-4 mb-6">
+          {/* Step 1: Identify */}
+          <div className="bg-blue-50 rounded-xl p-4 flex items-center gap-4 animate-slide-up hover:scale-105 transition-all duration-300 hover:shadow-lg">
+            <div className="bg-blue-100 p-3 rounded-full animate-bounce-slow">
+              <MousePointer className="h-8 w-8 text-blue-600" />
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-blue-700">Identify!</h3>
+              <p className="text-blue-600 text-sm">Is it a shark, kelp, or dolphin? Click the matching button!</p>
+            </div>
+          </div>
 
-        <div className="bg-blue-50 p-3 rounded-lg">
-          <h3 className="font-bold text-ocean-dark mb-2">How to Play:</h3>
-          <ul className="list-disc pl-5 text-gray-700 space-y-2">
-            <li>
-              Click the correct button (shark, kelp, or dolphin) for each image
-            </li>
-            <li>
-              Earn up to 10 points for each correct answer - the faster you
-              answer, the more points you get!
-            </li>
-            <li>Correct answers show a green checkmark</li>
-            <li>Wrong answers show a red X</li>
-            <li>No response in time counts as incorrect</li>
-            <li>The game starts slow and gets progressively faster</li>
-            <li>The game lasts for 30 seconds</li>
-          </ul>
+          {/* Step 2: Be Quick */}
+          <div className="bg-green-50 rounded-xl p-4 flex items-center gap-4 animate-slide-up [animation-delay:100ms] hover:scale-105 transition-all duration-300 hover:shadow-lg">
+            <div className="bg-green-100 p-3 rounded-full animate-spin-slow">
+              <Timer className="h-8 w-8 text-green-600" />
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-green-700">Be Quick!</h3>
+              <p className="text-green-600 text-sm">You have 5 seconds per image, and it gets faster! ⚡</p>
+            </div>
+          </div>
+
+          {/* Step 3: Score Points */}
+          <div className="bg-yellow-50 rounded-xl p-4 flex items-center gap-4 animate-slide-up [animation-delay:200ms] hover:scale-105 transition-all duration-300 hover:shadow-lg">
+            <div className="bg-yellow-100 p-3 rounded-full animate-float">
+              <Trophy className="h-8 w-8 text-yellow-600" />
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-yellow-700">Score Points!</h3>
+              <p className="text-yellow-600 text-sm">Get up to 10 points for each correct answer! The faster you are, the more points you get! 🏆</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Pro Tips */}
+        <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl p-4 animate-slide-up [animation-delay:300ms] hover:shadow-lg transition-all duration-300">
+          <div className="flex items-center gap-2 mb-3">
+            <Sparkles className="h-5 w-5 text-purple-500 animate-twinkle" />
+            <h3 className="text-lg font-semibold text-purple-700">Pro Tips!</h3>
+          </div>
+          <div className="grid grid-cols-1 gap-2">
+            <div className="flex items-center gap-2 hover:scale-105 transition-transform">
+              <CheckCircle className="h-4 w-4 text-green-500" />
+              <p className="text-sm text-purple-600">= Correct answer! </p>
+            </div>
+            <div className="flex items-center gap-2 hover:scale-105 transition-transform">
+              <AlertTriangle className="h-4 w-4 text-red-500" />
+              <p className="text-sm text-purple-600">= Wrong answer or too slow!</p>
+            </div>
+            <div className="flex items-center gap-2 hover:scale-105 transition-transform">
+              <Clock className="h-4 w-4 text-purple-500" />
+              <p className="text-sm text-purple-600">Game lasts 30 seconds - how many can you get? ⏱️</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex justify-center mt-6 animate-slide-up [animation-delay:400ms]">
+          <Button 
+            onClick={onClose} 
+            className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white h-12 px-8 text-lg font-semibold rounded-xl shadow-lg hover:scale-105 transition-all duration-300 animate-pulse-slow"
+          >
+            Let's Play! 🚀
+          </Button>
         </div>
       </div>
-
-      <Button
-        className="w-full bg-ocean-dark hover:bg-ocean-darker text-white"
-        onClick={onClose}
-      >
-        Let's Play!
-      </Button>
-    </div>
+    </>
   );
 
   return (
@@ -440,33 +560,33 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({
         )}
 
         <div className="max-w-4xl mx-auto">
-          {/* Game Timer */}
-          <div className="bg-white rounded-xl p-3 shadow-md mb-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Clock className="text-ocean-dark h-5 w-5" />
-                <span className="font-semibold">Time Remaining:</span>
+          {/* Game Timer - Only show when game has started */}
+          {gameStarted && (
+            <div className="bg-white rounded-xl p-3 shadow-md mb-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Clock className="text-ocean-dark h-5 w-5" />
+                  <span className="font-semibold">Time Remaining:</span>
+                </div>
+                <div className="text-xl font-bold text-ocean-dark">
+                  {timeRemaining} seconds
+                </div>
               </div>
-              <div className="text-xl font-bold text-ocean-dark">
-                {timeRemaining} seconds
-              </div>
-            </div>
-            {gameStarted && (
               <div className="w-full bg-gray-200 h-2 rounded-full mt-2">
                 <div
                   className="bg-ocean-dark h-2 rounded-full transition-all duration-1000"
                   style={{ width: `${(timeRemaining / 30) * 100}%` }}
                 ></div>
               </div>
-            )}
-          </div>
+            </div>
+          )}
 
           {/* Game Area */}
           <div className="bg-white rounded-xl shadow-lg overflow-hidden mb-4">
             {gameStarted ? (
               <div className="p-4 flex flex-col items-center">
                 {/* Current image with preloaded images */}
-                <div className="relative h-[350px] w-full flex items-center justify-center bg-gray-100 rounded-lg mb-6">
+                <div className="relative h-[350px] w-full flex items-center justify-center bg-gray-100 rounded-lg mb-6 overflow-hidden">
                   {/* Render all images but only show the current one */}
                   {gameImages.map((image, index) => (
                     <div
@@ -475,7 +595,7 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({
                       style={{
                         display: index === currentImageIndex ? 'block' : 'none',
                         opacity: isImageLoading ? 0 : 1,
-                        transition: 'opacity 200ms'
+                        transition: 'opacity 200ms ease-in-out'
                       }}
                     >
                       <img 
@@ -494,13 +614,13 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({
 
                   {/* Feedback overlay */}
                   {showFeedback && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/30 z-10">
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/30 z-10 animate-fade-in">
                       {showFeedback === "correct" ? (
-                        <div className="bg-green-500 rounded-full p-10">
+                        <div className="bg-green-500 rounded-full p-10 animate-pulse-slow">
                           <CheckCircle className="h-24 w-24 text-white" />
                         </div>
                       ) : (
-                        <div className="bg-red-500 rounded-full p-10">
+                        <div className="bg-red-500 rounded-full p-10 animate-pulse-slow">
                           <AlertTriangle className="h-24 w-24 text-white" />
                         </div>
                       )}
@@ -508,15 +628,13 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({
                   )}
 
                   {/* Timer indicator with key to force animation restart */}
-                  <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-gray-200">
+                  <div className="absolute bottom-0 left-0 right-0 h-2 bg-gray-200/50 backdrop-blur-sm">
                     <div
                       key={animationKey}
-                      className="h-full bg-ocean-dark"
+                      className="h-full bg-ocean-dark rounded-full"
                       style={{
                         width: "100%",
-                        animation: `shrink ${
-                          timePerImage / 1000
-                        }s linear forwards`,
+                        animation: `shrink ${timePerImage / 1000}s linear forwards`,
                       }}
                     ></div>
                   </div>
@@ -525,19 +643,19 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({
                 {/* Answer buttons */}
                 <div className="grid grid-cols-3 gap-4 w-full max-w-xl">
                   <Button
-                    className="h-16 text-lg bg-blue-500 hover:bg-blue-600 text-white"
+                    className="h-16 text-lg bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-lg hover:scale-102 transition-all duration-300"
                     onClick={() => handleAnswer("shark")}
                   >
                     Shark
                   </Button>
                   <Button
-                    className="h-16 text-lg bg-green-500 hover:bg-green-600 text-white"
+                    className="h-16 text-lg bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white shadow-lg hover:scale-102 transition-all duration-300"
                     onClick={() => handleAnswer("kelp")}
                   >
                     Kelp
                   </Button>
                   <Button
-                    className="h-16 text-lg bg-purple-500 hover:bg-purple-600 text-white"
+                    className="h-16 text-lg bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white shadow-lg hover:scale-102 transition-all duration-300"
                     onClick={() => handleAnswer("dolphin")}
                   >
                     Dolphin
@@ -545,23 +663,23 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({
                 </div>
               </div>
             ) : gameOver ? (
-              <div className="p-8 text-center">
-                <Trophy className="h-16 w-16 text-yellow-500 mx-auto mb-4" />
-                <h2 className="text-2xl font-bold text-ocean-dark mb-2">
+              <div className="p-8 text-center animate-fade-in">
+                <Trophy className="h-16 w-16 text-yellow-500 mx-auto mb-4 animate-float" />
+                <h2 className="text-2xl font-bold text-ocean-dark mb-2 animate-slide-down">
                   Game Over!
                 </h2>
 
-                <div className="bg-blue-50 p-4 rounded-lg max-w-md mx-auto mb-6">
+                <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-6 rounded-xl max-w-md mx-auto mb-6 shadow-lg animate-slide-up">
                   <div className="text-5xl font-bold text-ocean-dark mb-2">
                     {finalGameScore}
                   </div>
                   <p className="text-gray-700">Total Points</p>
 
-                  {/* Fixed: Best Score Display */}
+                  {/* Best Score Display */}
                   {finalGameWasNewBest ? (
-                    <div className="mt-4 p-2 bg-yellow-100 rounded">
-                      <p className="text-yellow-700 font-bold text-lg">
-                        🏆 NEW BEST SCORE! 🏆
+                    <div className="mt-4 p-3 bg-yellow-100 rounded-lg animate-pulse-slow">
+                      <p className="text-yellow-700 font-bold text-lg flex items-center justify-center gap-2">
+                        <Trophy className="h-5 w-5" /> NEW BEST SCORE! 🏆
                       </p>
                     </div>
                   ) : (
@@ -572,7 +690,7 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({
                     </div>
                   )}
 
-                  <div className="mt-4 text-sm text-gray-700">
+                  <div className="mt-4 text-sm text-gray-700 bg-white/50 p-3 rounded-lg">
                     <div className="flex justify-between mb-2">
                       <div>Accuracy:</div>
                       <div className="font-bold text-ocean-dark">
@@ -592,34 +710,47 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({
                 </div>
 
                 <Button
-                  className="bg-ocean-dark hover:bg-ocean-darker text-white text-lg px-8 py-6 h-auto"
+                  className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white text-lg px-8 py-6 h-auto shadow-lg hover:scale-102 transition-all duration-300 animate-slide-up"
                   onClick={startGame}
                 >
                   <RefreshCcw className="h-5 w-5 mr-2" /> Play Again
                 </Button>
               </div>
             ) : (
-              <div className="p-8 text-center">
-                <Fish className="h-16 w-16 text-ocean-dark mx-auto mb-4" />
-                <h2 className="text-2xl font-bold text-ocean-dark mb-4">
-                  Ready to Test Your Quick ID Skills?
+              <div className="p-8 text-center animate-fade-in">
+
+                <h2 className="text-4xl font-bold text-ocean-dark mb-6 text-center animate-slide-down [animation-delay:200ms]">
+                  Quick ID Challenge! 🦈
                 </h2>
-                <p className="text-gray-700 mb-6">
-                  Identify sharks, kelp, and dolphins as quickly as possible!
-                </p>
-                <Button
-                  className="bg-ocean-dark hover:bg-ocean-darker text-white text-lg px-8 py-6 h-auto"
+
+                <div className="space-y-5 mb-10 w-full max-w-xl mx-auto">
+                  <div className="flex items-center gap-4 bg-gradient-to-r from-blue-50 to-blue-100 p-4 rounded-lg animate-slide-up [animation-delay:400ms] hover:scale-102 transition-transform duration-300 shadow-md">
+                    <Target className="h-8 w-8 text-blue-500 animate-bounce-slow" />
+                    <p className="text-blue-700 text-lg">Spot the ocean creatures!</p>
+                  </div>
+                  <div className="flex items-center gap-4 bg-gradient-to-r from-green-50 to-green-100 p-4 rounded-lg animate-slide-up [animation-delay:600ms] hover:scale-102 transition-transform duration-300 shadow-md">
+                    <Timer className="h-8 w-8 text-green-500 animate-spin-slow" />
+                    <p className="text-green-700 text-lg">Be super quick!</p>
+                  </div>
+                  <div className="flex items-center gap-4 bg-gradient-to-r from-yellow-50 to-yellow-100 p-4 rounded-lg animate-slide-up [animation-delay:800ms] hover:scale-102 transition-transform duration-300 shadow-md">
+                    <Trophy className="h-8 w-8 text-yellow-500 animate-float" />
+                    <p className="text-yellow-700 text-lg">Score points and beat your best!</p>
+                  </div>
+                </div>
+
+                <button
+                  className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white text-xl font-semibold px-12 py-5 rounded-xl shadow-lg transition-all w-full max-w-xl hover:scale-102 animate-slide-up [animation-delay:1000ms]"
                   onClick={startGame}
                 >
-                  Start Game
-                </Button>
+                  Start Adventure! 🚀
+                </button>
               </div>
             )}
           </div>
 
           {/* Score card (only visible during gameplay) */}
           {gameStarted && (
-            <div className="bg-white rounded-xl p-4 shadow-md">
+            <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-4 shadow-md animate-slide-up">
               <div className="flex justify-between items-center">
                 <h3 className="font-bold text-ocean-dark">Current Score</h3>
                 <div className="text-3xl font-bold text-ocean-dark">
