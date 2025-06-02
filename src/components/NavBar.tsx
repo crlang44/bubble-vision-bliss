@@ -32,11 +32,11 @@ const NavBar: React.FC<NavBarProps> = ({
         </h1>
       </div>
       
-      <div className="flex gap-1 items-center">
+      <div className="flex gap-2 items-center">
         {/* Best score display - only show if best score is provided */}
         {bestScore > 0 && (
-          <div className="bg-yellow-100/30 text-white px-2 py-0.5 rounded-full text-xs font-medium flex items-center gap-1">
-            <Trophy className="h-4 w-4 text-yellow-300" />
+          <div className="bg-white/80 hover:bg-white text-ocean-dark px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5 h-9 transition-all duration-200 shadow-sm hover:shadow-md border border-ocean-dark/20 hover:border-ocean-dark/40">
+            <Trophy className="h-4 w-4 text-yellow-600" />
             <span>Best: {bestScore}</span>
           </div>
         )}
@@ -44,7 +44,7 @@ const NavBar: React.FC<NavBarProps> = ({
         <Button
           variant="outline"
           onClick={() => window.location.href = isAnnotationPage ? routes.quickIdGame : routes.home}
-          className="bg-white/80 hover:bg-white px-2 py-1 text-xs"
+          className="bg-white/80 hover:bg-white text-ocean-dark px-3 py-1.5 h-9 text-sm font-medium shadow-sm hover:shadow-md transition-all duration-200 border border-ocean-dark/20 hover:border-ocean-dark/40"
         >
           {isAnnotationPage ? 'Play Quick ID Game' : 'Play Ocean Annotation'}
         </Button>
@@ -52,9 +52,9 @@ const NavBar: React.FC<NavBarProps> = ({
         <Button
           variant="outline"
           onClick={() => setShowInstructions(true)}
-          className="bg-white/80 hover:bg-white rounded-full w-8 h-8 flex items-center justify-center shadow-sm hover:shadow-md transition-all duration-200 border-2 border-ocean-dark/20 hover:border-ocean-dark/40"
+          className="bg-white/80 hover:bg-white text-ocean-dark w-9 h-9 flex items-center justify-center shadow-sm hover:shadow-md transition-all duration-200 border border-ocean-dark/20 hover:border-ocean-dark/40"
         >
-          <span className="text-lg font-bold text-ocean-dark">?</span>
+          <span className="text-lg font-bold">?</span>
         </Button>
       </div>
     </header>

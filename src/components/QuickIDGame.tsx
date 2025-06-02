@@ -401,15 +401,15 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({
             0%, 100% { opacity: 1; }
             50% { opacity: 0.5; }
           }
-          @keyframes spin-slow {
+          @keyframes spin {
             from { transform: rotate(0deg); }
             to { transform: rotate(360deg); }
           }
-          @keyframes bounce-slow {
+          @keyframes bounce {
             0%, 100% { transform: translateY(0); }
             50% { transform: translateY(-5px); }
           }
-          @keyframes pulse-slow {
+          @keyframes pulse {
             0%, 100% { transform: scale(1); }
             50% { transform: scale(1.05); }
           }
@@ -443,14 +443,14 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({
           .animate-twinkle {
             animation: twinkle 2s ease-in-out infinite;
           }
-          .animate-spin-slow {
-            animation: spin-slow 8s linear infinite;
+          .animate-spin {
+            animation: spin 8s linear infinite;
           }
-          .animate-bounce-slow {
-            animation: bounce-slow 2s ease-in-out infinite;
+          .animate-bounce {
+            animation: bounce 2s ease-in-out infinite;
           }
-          .animate-pulse-slow {
-            animation: pulse-slow 2s ease-in-out infinite;
+          .animate-pulse {
+            animation: pulse 2s ease-in-out infinite;
           }
           .animate-slide-up {
             animation: slide-up 0.5s ease-out forwards;
@@ -466,15 +466,15 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({
       <div className="bg-white rounded-xl p-6 max-w-lg w-full shadow-xl animate-fade-in">
         <div className="flex justify-between items-center mb-6 animate-slide-down">
           <h2 className="text-2xl font-bold text-ocean-dark">Quick ID Challenge 🦈</h2>
-          <Button variant="ghost" size="icon" onClick={onClose} className="h-10 w-10 hover:scale-110 transition-transform">
+          <Button variant="ghost" size="icon" onClick={onClose} className="h-10 w-10 hover:scale-105 transition-transform">
             <X className="h-6 w-6" />
           </Button>
         </div>
 
         <div className="grid grid-cols-1 gap-4 mb-6">
           {/* Step 1: Identify */}
-          <div className="bg-blue-50 rounded-xl p-4 flex items-center gap-4 animate-slide-up hover:scale-105 transition-all duration-300 hover:shadow-lg">
-            <div className="bg-blue-100 p-3 rounded-full animate-bounce-slow">
+          <div className="game-feature-card game-feature-card-blue">
+            <div className="bg-blue-100 p-3 rounded-full animate-bounce">
               <MousePointer className="h-8 w-8 text-blue-600" />
             </div>
             <div>
@@ -484,8 +484,8 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({
           </div>
 
           {/* Step 2: Be Quick */}
-          <div className="bg-green-50 rounded-xl p-4 flex items-center gap-4 animate-slide-up [animation-delay:100ms] hover:scale-105 transition-all duration-300 hover:shadow-lg">
-            <div className="bg-green-100 p-3 rounded-full animate-spin-slow">
+          <div className="game-feature-card game-feature-card-green">
+            <div className="bg-green-100 p-3 rounded-full animate-spin">
               <Timer className="h-8 w-8 text-green-600" />
             </div>
             <div>
@@ -495,7 +495,7 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({
           </div>
 
           {/* Step 3: Score Points */}
-          <div className="bg-yellow-50 rounded-xl p-4 flex items-center gap-4 animate-slide-up [animation-delay:200ms] hover:scale-105 transition-all duration-300 hover:shadow-lg">
+          <div className="game-feature-card game-feature-card-yellow">
             <div className="bg-yellow-100 p-3 rounded-full animate-float">
               <Trophy className="h-8 w-8 text-yellow-600" />
             </div>
@@ -531,7 +531,7 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({
         <div className="flex justify-center mt-6 animate-slide-up [animation-delay:400ms]">
           <Button 
             onClick={onClose} 
-            className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white h-12 px-8 text-lg font-semibold rounded-xl shadow-lg hover:scale-105 transition-all duration-300 animate-pulse-slow"
+            className="game-start-button"
           >
             Let's Play! 🚀
           </Button>
@@ -541,260 +541,291 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({
   );
 
   return (
-    <div>
-      <div className="container mx-auto py-0 px-4 relative z-10">
+    <div className="game-container">
+      {!gameStarted ? (
+        <div className="flex items-center justify-center min-h-[80vh] animate-fade-in">
+          <div className="bg-white rounded-xl shadow-xl p-10 max-w-2xl w-full flex flex-col items-center">
+            <div className="mb-8 animate-slide-down">
+              <Clock className="h-20 w-20 text-ocean-dark" />
+            </div>
 
-        {/* Instructions Modal */}
-        {showInstructions && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-            <Instructions
-              onClose={() => {
-                setShowInstructions(false);
-                localStorage.setItem("hasSeenQuickIDInstructions", "true");
-                if (!gameStarted && !gameOver) {
-                  startGame();
-                }
-              }}
-            />
-          </div>
-        )}
+            <h2 className="text-4xl font-bold text-ocean-dark mb-6 text-center animate-slide-down [animation-delay:200ms]">
+              Quick ID Challenge! 🦈
+            </h2>
 
-        <div className="max-w-4xl mx-auto">
-          {/* Game Timer - Only show when game has started */}
-          {gameStarted && (
-            <div className="bg-white rounded-xl p-3 shadow-md mb-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Clock className="text-ocean-dark h-5 w-5" />
-                  <span className="font-semibold">Time Remaining:</span>
-                </div>
-                <div className="text-xl font-bold text-ocean-dark">
-                  {timeRemaining} seconds
-                </div>
+            <div className="space-y-4 mb-8 w-full max-w-xl">
+              <div className="game-feature-card game-feature-card-blue">
+                <Clock className="game-feature-icon game-feature-icon-blue" />
+                <span className="game-feature-text game-feature-text-blue">
+                  Test your speed and accuracy
+                </span>
               </div>
-              <div className="w-full bg-gray-200 h-2 rounded-full mt-2">
-                <div
-                  className="bg-ocean-dark h-2 rounded-full transition-all duration-1000"
-                  style={{ width: `${(timeRemaining / 30) * 100}%` }}
-                ></div>
+              <div className="game-feature-card game-feature-card-green">
+                <Target className="game-feature-icon game-feature-icon-green" />
+                <span className="game-feature-text game-feature-text-green">
+                  Identify ocean creatures quickly
+                </span>
+              </div>
+              <div className="game-feature-card game-feature-card-yellow">
+                <Trophy className="game-feature-icon game-feature-icon-yellow" />
+                <span className="game-feature-text game-feature-text-yellow">
+                  Beat your high score
+                </span>
+              </div>
+            </div>
+
+            <button
+              onClick={startGame}
+              className="game-start-button"
+            >
+              Start Challenge
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="container mx-auto py-0 px-4 relative z-10">
+          {/* Instructions Modal */}
+          {showInstructions && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+              <div className="bg-white rounded-xl p-6 max-w-lg w-full shadow-xl animate-fade-in">
+                <Instructions
+                  onClose={() => {
+                    setShowInstructions(false);
+                    localStorage.setItem("hasSeenQuickIDInstructions", "true");
+                    if (!gameStarted && !gameOver) {
+                      startGame();
+                    }
+                  }}
+                />
               </div>
             </div>
           )}
 
-          {/* Game Area */}
-          <div className="bg-white rounded-xl shadow-lg overflow-hidden mb-4">
-            {gameStarted ? (
-              <div className="p-4 flex flex-col items-center">
-                {/* Current image with preloaded images */}
-                <div className="relative h-[350px] w-full flex items-center justify-center bg-gray-100 rounded-lg mb-6 overflow-hidden">
-                  {/* Render all images but only show the current one */}
-                  {gameImages.map((image, index) => (
-                    <div
-                      key={image.id}
-                      className="absolute inset-0 max-h-full max-w-full h-full w-full"
-                      style={{
-                        display: index === currentImageIndex ? 'block' : 'none',
-                        opacity: isImageLoading ? 0 : 1,
-                        transition: 'opacity 200ms ease-in-out'
-                      }}
-                    >
-                      <img 
-                        src={image.imagePath}
-                        alt={`${image.correctAnswer} image`}
-                        className="h-full w-full object-cover"
-                        style={{ objectPosition: 'center' }}
-                        onLoad={() => {
-                          if (index === currentImageIndex) {
-                            setIsImageLoading(false);
-                          }
-                        }}
-                      />
-                    </div>
-                  ))}
-
-                  {/* Feedback overlay */}
-                  {showFeedback && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/30 z-10 animate-fade-in">
-                      {showFeedback === "correct" ? (
-                        <div className="bg-green-500 rounded-full p-10 animate-pulse-slow">
-                          <CheckCircle className="h-24 w-24 text-white" />
-                        </div>
-                      ) : (
-                        <div className="bg-red-500 rounded-full p-10 animate-pulse-slow">
-                          <AlertTriangle className="h-24 w-24 text-white" />
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Timer indicator with key to force animation restart */}
-                  <div className="absolute bottom-0 left-0 right-0 h-2 bg-gray-200/50 backdrop-blur-sm">
-                    <div
-                      key={animationKey}
-                      className="h-full bg-ocean-dark rounded-full"
-                      style={{
-                        width: "100%",
-                        animation: `shrink ${timePerImage / 1000}s linear forwards`,
-                      }}
-                    ></div>
-                  </div>
-                </div>
-
-                {/* Answer buttons */}
-                <div className="grid grid-cols-3 gap-4 w-full max-w-xl">
-                  <Button
-                    className="h-16 text-lg bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-lg hover:scale-102 transition-all duration-300"
-                    onClick={() => handleAnswer("shark")}
-                  >
-                    Shark
-                  </Button>
-                  <Button
-                    className="h-16 text-lg bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white shadow-lg hover:scale-102 transition-all duration-300"
-                    onClick={() => handleAnswer("kelp")}
-                  >
-                    Kelp
-                  </Button>
-                  <Button
-                    className="h-16 text-lg bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white shadow-lg hover:scale-102 transition-all duration-300"
-                    onClick={() => handleAnswer("dolphin")}
-                  >
-                    Dolphin
-                  </Button>
+          <div className="max-w-4xl mx-auto">
+            {/* Instructions Modal */}
+            {showInstructions && (
+              <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+                <div className="bg-white rounded-xl p-6 max-w-lg w-full shadow-xl animate-fade-in">
+                  <Instructions
+                    onClose={() => {
+                      setShowInstructions(false);
+                      localStorage.setItem("hasSeenQuickIDInstructions", "true");
+                      if (!gameStarted && !gameOver) {
+                        startGame();
+                      }
+                    }}
+                  />
                 </div>
               </div>
-            ) : gameOver ? (
-              <div className="p-8 text-center animate-fade-in">
-                <Trophy className="h-16 w-16 text-yellow-500 mx-auto mb-4 animate-float" />
-                <h2 className="text-2xl font-bold text-ocean-dark mb-2 animate-slide-down">
-                  Game Over!
-                </h2>
+            )}
 
-                <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-6 rounded-xl max-w-md mx-auto mb-6 shadow-lg animate-slide-up">
-                  <div className="text-5xl font-bold text-ocean-dark mb-2">
-                    {finalGameScore}
+            {/* Game Timer - Only show when game has started */}
+            {gameStarted && (
+              <div className="bg-white rounded-xl p-3 shadow-md mb-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Clock className="text-ocean-dark h-5 w-5" />
+                    <span className="font-semibold">Time Remaining:</span>
                   </div>
-                  <p className="text-gray-700">Total Points</p>
+                  <div className="text-xl font-bold text-ocean-dark">
+                    {timeRemaining} seconds
+                  </div>
+                </div>
+                <div className="w-full bg-gray-200 h-2 rounded-full mt-2">
+                  <div
+                    className="bg-ocean-dark h-2 rounded-full transition-all duration-1000"
+                    style={{ width: `${(timeRemaining / 30) * 100}%` }}
+                  ></div>
+                </div>
+              </div>
+            )}
 
-                  {/* Best Score Display */}
-                  {finalGameWasNewBest ? (
-                    <div className="mt-4 p-3 bg-yellow-100 rounded-lg animate-pulse-slow">
-                      <p className="text-yellow-700 font-bold text-lg flex items-center justify-center gap-2">
-                        <Trophy className="h-5 w-5" /> NEW BEST SCORE! 🏆
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="mt-4">
-                      <p className="text-gray-600">
-                        Best Score: <span className="font-bold text-ocean-dark">{bestScore}</span>
-                      </p>
-                    </div>
-                  )}
+            {/* Game Area */}
+            <div className="game-card">
+              {gameStarted ? (
+                <div className="p-4 flex flex-col items-center">
+                  {/* Current image with preloaded images */}
+                  <div className="relative h-[350px] w-full flex items-center justify-center bg-gray-100 rounded-lg mb-6 overflow-hidden">
+                    {/* Render all images but only show the current one */}
+                    {gameImages.map((image, index) => (
+                      <div
+                        key={image.id}
+                        className="absolute inset-0 max-h-full max-w-full h-full w-full"
+                        style={{
+                          display: index === currentImageIndex ? 'block' : 'none',
+                          opacity: isImageLoading ? 0 : 1,
+                          transition: 'opacity 200ms ease-in-out'
+                        }}
+                      >
+                        <img 
+                          src={image.imagePath}
+                          alt={`${image.correctAnswer} image`}
+                          className="h-full w-full object-cover"
+                          style={{ objectPosition: 'center' }}
+                          onLoad={() => {
+                            if (index === currentImageIndex) {
+                              setIsImageLoading(false);
+                            }
+                          }}
+                        />
+                      </div>
+                    ))}
 
-                  <div className="mt-4 text-sm text-gray-700 bg-white/50 p-3 rounded-lg">
-                    <div className="flex justify-between mb-2">
-                      <div>Accuracy:</div>
-                      <div className="font-bold text-ocean-dark">
-                        {totalAttempts > 0
-                          ? Math.round(
-                              (correctAnswersCount / totalAttempts) * 100
-                            )
-                          : 0}
-                        %
+                    {/* Feedback overlay */}
+                    {showFeedback && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/30 z-10 animate-fade-in">
+                        {showFeedback === "correct" ? (
+                          <div className="bg-green-500 rounded-full p-10 animate-pulse-slow">
+                            <CheckCircle className="h-24 w-24 text-white" />
+                          </div>
+                        ) : (
+                          <div className="bg-red-500 rounded-full p-10 animate-pulse-slow">
+                            <AlertTriangle className="h-24 w-24 text-white" />
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Timer indicator with key to force animation restart */}
+                    <div className="absolute bottom-0 left-0 right-0 h-2 bg-gray-200/50 backdrop-blur-sm">
+                      <div
+                        key={animationKey}
+                        className="h-full bg-ocean-dark rounded-full"
+                        style={{
+                          width: "100%",
+                          animation: `shrink ${timePerImage / 1000}s linear forwards`,
+                        }}
+                      ></div>
+                    </div>
+                  </div>
+
+                  {/* Answer buttons */}
+                  <div className="grid grid-cols-3 gap-4 w-full max-w-xl">
+                    <Button
+                      className="h-16 text-lg bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-lg hover:scale-105 transition-all duration-300"
+                      onClick={() => handleAnswer("shark")}
+                    >
+                      Shark
+                    </Button>
+                    <Button
+                      className="h-16 text-lg bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white shadow-lg hover:scale-105 transition-all duration-300"
+                      onClick={() => handleAnswer("kelp")}
+                    >
+                      Kelp
+                    </Button>
+                    <Button
+                      className="h-16 text-lg bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white shadow-lg hover:scale-105 transition-all duration-300"
+                      onClick={() => handleAnswer("dolphin")}
+                    >
+                      Dolphin
+                    </Button>
+                  </div>
+                </div>
+              ) : gameOver ? (
+                <div className="game-over-screen">
+                  <Trophy className="h-16 w-16 text-yellow-500 mx-auto mb-4 animate-float" />
+                  <h2 className="game-over-title">
+                    Game Over!
+                  </h2>
+
+                  <div className="game-over-score">
+                    <div className="text-5xl font-bold text-ocean-dark mb-2">
+                      {finalGameScore}
+                    </div>
+                    <p className="text-gray-700">Total Points</p>
+
+                    {/* Best Score Display */}
+                    {finalGameWasNewBest ? (
+                      <div className="game-over-new-best">
+                        <p className="text-yellow-700 font-bold text-lg flex items-center justify-center gap-2">
+                          <Trophy className="h-5 w-5" /> NEW BEST SCORE! 🏆
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="mt-4">
+                        <p className="text-gray-600">
+                          Best Score: <span className="font-bold text-ocean-dark">{bestScore}</span>
+                        </p>
+                      </div>
+                    )}
+
+                    <div className="mt-4 text-sm text-gray-700 bg-white/50 p-3 rounded-lg">
+                      <div className="flex justify-between mb-2">
+                        <div>Accuracy:</div>
+                        <div className="font-bold text-ocean-dark">
+                          {totalAttempts > 0
+                            ? Math.round(
+                                (correctAnswersCount / totalAttempts) * 100
+                              )
+                            : 0}
+                          %
+                        </div>
+                      </div>
+                      <div className="flex justify-between">
+                        <div>Attempts:</div>
+                        <div className="font-bold">{totalAttempts}</div>
                       </div>
                     </div>
-                    <div className="flex justify-between">
-                      <div>Attempts:</div>
-                      <div className="font-bold">{totalAttempts}</div>
-                    </div>
+                  </div>
+
+                  <Button
+                    className="game-over-button"
+                    onClick={startGame}
+                  >
+                    <RefreshCcw className="h-5 w-5 mr-2" /> Play Again
+                  </Button>
+                </div>
+              ) : null}
+            </div>
+
+            {/* Score card (only visible during gameplay) */}
+            {gameStarted && (
+              <div className="game-score-card">
+                <div className="flex justify-between items-center">
+                  <h3 className="font-bold text-ocean-dark">Current Score</h3>
+                  <div className="text-3xl font-bold text-ocean-dark">
+                    {score}{" "}
+                    <span className="text-sm font-normal text-gray-600">
+                      points
+                    </span>
                   </div>
                 </div>
-
-                <Button
-                  className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white text-lg px-8 py-6 h-auto shadow-lg hover:scale-102 transition-all duration-300 animate-slide-up"
-                  onClick={startGame}
-                >
-                  <RefreshCcw className="h-5 w-5 mr-2" /> Play Again
-                </Button>
-              </div>
-            ) : (
-              <div className="p-8 text-center animate-fade-in">
-
-                <h2 className="text-4xl font-bold text-ocean-dark mb-6 text-center animate-slide-down [animation-delay:200ms]">
-                  Quick ID Challenge! 🦈
-                </h2>
-
-                <div className="space-y-5 mb-10 w-full max-w-xl mx-auto">
-                  <div className="flex items-center gap-4 bg-gradient-to-r from-blue-50 to-blue-100 p-4 rounded-lg animate-slide-up [animation-delay:400ms] hover:scale-102 transition-transform duration-300 shadow-md">
-                    <Target className="h-8 w-8 text-blue-500 animate-bounce-slow" />
-                    <p className="text-blue-700 text-lg">Spot the ocean creatures!</p>
+                <div className="flex justify-between mt-2">
+                  <div>
+                    <span className="text-gray-700">Correct:</span>
+                    <span className="font-bold text-green-600 ml-1">
+                      {totalAttempts > 0
+                        ? Math.round((correctAnswersCount / totalAttempts) * 100)
+                        : 0}
+                      %
+                    </span>
                   </div>
-                  <div className="flex items-center gap-4 bg-gradient-to-r from-green-50 to-green-100 p-4 rounded-lg animate-slide-up [animation-delay:600ms] hover:scale-102 transition-transform duration-300 shadow-md">
-                    <Timer className="h-8 w-8 text-green-500 animate-spin-slow" />
-                    <p className="text-green-700 text-lg">Be super quick!</p>
-                  </div>
-                  <div className="flex items-center gap-4 bg-gradient-to-r from-yellow-50 to-yellow-100 p-4 rounded-lg animate-slide-up [animation-delay:800ms] hover:scale-102 transition-transform duration-300 shadow-md">
-                    <Trophy className="h-8 w-8 text-yellow-500 animate-float" />
-                    <p className="text-yellow-700 text-lg">Score points and beat your best!</p>
+                  <div>
+                    <span className="text-gray-700">Attempts:</span>
+                    <span className="font-bold ml-1">{totalAttempts}</span>
                   </div>
                 </div>
-
-                <button
-                  className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white text-xl font-semibold px-12 py-5 rounded-xl shadow-lg transition-all w-full max-w-xl hover:scale-102 animate-slide-up [animation-delay:1000ms]"
-                  onClick={startGame}
-                >
-                  Start Adventure! 🚀
-                </button>
+                <div className="mt-2 pt-2 border-t border-gray-200">
+                  <div className="flex justify-between">
+                    <span className="text-gray-700">Best Score:</span>
+                    <span className="font-bold text-ocean-dark">
+                      {bestScore > 0 ? bestScore : "--"}
+                    </span>
+                  </div>
+                </div>
               </div>
             )}
           </div>
-
-          {/* Score card (only visible during gameplay) */}
-          {gameStarted && (
-            <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-4 shadow-md animate-slide-up">
-              <div className="flex justify-between items-center">
-                <h3 className="font-bold text-ocean-dark">Current Score</h3>
-                <div className="text-3xl font-bold text-ocean-dark">
-                  {score}{" "}
-                  <span className="text-sm font-normal text-gray-600">
-                    points
-                  </span>
-                </div>
-              </div>
-              <div className="flex justify-between mt-2">
-                <div>
-                  <span className="text-gray-700">Correct:</span>
-                  <span className="font-bold text-green-600 ml-1">
-                    {totalAttempts > 0
-                      ? Math.round((correctAnswersCount / totalAttempts) * 100)
-                      : 0}
-                    %
-                  </span>
-                </div>
-                <div>
-                  <span className="text-gray-700">Attempts:</span>
-                  <span className="font-bold ml-1">{totalAttempts}</span>
-                </div>
-              </div>
-              <div className="mt-2 pt-2 border-t border-gray-200">
-                <div className="flex justify-between">
-                  <span className="text-gray-700">Best Score:</span>
-                  <span className="font-bold text-ocean-dark">
-                    {bestScore > 0 ? bestScore : "--"}
-                  </span>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
+      )}
 
-        {/* CSS for animation */}
-        <style>{`
-          @keyframes shrink {
-            from { width: 100%; }
-            to { width: 0%; }
-          }
-        `}</style>
-      </div>
+      {/* CSS for animation */}
+      <style>{`
+        @keyframes shrink {
+          from { width: 100%; }
+          to { width: 0%; }
+        }
+      `}</style>
     </div>
   );
 };
