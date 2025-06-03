@@ -37,7 +37,7 @@ const OceanAnnotationGamePage = () => {
   const [selectedImage, setSelectedImage] = useState<OceanImage | null>(null);
   const [timeBonus, setTimeBonus] = useState(15);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
-  const [gameComplete, setGameComplete] = useState(false);
+  const [imageSubmitted, setImageSubmitted] = useState(false);
   const [availableLabels, setAvailableLabels] = useState<string[]>(['Whale', 'Fish']);
   const [showGroundTruth, setShowGroundTruth] = useState(false);
   const [currentRound, setCurrentRound] = useState(1);
@@ -90,7 +90,7 @@ const OceanAnnotationGamePage = () => {
     if (!selectedImage) return;
 
     setAnnotations([]);
-    setGameComplete(false);
+    setImageSubmitted(false);
     setTimeBonus(25); // Set initial time bonus to a lower value
     setIsTimerRunning(true);
     setHasStartedAnnotating(false);
@@ -194,7 +194,7 @@ const OceanAnnotationGamePage = () => {
     setIsTimerRunning(false);
     console.log("Submit clicked, timer paused");
 
-    setGameComplete(true);
+    setImageSubmitted(true);
     setShowGroundTruth(true);
 
     // Mark this image as annotated
@@ -260,7 +260,7 @@ const OceanAnnotationGamePage = () => {
 
   const handlePlayAgain = () => {
     // Reset all game state
-    setGameComplete(false);
+    setImageSubmitted(false);
     setAnnotations([]);
     setTimeBonus(25); // Reset to a lower initial time bonus
     setShowGroundTruth(false);
@@ -393,7 +393,7 @@ const OceanAnnotationGamePage = () => {
                       onToggleGroundTruth={() => setShowGroundTruth(!showGroundTruth)}
                       originalWidth={selectedImage.originalWidth}
                       originalHeight={selectedImage.originalHeight}
-                      disabled={gameComplete}
+                      disabled={imageSubmitted}
                     />
                   ) : (
                     <div className="flex items-center justify-center h-full">
@@ -404,7 +404,7 @@ const OceanAnnotationGamePage = () => {
 
                 <div className="w-80 bg-white rounded-xl p-4 shadow-md flex flex-col justify-between">
                   {/* Annotation Tools or ScoreBoard */}
-                  {!gameComplete && selectedImage ? (
+                  {!imageSubmitted && selectedImage ? (
                     <div className="flex flex-col gap-3">
                       <p className="text-sm text-gray-700 text-center">
                         Drag to draw boxes around objects in the image. <br />
@@ -451,7 +451,7 @@ const OceanAnnotationGamePage = () => {
                         userAnnotations={annotations}
                         targetAnnotations={selectedImage?.targetAnnotations || []}
                         timeBonus={timeBonus}
-                        isComplete={gameComplete}
+                        isComplete={imageSubmitted}
                         cumulativeScore={cumulativeScore}
                         onScoreChange={handleScoreUpdate}
                       />
@@ -460,7 +460,7 @@ const OceanAnnotationGamePage = () => {
                   
                   {/* Submit/Next/Replay Buttons */}
                   <div className="flex flex-col gap-2 mt-4">
-                    {!gameComplete ? (
+                    {!imageSubmitted ? (
                       <Button
                         onClick={handleSubmit}
                         className="btn-coral flex items-center gap-1 justify-center"
