@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Annotation, AnnotationType, Coordinate, generateId, TargetAnnotation, labelColors } from '../utils/annotationUtils';
 import { toast } from 'sonner';
-import { Eye, EyeOff } from 'lucide-react';
 import { useIsTouch, useIsAndroidTablet } from '../hooks/use-mobile';
 
 interface CanvasProps {

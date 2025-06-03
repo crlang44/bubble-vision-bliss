@@ -10,10 +10,8 @@ import {
 import { useIsTablet } from '@/hooks/use-mobile';
 import { CheckCircle, Fish, RefreshCcw, Trophy, Zap, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import AnnotationTools from '../components/AnnotationTools';
 import BubbleBackground from '../components/BubbleBackground';
 import Canvas from '../components/Canvas';
-import ImageSelector from '../components/ImageSelector';
 import Instructions from '../components/Instructions';
 import NavBar from '../components/NavBar';
 import ScoreBoard from '../components/ScoreBoard';

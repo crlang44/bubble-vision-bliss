@@ -1,16 +1,11 @@
 import React, { useState, useEffect, useRef } from "react";
-import BubbleBackground from "../components/BubbleBackground";
 import { Button } from "@/components/ui/button";
 import {
   Fish,
   CheckCircle,
   RefreshCcw,
-  Trophy,
-  Clock,
-  AlertTriangle,
+  Trophy, AlertTriangle
 } from "lucide-react";
-import { routes } from "../routes";
-import { Skeleton } from "@/components/ui/skeleton";
 import Timer from "./Timer";
 
 // Import images
