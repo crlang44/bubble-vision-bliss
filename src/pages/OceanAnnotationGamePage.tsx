@@ -317,7 +317,6 @@ const OceanAnnotationGamePage = () => {
       <div className="container mx-auto px-4 pt-4 relative z-50">
         <NavBar
           pageType="annotation"
-          cumulativeScore={cumulativeScore}
           bestScore={bestScore}
           setShowInstructions={setShowInstructions}
         />
