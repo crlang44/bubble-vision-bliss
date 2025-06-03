@@ -16,6 +16,7 @@ interface CanvasProps {
   onToggleGroundTruth?: () => void; // New prop to handle toggle from child
   originalWidth?: number; // Original image width from COCO dataset
   originalHeight?: number; // Original image height from COCO dataset
+  disabled?: boolean; // New prop to disable drawing interactions
 }
 
 const Canvas: React.FC<CanvasProps> = ({
@@ -29,7 +30,8 @@ const Canvas: React.FC<CanvasProps> = ({
   showGroundTruth = false, // Default to not showing ground truth
   onToggleGroundTruth,
   originalWidth,
-  originalHeight
+  originalHeight,
+  disabled = false // Default to not disabled
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -355,7 +357,7 @@ const Canvas: React.FC<CanvasProps> = ({
 
   // Combined function to handle both mouse and touch start events
   const handlePointerDown = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
-    if (!canvasRef.current) return;
+    if (!canvasRef.current || disabled) return;
     
     e.preventDefault(); // Prevent default browser behavior
     
@@ -552,7 +554,7 @@ const Canvas: React.FC<CanvasProps> = ({
       
       <canvas
         ref={canvasRef}
-        className={`cursor-crosshair touch-canvas ${isAndroidTablet ? 'android-tablet-canvas' : ''}`}
+        className={`${disabled ? 'cursor-default' : 'cursor-crosshair'} touch-canvas ${isAndroidTablet ? 'android-tablet-canvas' : ''}`}
         width={canvasSize.width}
         height={canvasSize.height}
         style={{ 

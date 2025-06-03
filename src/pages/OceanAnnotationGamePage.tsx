@@ -393,6 +393,7 @@ const OceanAnnotationGamePage = () => {
                       onToggleGroundTruth={() => setShowGroundTruth(!showGroundTruth)}
                       originalWidth={selectedImage.originalWidth}
                       originalHeight={selectedImage.originalHeight}
+                      disabled={gameComplete}
                     />
                   ) : (
                     <div className="flex items-center justify-center h-full">
