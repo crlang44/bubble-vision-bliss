@@ -20,57 +20,84 @@ const Timer: React.FC<TimerProps> = ({ duration, onTimeUp, isRunning, onTimerUpd
     setTimeLeft(duration);
   }, [duration]);
   
-  // Set up the timer effect
+  // Use refs to avoid unnecessary interval recreation
+  const timerRef = React.useRef<{
+    timerId: number | null;
+    duration: number;
+    onTimeUp: () => void;
+    onTimerUpdate?: (timeLeft: number) => void;
+    isWarning: boolean;
+  }>({
+    timerId: null,
+    duration,
+    onTimeUp,
+    onTimerUpdate,
+    isWarning,
+  });
+  
+  // Keep ref values up to date
   useEffect(() => {
-    // Clear any existing interval
-    if (intervalId) {
-      clearInterval(intervalId);
+    timerRef.current.duration = duration;
+    timerRef.current.onTimeUp = onTimeUp;
+    timerRef.current.onTimerUpdate = onTimerUpdate;
+    timerRef.current.isWarning = isWarning;
+  }, [duration, onTimeUp, onTimerUpdate, isWarning]);
+  
+  // Set up the timer effect - only when isRunning changes
+  useEffect(() => {
+    // If timer is running and we don't have an interval running
+    if (isRunning && !timerRef.current.timerId) {
+      console.log('Timer starting');
+      
+      // Create a new interval
+      const id = window.setInterval(() => {
+        setTimeLeft(prevTime => {
+          const newTime = prevTime <= 1 ? 0 : prevTime - 1;
+      
+          // Add a warning when less than 30% remain
+          if (newTime <= timerRef.current.duration * 0.3 && !timerRef.current.isWarning) {
+            setIsWarning(true);
+          }
+          
+          // Notify parent component about time update (for time bonus calculation)
+          if (timerRef.current.onTimerUpdate) {
+            timerRef.current.onTimerUpdate(newTime);
+          }
+          
+          if (newTime <= 0) {
+            // Clear the timer
+            if (timerRef.current.timerId) {
+              clearInterval(timerRef.current.timerId);
+              timerRef.current.timerId = null;
+            }
+            timerRef.current.onTimeUp();
+            return 0;
+          }
+          return newTime;
+        });
+      }, 1000);
+      
+      // Store the interval ID
+      timerRef.current.timerId = id;
+      setIntervalId(id);
+    }
+    // If timer is not running but we have an interval
+    else if (!isRunning && timerRef.current.timerId) {
+      console.log('Timer stopped');
+      clearInterval(timerRef.current.timerId);
+      timerRef.current.timerId = null;
       setIntervalId(null);
     }
     
-    // Only start if isRunning is true
-    if (!isRunning) {
-      console.log('Timer stopped');
-      return;
-    }
-    
-    console.log('Timer starting/continuing');
-    
-    // Create a new interval
-    const id = window.setInterval(() => {
-      setTimeLeft(prevTime => {
-        const newTime = prevTime <= 1 ? 0 : prevTime - 1;
-    
-        // Add a warning when less than 30% remain
-        if (newTime <= duration * 0.3 && !isWarning) {
-          setIsWarning(true);
-        }
-        
-        // Notify parent component about time update (for time bonus calculation)
-        if (onTimerUpdate && isRunning) {
-          onTimerUpdate(newTime);
-        }
-        
-        if (newTime <= 0) {
-          clearInterval(id);
-          onTimeUp();
-          return 0;
-        }
-        return newTime;
-      });
-    }, 1000);
-    
-    // Store the interval ID
-    setIntervalId(id);
-    
-    // Clean up on unmount or when dependencies change
+    // Clean up on unmount
     return () => {
-      if (id) {
+      if (timerRef.current.timerId) {
         console.log('Cleaning up timer interval');
-        clearInterval(id);
+        clearInterval(timerRef.current.timerId);
+        timerRef.current.timerId = null;
       }
     };
-  }, [isRunning, onTimeUp, isWarning, onTimerUpdate, duration]);
+  }, [isRunning]);
   
   // Format time as seconds only
   const formatTime = (seconds: number): string => `${seconds} sec${seconds !== 1 ? 's' : ''}`;

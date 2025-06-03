@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { routes } from "../routes";
 import { Skeleton } from "@/components/ui/skeleton";
+import Timer from "./Timer";
 
 // Import images
 import sharkClear from "../data/images/shark_clear.jpg";
@@ -91,7 +92,7 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({
   const [totalAttempts, setTotalAttempts] = useState(0);
   const [correctAnswersCount, setCorrectAnswersCount] = useState(0);
   const [timePerImage, setTimePerImage] = useState(5000); // Start with 5 seconds per image
-  const [timeRemaining, setTimeRemaining] = useState(30); // 1 minute gameplay
+  const [timeRemaining, setTimeRemaining] = useState(45); // Total game time in seconds
   const [currentImageStartTime, setCurrentImageStartTime] = useState(0); // Track when current image started
   
   // Use external state if provided, otherwise use local state
@@ -125,7 +126,6 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({
   const [finalGameWasNewBest, setFinalGameWasNewBest] = useState(false);
 
   // Refs
-  const gameTimerRef = useRef<NodeJS.Timeout | null>(null);
   const imageTimerRef = useRef<NodeJS.Timeout | null>(null);
   // Use refs to track game state for timer
   const gameStateRef = useRef({
@@ -180,7 +180,7 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({
     setTotalAttempts(0);
     setCorrectAnswersCount(0);
     setTimePerImage(5000); // Start with 5 seconds
-    setTimeRemaining(30);
+    setTimeRemaining(45);
     setAnimationKey(0); // Reset animation key
     setSeenImages(new Set());
     setAllImagesSeen(false);
@@ -201,16 +201,7 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({
       setBestScore(parseInt(savedBestScore, 10));
     }
 
-    // Start the game timer (30 seconds)
-    gameTimerRef.current = setInterval(() => {
-      setTimeRemaining((prev) => {
-        if (prev <= 1) {
-          endGame();
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
+    // Timer is now handled by the Timer component
 
     // The image timer will be set by the useEffect
   };
@@ -261,7 +252,7 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({
 
     // Gradually decrease time per image as the game timer (timeRemaining) nears the end.
     // Starts at 5 seconds, goes down to 1 seconds.
-    const initialGameDurationSeconds = 30;
+    const initialGameDurationSeconds = 45;
     const maxTimePerImageMs = 5000;
     const minTimePerImageMs = 500;
 
@@ -333,11 +324,7 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({
     setGameOver(true);
     setGameStarted(false);
 
-    // Clear all timers
-    if (gameTimerRef.current) {
-      clearInterval(gameTimerRef.current);
-    }
-
+    // Clear image timer
     if (imageTimerRef.current) {
       clearTimeout(imageTimerRef.current);
     }
@@ -406,7 +393,7 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({
             <li>Wrong answers show a red X</li>
             <li>No response in time counts as incorrect</li>
             <li>The game starts slow and gets progressively faster</li>
-            <li>The game lasts for 30 seconds</li>
+            <li>The game lasts for 45 seconds</li>
           </ul>
         </div>
       </div>
@@ -443,21 +430,13 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({
           {/* Game Timer - Only show during active gameplay */}
           {gameStarted && (
             <div className="bg-white rounded-xl p-3 shadow-md">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Clock className="text-ocean-dark h-5 w-5" />
-                  <span className="font-semibold">Time Remaining:</span>
-                </div>
-                <div className="text-xl font-bold text-ocean-dark">
-                  {timeRemaining} seconds
-                </div>
-              </div>
-              <div className="w-full bg-gray-200 h-2 rounded-full mt-2">
-                <div
-                  className="bg-ocean-dark h-2 rounded-full transition-all duration-1000"
-                  style={{ width: `${(timeRemaining / 30) * 100}%` }}
-                ></div>
-              </div>
+              <Timer
+                duration={45}
+                onTimeUp={() => endGame()}
+                isRunning={gameStarted && !gameOver}
+                onTimerUpdate={(timeLeft) => setTimeRemaining(timeLeft)}
+                label="Time Remaining:"
+              />
             </div>
           )}
 
