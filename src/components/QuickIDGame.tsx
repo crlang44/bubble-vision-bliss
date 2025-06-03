@@ -91,7 +91,7 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({
   const [totalAttempts, setTotalAttempts] = useState(0);
   const [correctAnswersCount, setCorrectAnswersCount] = useState(0);
   const [timePerImage, setTimePerImage] = useState(5000); // Start with 5 seconds per image
-  const [timeRemaining, setTimeRemaining] = useState(30); // 1 minute gameplay
+  const [timeRemaining, setTimeRemaining] = useState(45); // Total game time in seconds
   const [currentImageStartTime, setCurrentImageStartTime] = useState(0); // Track when current image started
   
   // Use external state if provided, otherwise use local state
@@ -180,7 +180,7 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({
     setTotalAttempts(0);
     setCorrectAnswersCount(0);
     setTimePerImage(5000); // Start with 5 seconds
-    setTimeRemaining(30);
+    setTimeRemaining(45);
     setAnimationKey(0); // Reset animation key
     setSeenImages(new Set());
     setAllImagesSeen(false);
@@ -201,7 +201,7 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({
       setBestScore(parseInt(savedBestScore, 10));
     }
 
-    // Start the game timer (30 seconds)
+    // Start the game timer
     gameTimerRef.current = setInterval(() => {
       setTimeRemaining((prev) => {
         if (prev <= 1) {
@@ -261,7 +261,7 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({
 
     // Gradually decrease time per image as the game timer (timeRemaining) nears the end.
     // Starts at 5 seconds, goes down to 1 seconds.
-    const initialGameDurationSeconds = 30;
+    const initialGameDurationSeconds = 45;
     const maxTimePerImageMs = 5000;
     const minTimePerImageMs = 500;
 
@@ -406,7 +406,7 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({
             <li>Wrong answers show a red X</li>
             <li>No response in time counts as incorrect</li>
             <li>The game starts slow and gets progressively faster</li>
-            <li>The game lasts for 30 seconds</li>
+            <li>The game lasts for 45 seconds</li>
           </ul>
         </div>
       </div>
@@ -455,7 +455,7 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({
               <div className="w-full bg-gray-200 h-2 rounded-full mt-2">
                 <div
                   className="bg-ocean-dark h-2 rounded-full transition-all duration-1000"
-                  style={{ width: `${(timeRemaining / 30) * 100}%` }}
+                  style={{ width: `${(timeRemaining / 45) * 100}%` }}
                 ></div>
               </div>
             </div>
