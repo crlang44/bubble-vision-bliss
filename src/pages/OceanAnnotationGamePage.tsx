@@ -326,37 +326,81 @@ const OceanAnnotationGamePage = () => {
 
       <div className="container mx-auto py-6 px-4 relative z-10">
 
-        {showInstructions && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-40">
-            <Instructions onClose={() => {
+        {/* Instructions Dialog */}
+        <Dialog
+          open={showInstructions}
+          onOpenChange={(open) => {
+            if (!open) {
               console.log("Closing instructions");
               setShowInstructions(false);
               setHasSeenInstructions(true);
               localStorage.setItem('hasSeenInstructions', 'true');
               // Don't start timer when closing instructions - wait for Start Game
               setIsTimerRunning(false);
-            }} />
-          </div>
-        )}
+            }
+          }}
+        >
+          <DialogContent className="bg-white max-w-lg w-full shadow-xl">
+            <DialogHeader>
+              <DialogTitle className="text-2xl font-bold text-ocean-dark">
+                Ocean Annotation
+              </DialogTitle>
+              <DialogDescription className="text-gray-700">
+                Learn how to play the annotation challenge
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="bg-blue-50 p-4 rounded-lg">
+              <ul className="list-disc pl-5 text-gray-700 space-y-2">
+                <li>Draw boxes around ocean creatures in each image</li>
+                <li>Choose the correct label for each creature</li>
+                <li>Submit before time runs out</li>
+                <li>Faster and more accurate = higher score!</li>
+              </ul>
+            </div>
+
+            <DialogFooter>
+              <Button
+                className="w-full bg-ocean-dark hover:bg-ocean-darker text-white"
+                onClick={() => {
+                  console.log("Closing instructions");
+                  setShowInstructions(false);
+                  setHasSeenInstructions(true);
+                  localStorage.setItem('hasSeenInstructions', 'true');
+                  // Don't start timer when closing instructions - wait for Start Game
+                  setIsTimerRunning(false);
+                }}
+              >
+                Let's Play!
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         {/* Start Game screen */}
         {!gameStarted && !showInstructions && (
-          <div className="flex items-center justify-center min-h-[60vh]">
-            <div className="bg-white rounded-xl shadow-xl p-8 max-w-md w-full flex flex-col items-center">
-              <h2 className="text-3xl font-bold text-ocean-dark mb-4 text-center">Ocean Annotation Challenge</h2>
-              <p className="text-gray-700 text-center mb-6">
-                Draw boxes around all objects as quickly and accurately as you can!<br />
-                The faster and more precise you are, the higher your score.
-              </p>
-              <button
-                className="bg-ocean-dark hover:bg-ocean-medium text-white text-lg font-semibold px-8 py-4 rounded-xl shadow-lg transition-all w-full"
-                onClick={() => {
-                  setGameStarted(true);
-                  setIsTimerRunning(true);
-                }}
-              >
-                Start Game
-              </button>
+          <div className="flex justify-center">
+            <div className="w-full max-w-4xl relative aspect-[16/9] bg-white rounded-xl shadow-lg overflow-hidden flex items-center justify-center">
+              <div className="flex items-center justify-center h-full">
+                <div className="p-8 text-center">
+                  <Fish className="h-16 w-16 text-ocean-dark mx-auto mb-4" />
+                  <h2 className="text-2xl font-bold text-ocean-dark mb-4">
+                    Dive Into Ocean Annotation!
+                  </h2>
+                  <p className="text-gray-700 mb-6">
+                    Draw boxes around ocean creatures as quickly and accurately as possible!
+                  </p>
+                  <Button
+                    className="bg-ocean-dark hover:bg-ocean-darker text-white text-lg px-8 py-6 h-auto"
+                    onClick={() => {
+                      setGameStarted(true);
+                      setIsTimerRunning(true);
+                    }}
+                  >
+                    Start Game
+                  </Button>
+                </div>
+              </div>
             </div>
           </div>
         )}
