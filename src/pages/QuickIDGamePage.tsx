@@ -67,8 +67,8 @@ const QuickIDGamePage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-ocean-gradient relative">
-      {/* NavBar Component - Moved to top level for better visibility */}
-      <div className="container mx-auto py-6 px-4 relative z-50">
+      {/* NavBar Component */}
+      <div className="container mx-auto px-4 pt-4 relative z-50">
         <NavBar 
           pageType="quickId"
           setShowInstructions={setShowInstructions}
@@ -77,13 +77,18 @@ const QuickIDGamePage: React.FC = () => {
       </div>
       
       <BubbleBackground bubbleCount={30} />
+
       <div className="container mx-auto py-6 px-4 relative z-10">
-        <QuickIDGame 
-          onGameComplete={handleGameComplete}
-          showInstructions={showInstructions}
-          setShowInstructions={setShowInstructions}
-          resetGameRef={resetGameRef}
-        />
+        <div className="flex justify-center">
+          <div className="w-full max-w-4xl space-y-4">
+            <QuickIDGame 
+              onGameComplete={handleGameComplete}
+              showInstructions={showInstructions}
+              setShowInstructions={setShowInstructions}
+              resetGameRef={resetGameRef}
+            />
+          </div>
+        </div>
       </div>
 
       {/* Game Completion Dialog */}
