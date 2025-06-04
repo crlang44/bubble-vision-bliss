@@ -324,7 +324,7 @@ const OceanAnnotationGamePage = () => {
 
       <BubbleBackground bubbleCount={30} />
 
-      <div className="container mx-auto py-6 px-4 relative z-10">
+      <div className="container mx-auto px-4 relative z-10">
 
         {/* Instructions Dialog */}
         <Dialog
@@ -408,7 +408,7 @@ const OceanAnnotationGamePage = () => {
         {/* Main annotation UI, only show if gameStarted */}
         {gameStarted && (
           <div className="flex justify-center">
-            <div className="w-full max-w-6xl space-y-4">
+            <div className="w-full space-y-4">
               <div className="bg-white rounded-xl p-3 shadow-md">
                 <Timer
                   key={timerResetKey}
@@ -419,7 +419,7 @@ const OceanAnnotationGamePage = () => {
                 />
               </div>
 
-              <div className="flex gap-4">
+              <div className="flex gap-4 h-[73vh] max-h-[73vh] overflow-hidden">
                 <div className="flex-1 relative aspect-[16/9] bg-white rounded-xl shadow-lg overflow-hidden flex items-center justify-center">
                   {selectedImage ? (
                     <Canvas
