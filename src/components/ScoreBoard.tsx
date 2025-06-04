@@ -172,7 +172,7 @@ const ScoreBoard: React.FC<ScoreBoardProps> = ({
   }
 
   return (
-    <div className="w-full overflow-hidden">
+    <div className="w-full flex flex-col overflow-hidden">
       <div className="flex flex-col gap-2"> 
         <div className='flex flex-row'>
           {/* Total Score */}
@@ -211,11 +211,11 @@ const ScoreBoard: React.FC<ScoreBoardProps> = ({
         </div>
       </div>
       {/* Annotation breakdown (optional, can be toggled or shown below) */}
-      <div className="mt-6 w-full overflow-hidden">
+      <div className="mt-6 w-full flex flex-col flex-1 overflow-hidden">
         <h4 className="text-base font-medium text-gray-600 flex items-center gap-2 mb-3">
           <Target className="w-5 h-5 flex-shrink-0" /> Annotation Breakdown
         </h4>
-        <div className="h-[9rem] max-h-[9rem] overflow-y-auto">
+        <div className="max-h-[9rem] flex-auto basis-[4rem] grow overflow-y-auto">
           <div className={`grid gap-3 ${annotationScores.length === 1 ? 'grid-cols-1' : 'grid-cols-2'}`}>
             {annotationScores.map((item, index) => (
               <div key={index} className="flex flex-row justify-between items-center bg-white border border-gray-200 rounded-lg px-4 py-3 shadow-sm">
