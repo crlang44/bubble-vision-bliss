@@ -487,7 +487,7 @@ const OceanAnnotationGamePage = () => {
                       </p>
                     </div>
                   ) : (
-                    <div className="flex justify-center">
+                    <div className="flex flex-1 justify-center">
                       <ScoreBoard
                         userAnnotations={annotations}
                         targetAnnotations={selectedImage?.targetAnnotations || []}
