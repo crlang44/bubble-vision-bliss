@@ -114,50 +114,6 @@ export default {
 					'0%, 100%': { transform: 'translateX(0)' },
 					'50%': { transform: 'translateX(10px)' },
 				},
-				float: {
-					'0%, 100%': { transform: 'translateY(0)' },
-					'50%': { transform: 'translateY(-10px)' },
-				},
-				twinkle: {
-					'0%, 100%': { opacity: '1' },
-					'50%': { opacity: '0.5' },
-				},
-				'spin-slow': {
-					from: { transform: 'rotate(0deg)' },
-					to: { transform: 'rotate(360deg)' },
-				},
-				'bounce-slow': {
-					'0%, 100%': { transform: 'translateY(0)' },
-					'50%': { transform: 'translateY(-5px)' },
-				},
-				'pulse-slow': {
-					'0%, 100%': { transform: 'scale(1)' },
-					'50%': { transform: 'scale(1.05)' },
-				},
-				'slide-up': {
-					from: { 
-						opacity: '0',
-						transform: 'translateY(20px)',
-					},
-					to: { 
-						opacity: '1',
-						transform: 'translateY(0)',
-					},
-				},
-				'slide-down': {
-					from: { 
-						opacity: '0',
-						transform: 'translateY(-20px)',
-					},
-					to: { 
-						opacity: '1',
-						transform: 'translateY(0)',
-					},
-				},
-				'fade-in': {
-					from: { opacity: '0' },
-					to: { opacity: '1' },
-				},
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
@@ -167,23 +123,10 @@ export default {
 				'bubble-float-3': 'bubble-float 18s ease-in infinite',
 				'wave': 'wave 15s linear infinite',
 				'swim': 'swim 3s ease-in-out infinite',
-				'float': 'float 3s ease-in-out infinite',
-				'twinkle': 'twinkle 2s ease-in-out infinite',
-				'spin-slow': 'spin-slow 8s linear infinite',
-				'bounce-slow': 'bounce-slow 2s ease-in-out infinite',
-				'pulse-slow': 'pulse-slow 2s ease-in-out infinite',
-				'slide-up': 'slide-up 0.5s ease-out forwards',
-				'slide-down': 'slide-down 0.5s ease-out forwards',
-				'fade-in': 'fade-in 0.5s ease-out forwards',
 			},
 			backgroundImage: {
 				'ocean-gradient': 'linear-gradient(180deg, #D3E4FD 0%, #33C3F0 50%, #0EA5E9 100%)',
-			},
-			scale: {
-				'102': '1.02',
-				'105': '1.05',
-				'110': '1.10',
-			},
+			}
 		}
 	},
 	plugins: [require("tailwindcss-animate")],

@@ -36,52 +36,64 @@ const Timer: React.FC<TimerProps> = ({ duration, onTimeUp, isRunning, onTimerUpd
   
   // Keep ref values up to date
   useEffect(() => {
-    // Clear any existing interval
-    if (intervalId) {
-      clearInterval(intervalId);
+    timerRef.current.duration = duration;
+    timerRef.current.onTimeUp = onTimeUp;
+    timerRef.current.onTimerUpdate = onTimerUpdate;
+    timerRef.current.isWarning = isWarning;
+  }, [duration, onTimeUp, onTimerUpdate, isWarning]);
+  
+  // Set up the timer effect - only when isRunning changes
+  useEffect(() => {
+    // If timer is running and we don't have an interval running
+    if (isRunning && !timerRef.current.timerId) {
+      console.log('Timer starting');
+      
+      // Create a new interval
+      const id = window.setInterval(() => {
+        setTimeLeft(prevTime => {
+          const newTime = prevTime <= 1 ? 0 : prevTime - 1;
+      
+          // Add a warning when less than 30% remain
+          if (newTime <= timerRef.current.duration * 0.3 && !timerRef.current.isWarning) {
+            setIsWarning(true);
+          }
+          
+          // Notify parent component about time update (for time bonus calculation)
+          if (timerRef.current.onTimerUpdate) {
+            timerRef.current.onTimerUpdate(newTime);
+          }
+          
+          if (newTime <= 0) {
+            // Clear the timer
+            if (timerRef.current.timerId) {
+              clearInterval(timerRef.current.timerId);
+              timerRef.current.timerId = null;
+            }
+            timerRef.current.onTimeUp();
+            return 0;
+          }
+          return newTime;
+        });
+      }, 1000);
+      
+      // Store the interval ID
+      timerRef.current.timerId = id;
+      setIntervalId(id);
+    }
+    // If timer is not running but we have an interval
+    else if (!isRunning && timerRef.current.timerId) {
+      console.log('Timer stopped');
+      clearInterval(timerRef.current.timerId);
+      timerRef.current.timerId = null;
       setIntervalId(null);
     }
     
-    // Only start if isRunning is true
-    if (!isRunning) {
-      console.log('Timer stopped');
-      return;
-    }
-    
-    console.log('Timer starting/continuing');
-    
-    // Create a new interval
-    const id = window.setInterval(() => {
-      setTimeLeft(prevTime => {
-        const newTime = prevTime <= 1 ? 0 : prevTime - 1;
-    
-        // Add a warning when less than 30% remain
-        if (newTime <= duration * 0.3 && !isWarning) {
-          setIsWarning(true);
-        }
-        
-        // Notify parent component about time update (for time bonus calculation)
-        if (onTimerUpdate && isRunning) {
-          onTimerUpdate(newTime);
-        }
-        
-        if (newTime <= 0) {
-          clearInterval(id);
-          onTimeUp();
-          return 0;
-        }
-        return newTime;
-      });
-    }, 1000);
-    
-    // Store the interval ID
-    setIntervalId(id);
-    
     // Clean up on unmount
     return () => {
-      if (id) {
+      if (timerRef.current.timerId) {
         console.log('Cleaning up timer interval');
-        clearInterval(id);
+        clearInterval(timerRef.current.timerId);
+        timerRef.current.timerId = null;
       }
     };
   }, [isRunning]);
@@ -101,20 +113,19 @@ const Timer: React.FC<TimerProps> = ({ duration, onTimeUp, isRunning, onTimerUpd
   
   return (
     <div className="w-full">
-      <div className="flex items-center justify-between mb-2">
+      <div className="flex items-center justify-between mb-1">
         <div className="flex items-center gap-2">
           <Clock className="text-ocean-dark h-5 w-5" />
           <span className="font-semibold">{label}</span>
         </div>
-        <div className={`text-xl font-bold ${isWarning ? 'text-red-500 animate-pulse' : 'text-ocean-dark'}`}>
-          {formatTime(timeLeft)}
-        </div>
+        <div className={`text-xl font-bold ${isWarning ? 'text-red-500 animate-pulse' : 'text-ocean-dark'}`}>{timeLeft} seconds</div>
       </div>
-      <Progress 
-        value={timePercentage} 
-        className="h-2 bg-gray-200"
-        indicatorClassName={`${getProgressColor()} transition-all duration-1000 ease-linear`}
-      />
+      <div className="w-full bg-gray-200 h-2 rounded-full mt-2">
+        <div
+          className={getProgressColor() + " h-2 rounded-full transition-all duration-1000"}
+          style={{ width: `${timePercentage}%` }}
+        ></div>
+      </div>
     </div>
   );
 };

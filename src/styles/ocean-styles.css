@@ -1,3 +1,4 @@
+
 /* Ocean Theme Styles for Tailwind */
 
 /* Custom classes for ocean theme */
@@ -41,108 +42,13 @@
   @apply hover:bg-blue-950;
 }
 
-/* Shared Game Styles */
-.game-container {
-  @apply max-w-4xl mx-auto;
-}
-
-.game-card {
-  @apply bg-white rounded-xl shadow-lg overflow-hidden mb-4;
-}
-
-.game-start-screen {
-  @apply p-8 text-center animate-fade-in;
-}
-
-.game-title {
-  @apply text-4xl font-bold text-ocean-dark mb-6 text-center animate-slide-down [animation-delay:200ms];
-}
-
-/* Standardized feature cards with consistent hover effects */
-.game-feature-card {
-  @apply flex items-center gap-4 p-4 rounded-lg animate-slide-up hover:scale-105 transition-all duration-300 shadow-md;
-}
-
-.game-feature-card-blue {
-  @apply bg-gradient-to-r from-blue-50 to-blue-100;
-}
-
-.game-feature-card-green {
-  @apply bg-gradient-to-r from-green-50 to-green-100;
-}
-
-.game-feature-card-yellow {
-  @apply bg-gradient-to-r from-yellow-50 to-yellow-100;
-}
-
-.game-feature-icon {
-  @apply h-8 w-8;
-}
-
-/* Standardized icon animations */
-.game-feature-icon-blue {
-  @apply text-blue-500 animate-bounce;
-}
-
-.game-feature-icon-green {
-  @apply text-green-500 animate-spin;
-}
-
-.game-feature-icon-yellow {
-  @apply text-yellow-500 animate-float;
-}
-
-.game-feature-text {
-  @apply text-lg;
-}
-
-.game-feature-text-blue {
-  @apply text-blue-700;
-}
-
-.game-feature-text-green {
-  @apply text-green-700;
-}
-
-.game-feature-text-yellow {
-  @apply text-yellow-700;
-}
-
-/* Standardized button styles */
-.game-start-button {
-  @apply bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white text-xl font-semibold px-12 py-5 rounded-xl shadow-lg transition-all w-full max-w-xl hover:scale-105 animate-slide-up [animation-delay:1000ms];
-}
-
-.game-score-card {
-  @apply bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-4 shadow-md animate-slide-up;
-}
-
-.game-over-screen {
-  @apply p-8 text-center animate-fade-in;
-}
-
-.game-over-title {
-  @apply text-2xl font-bold text-ocean-dark mb-2 animate-slide-down;
-}
-
-.game-over-score {
-  @apply bg-gradient-to-r from-blue-50 to-purple-50 p-6 rounded-xl max-w-md mx-auto mb-6 shadow-lg animate-slide-up;
-}
-
-.game-over-new-best {
-  @apply mt-4 p-3 bg-yellow-100 rounded-lg animate-pulse;
-}
-
-.game-over-button {
-  @apply bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white text-lg px-8 py-6 h-auto shadow-lg hover:scale-105 transition-all duration-300 animate-slide-up;
-}
-
-/* Standardized animations */
+/* Animation for timer */
 @keyframes shrink {
   from { width: 100%; }
   to { width: 0%; }
 }
 
+/* Animation for score pulse */
 @keyframes score-glow {
   0% { text-shadow: 0 0 10px rgba(255, 255, 255, 0.5); }
   50% { text-shadow: 0 0 20px rgba(255, 255, 255, 0.8), 0 0 30px rgba(255, 215, 0, 0.6); }
@@ -153,90 +59,33 @@
   animation: score-glow 2s infinite;
 }
 
-/* Simplified animation set */
-@keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
+/* Annotation scoring visual animations */
+.annotation-visual-pulse {
+  animation: annotation-pulse 2s ease-in-out infinite alternate;
 }
 
-@keyframes twinkle {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
+@keyframes annotation-pulse {
+  from { transform: scale(1); }
+  to { transform: scale(1.05); }
 }
 
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+/* Button coral style */
+.btn-coral {
+  @apply bg-red-400 hover:bg-red-500 text-white;
 }
 
-@keyframes bounce {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-5px); }
+/* Card hover effect for annotation visual */
+.annotation-card {
+  @apply transition-all duration-300;
 }
 
-@keyframes pulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.05); }
+.annotation-card:hover {
+  @apply shadow-lg transform -translate-y-1;
 }
 
-@keyframes slide-up {
-  from { 
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to { 
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes slide-down {
-  from { 
-    opacity: 0;
-    transform: translateY(-20px);
-  }
-  to { 
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes fade-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-/* Standardized animation classes */
-.animate-float {
-  animation: float 3s ease-in-out infinite;
-}
-
-.animate-twinkle {
-  animation: twinkle 2s ease-in-out infinite;
-}
-
-.animate-spin {
-  animation: spin 8s linear infinite;
-}
-
-.animate-bounce {
-  animation: bounce 2s ease-in-out infinite;
-}
-
-.animate-pulse {
-  animation: pulse 2s ease-in-out infinite;
-}
-
-.animate-slide-up {
-  animation: slide-up 0.5s ease-out forwards;
-}
-
-.animate-slide-down {
-  animation: slide-down 0.5s ease-out forwards;
-}
-
-.animate-fade-in {
-  animation: fade-in 0.5s ease-out forwards;
+/* Added styling for the annotation precision guide in the instructions */
+.annotation-precision-guide {
+  @apply bg-blue-50 border border-blue-100 rounded-lg p-4 shadow-inner;
 }
 
 /* Tablet-specific styles */
@@ -251,63 +100,63 @@
     @apply p-6;
   }
   
+  .tablet-gap-6 {
+    @apply gap-6;
+  }
+  
+  /* Ensure text is legible on tablet screens */
   .tablet-text-base {
     @apply text-base;
   }
   
+  /* Make canvas touch interactions better on tablets */
   .tablet-touch-canvas {
-    @apply touch-none;
+    @apply touch-manipulation;
   }
 }
 
-/* Touch device optimizations */
+/* Fix for touch events on Android tablets */
 .touch-device button, 
-.touch-device .button {
-  @apply min-h-[44px] min-w-[44px];
+.touch-device [role="button"] {
+  @apply cursor-pointer touch-manipulation active:opacity-80;
 }
 
-/* Tablet portrait mode adjustments */
+/* Make content scrollable on tablets in portrait mode */
 @media screen and (max-width: 1024px) and (orientation: portrait) {
   .tablet-portrait-scroll {
-    @apply overflow-y-auto;
-    max-height: calc(100vh - 200px);
+    @apply max-h-[80vh] overflow-y-auto;
   }
 }
 
-/* Android tablet specific styles */
+/* Android-specific fixes for touch events */
 .android-tablet-canvas {
-  @apply touch-none;
+  touch-action: none; /* Prevent browser default touch actions completely */
+  -webkit-tap-highlight-color: transparent; /* Remove tap highlight color */
 }
 
+/* Increased touch targets for Android tablets */
 .android-tablet button,
-.android-tablet .button {
-  @apply min-h-[48px] min-w-[48px] p-3;
+.android-tablet [role="button"] {
+  min-height: 48px;
+  min-width: 48px;
+  padding: 8px 16px;
 }
 
+/* Adjust annotation tools for Android tablets */
 .android-tablet .annotation-tools-container {
-  @apply p-2;
+  gap: 16px;
 }
 
+/* Prevent text selection on touch interfaces */
 .android-tablet * {
-  @apply touch-none;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
-/* Touch canvas styles */
+/* Improve canvas touch handling */
 canvas.touch-canvas {
-  @apply touch-none;
-}
-
-/* Music Control Ocean Theme */
-.music-control-ocean {
-  background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(240,248,255,0.95) 100%);
-  border: 1px solid rgba(59, 130, 246, 0.2);
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-}
-
-.music-control-ocean button:hover {
-  background-color: rgba(59, 130, 246, 0.1);
-}
-
-.music-control-ocean input[type="range"] {
-  accent-color: #3b82f6;
+  touch-action: none !important;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
 }

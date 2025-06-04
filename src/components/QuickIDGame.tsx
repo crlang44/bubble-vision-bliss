@@ -4,9 +4,7 @@ import {
   Fish,
   CheckCircle,
   RefreshCcw,
-  Trophy,
-  Clock,
-  AlertTriangle,
+  Trophy, AlertTriangle
 } from "lucide-react";
 import Timer from "./Timer";
 
@@ -371,327 +369,283 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({
   const Instructions = ({ onClose }: { onClose: () => void }) => (
     <div className="bg-white rounded-xl p-6 max-w-lg w-full shadow-xl">
       <h2 className="text-2xl font-bold text-ocean-dark mb-4">
-        Quick ID Challenge
+        Quick ID
       </h2>
 
       <div className="space-y-4 mb-6">
 
-        <div className="bg-blue-50 p-3 rounded-lg">
-          <h3 className="font-bold text-ocean-dark mb-2">How to Play:</h3>
+        <div className="bg-blue-50 p-4 rounded-lg">
           <ul className="list-disc pl-5 text-gray-700 space-y-2">
-            <li>
-              Click the correct button (shark, kelp, or dolphin) for each image
-            </li>
-            <li>
-              Earn up to 10 points for each correct answer - the faster you
-              answer, the more points you get!
-            </li>
-            <li>Correct answers show a green checkmark</li>
-            <li>Wrong answers show a red X</li>
-            <li>No response in time counts as incorrect</li>
-            <li>The game starts slow and gets progressively faster</li>
-            <li>The game lasts for 30 seconds</li>
+            <li>Click the correct button for each image</li>
+            <li>Choose: Shark, Kelp, or Dolphin</li>
+            <li>45 seconds total - game gets faster!</li>
+            <li>Faster answers = more points</li>
           </ul>
         </div>
       </div>
 
-        <div className="flex justify-center mt-6 animate-slide-up [animation-delay:400ms]">
-          <Button 
-            onClick={onClose} 
-            className="game-start-button"
-          >
-            Let's Play! 🚀
-          </Button>
-        </div>
-      </div>
-    </>
+      <Button
+        className="w-full bg-ocean-dark hover:bg-ocean-darker text-white"
+        onClick={onClose}
+      >
+        Let's Play!
+      </Button>
+    </div>
   );
 
   return (
-    <div className="game-container">
-      {!gameStarted ? (
-        <div className="flex items-center justify-center min-h-[80vh] animate-fade-in">
-          <div className="bg-white rounded-xl shadow-xl p-10 max-w-2xl w-full flex flex-col items-center">
-            <div className="mb-8 animate-slide-down">
-              <Clock className="h-20 w-20 text-ocean-dark" />
-            </div>
+    <div>
+      <div className="container mx-auto py-0 px-4 relative z-10">
 
-            <h2 className="text-4xl font-bold text-ocean-dark mb-6 text-center animate-slide-down [animation-delay:200ms]">
-              Quick ID Challenge! 🦈
-            </h2>
-
-            <div className="space-y-4 mb-8 w-full max-w-xl">
-              <div className="game-feature-card game-feature-card-blue">
-                <Clock className="game-feature-icon game-feature-icon-blue" />
-                <span className="game-feature-text game-feature-text-blue">
-                  Test your speed and accuracy
-                </span>
-              </div>
-              <div className="game-feature-card game-feature-card-green">
-                <Target className="game-feature-icon game-feature-icon-green" />
-                <span className="game-feature-text game-feature-text-green">
-                  Identify ocean creatures quickly
-                </span>
-              </div>
-              <div className="game-feature-card game-feature-card-yellow">
-                <Trophy className="game-feature-icon game-feature-icon-yellow" />
-                <span className="game-feature-text game-feature-text-yellow">
-                  Beat your high score
-                </span>
-              </div>
-            </div>
-
-            <button
-              onClick={startGame}
-              className="game-start-button"
-            >
-              Start Challenge
-            </button>
+        {/* Instructions Modal */}
+        {showInstructions && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+            <Instructions
+              onClose={() => {
+                setShowInstructions(false);
+                localStorage.setItem("hasSeenQuickIDInstructions", "true");
+                if (!gameStarted && !gameOver) {
+                  startGame();
+                }
+              }}
+            />
           </div>
-        </div>
-      ) : (
-        <div className="container mx-auto py-0 px-4 relative z-10">
-          {/* Instructions Modal */}
-          {showInstructions && (
-            <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-              <div className="bg-white rounded-xl p-6 max-w-lg w-full shadow-xl animate-fade-in">
-                <Instructions
-                  onClose={() => {
-                    setShowInstructions(false);
-                    localStorage.setItem("hasSeenQuickIDInstructions", "true");
-                    if (!gameStarted && !gameOver) {
-                      startGame();
-                    }
-                  }}
-                />
-              </div>
+        )}
+
+        <div className="w-full max-w-6xl mx-auto space-y-4">
+          {/* Game Timer - Only show during active gameplay */}
+          {gameStarted && (
+            <div className="bg-white rounded-xl p-3 shadow-md">
+              <Timer
+                duration={45}
+                onTimeUp={() => endGame()}
+                isRunning={gameStarted && !gameOver}
+                onTimerUpdate={(timeLeft) => setTimeRemaining(timeLeft)}
+                label="Time Remaining:"
+              />
             </div>
           )}
 
-        <div className="max-w-4xl mx-auto">
-          {/* Game Timer */}
-          <div className="bg-white rounded-xl p-3 shadow-md mb-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Clock className="text-ocean-dark h-5 w-5" />
-                <span className="font-semibold">Time Remaining:</span>
-              </div>
-              <div className="text-xl font-bold text-ocean-dark">
-                {timeRemaining} seconds
-              </div>
-            </div>
-            {gameStarted && (
-              <div className="w-full bg-gray-200 h-2 rounded-full mt-2">
-                <div
-                  className="bg-ocean-dark h-2 rounded-full transition-all duration-1000"
-                  style={{ width: `${(timeRemaining / 30) * 100}%` }}
-                ></div>
-              </div>
-            )}
-          </div>
-
-          {/* Game Area */}
-          <div className="bg-white rounded-xl shadow-lg overflow-hidden mb-4">
-            {gameStarted ? (
-              <div className="p-4 flex flex-col items-center">
-                {/* Current image with preloaded images */}
-                <div className="relative h-[350px] w-full flex items-center justify-center bg-gray-100 rounded-lg mb-6">
-                  {/* Render all images but only show the current one */}
-                  {gameImages.map((image, index) => (
-                    <div
-                      key={image.id}
-                      className="absolute inset-0 max-h-full max-w-full h-full w-full"
-                      style={{
-                        display: index === currentImageIndex ? 'block' : 'none',
-                        opacity: isImageLoading ? 0 : 1,
-                        transition: 'opacity 200ms'
-                      }}
-                    >
-                      <img 
-                        src={image.imagePath}
-                        alt={`${image.correctAnswer} image`}
-                        className="h-full w-full object-cover"
-                        style={{ objectPosition: 'center' }}
-                        onLoad={() => {
-                          if (index === currentImageIndex) {
-                            setIsImageLoading(false);
-                          }
+          {/* Main Game Layout - Conditional Horizontal */}
+          <div className={gameStarted ? "flex gap-4" : "flex justify-center"}>
+            {/* Game Area - Takes up most of the space or full width */}
+            <div className={gameStarted ? "flex-1 relative aspect-[16/9] bg-white rounded-xl shadow-lg overflow-hidden flex items-center justify-center" : "w-full max-w-4xl relative aspect-[16/9] bg-white rounded-xl shadow-lg overflow-hidden flex items-center justify-center"}>
+              {gameStarted ? (
+                <div className="relative w-full h-full flex items-center justify-center bg-gray-100">
+                  {/* Current image with preloaded images */}
+                  <div className="relative w-full h-full flex items-center justify-center">
+                    {/* Render all images but only show the current one */}
+                    {gameImages.map((image, index) => (
+                      <div
+                        key={image.id}
+                        className="absolute inset-0 max-h-full max-w-full h-full w-full"
+                        style={{
+                          display: index === currentImageIndex ? 'block' : 'none',
+                          opacity: isImageLoading ? 0 : 1,
+                          transition: 'opacity 200ms'
                         }}
-                      />
-                    </div>
-                  ))}
+                      >
+                        <img 
+                          src={image.imagePath}
+                          alt={`${image.correctAnswer} image`}
+                          className="h-full w-full object-cover"
+                          style={{ objectPosition: 'center' }}
+                          onLoad={() => {
+                            if (index === currentImageIndex) {
+                              setIsImageLoading(false);
+                            }
+                          }}
+                        />
+                      </div>
+                    ))}
 
-                  {/* Feedback overlay */}
-                  {showFeedback && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/30 z-10">
-                      {showFeedback === "correct" ? (
-                        <div className="bg-green-500 rounded-full p-10">
-                          <CheckCircle className="h-24 w-24 text-white" />
+                    {/* Feedback overlay */}
+                    {showFeedback && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/30 z-10">
+                        {showFeedback === "correct" ? (
+                          <div className="bg-green-500 rounded-full p-10">
+                            <CheckCircle className="h-24 w-24 text-white" />
+                          </div>
+                        ) : (
+                          <div className="bg-red-500 rounded-full p-10">
+                            <AlertTriangle className="h-24 w-24 text-white" />
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Timer indicator with key to force animation restart */}
+                    <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-gray-200">
+                      <div
+                        key={animationKey}
+                        className="h-full bg-ocean-dark"
+                        style={{
+                          width: "100%",
+                          animation: `shrink ${
+                            timePerImage / 1000
+                          }s linear forwards`,
+                        }}
+                      ></div>
+                    </div>
+                  </div>
+                </div>
+              ) : gameOver ? (
+                <div className="flex items-center justify-center h-full">
+                  <div className="p-8 text-center">
+                    <Trophy className="h-16 w-16 text-yellow-500 mx-auto mb-4" />
+                    <h2 className="text-2xl font-bold text-ocean-dark mb-2">
+                      Game Over!
+                    </h2>
+
+                    <div className="bg-blue-50 p-4 rounded-lg max-w-md mx-auto mb-6">
+                      <div className="text-5xl font-bold text-ocean-dark mb-2">
+                        {finalGameScore}
+                      </div>
+                      <p className="text-gray-700">Total Points</p>
+
+                      {/* Fixed: Best Score Display */}
+                      {finalGameWasNewBest ? (
+                        <div className="mt-4 p-2 bg-yellow-100 rounded">
+                          <p className="text-yellow-700 font-bold text-lg">
+                            🏆 NEW BEST SCORE! 🏆
+                          </p>
                         </div>
                       ) : (
-                        <div className="bg-red-500 rounded-full p-10">
-                          <AlertTriangle className="h-24 w-24 text-white" />
+                        <div className="mt-4">
+                          <p className="text-gray-600">
+                            Best Score: <span className="font-bold text-ocean-dark">{bestScore}</span>
+                          </p>
                         </div>
                       )}
-                    </div>
-                  )}
 
-                  {/* Timer indicator with key to force animation restart */}
-                  <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-gray-200">
-                    <div
-                      key={animationKey}
-                      className="h-full bg-ocean-dark"
-                      style={{
-                        width: "100%",
-                        animation: `shrink ${
-                          timePerImage / 1000
-                        }s linear forwards`,
-                      }}
-                    ></div>
-                  </div>
-                </div>
-
-                {/* Answer buttons */}
-                <div className="grid grid-cols-3 gap-4 w-full max-w-xl">
-                  <Button
-                    className="h-16 text-lg bg-blue-500 hover:bg-blue-600 text-white"
-                    onClick={() => handleAnswer("shark")}
-                  >
-                    Shark
-                  </Button>
-                  <Button
-                    className="h-16 text-lg bg-green-500 hover:bg-green-600 text-white"
-                    onClick={() => handleAnswer("kelp")}
-                  >
-                    Kelp
-                  </Button>
-                  <Button
-                    className="h-16 text-lg bg-purple-500 hover:bg-purple-600 text-white"
-                    onClick={() => handleAnswer("dolphin")}
-                  >
-                    Dolphin
-                  </Button>
-                </div>
-              </div>
-            ) : gameOver ? (
-              <div className="p-8 text-center">
-                <Trophy className="h-16 w-16 text-yellow-500 mx-auto mb-4" />
-                <h2 className="text-2xl font-bold text-ocean-dark mb-2">
-                  Game Over!
-                </h2>
-
-                <div className="bg-blue-50 p-4 rounded-lg max-w-md mx-auto mb-6">
-                  <div className="text-5xl font-bold text-ocean-dark mb-2">
-                    {finalGameScore}
-                  </div>
-                  <p className="text-gray-700">Total Points</p>
-
-                  {/* Fixed: Best Score Display */}
-                  {finalGameWasNewBest ? (
-                    <div className="mt-4 p-2 bg-yellow-100 rounded">
-                      <p className="text-yellow-700 font-bold text-lg">
-                        🏆 NEW BEST SCORE! 🏆
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="mt-4">
-                      <p className="text-gray-600">
-                        Best Score: <span className="font-bold text-ocean-dark">{bestScore}</span>
-                      </p>
-                    </div>
-                  )}
-
-                  <div className="mt-4 text-sm text-gray-700">
-                    <div className="flex justify-between mb-2">
-                      <div>Accuracy:</div>
-                      <div className="font-bold text-ocean-dark">
-                        {totalAttempts > 0
-                          ? Math.round(
-                              (correctAnswersCount / totalAttempts) * 100
-                            )
-                          : 0}
-                        %
+                      <div className="mt-4 text-sm text-gray-700">
+                        <div className="flex justify-between mb-2">
+                          <div>Accuracy:</div>
+                          <div className="font-bold text-ocean-dark">
+                            {totalAttempts > 0
+                              ? Math.round(
+                                  (correctAnswersCount / totalAttempts) * 100
+                                )
+                              : 0}
+                            %
+                          </div>
+                        </div>
+                        <div className="flex justify-between">
+                          <div>Attempts:</div>
+                          <div className="font-bold">{totalAttempts}</div>
+                        </div>
                       </div>
                     </div>
-                    <div className="flex justify-between">
-                      <div>Attempts:</div>
-                      <div className="font-bold">{totalAttempts}</div>
-                    </div>
+
+                    <Button
+                      className="bg-ocean-dark hover:bg-ocean-darker text-white text-lg px-8 py-6 h-auto"
+                      onClick={startGame}
+                    >
+                      <RefreshCcw className="h-5 w-5 mr-2" /> Play Again
+                    </Button>
                   </div>
                 </div>
+              ) : (
+                <div className="flex items-center justify-center h-full">
+                  <div className="p-8 text-center">
+                    <Fish className="h-16 w-16 text-ocean-dark mx-auto mb-4" />
+                    <h2 className="text-2xl font-bold text-ocean-dark mb-4">
+                      Ready to Test Your Quick ID Skills?
+                    </h2>
+                    <p className="text-gray-700 mb-6">
+                      Identify sharks, kelp, and dolphins as quickly as possible!
+                    </p>
+                    <Button
+                      className="bg-ocean-dark hover:bg-ocean-darker text-white text-lg px-8 py-6 h-auto"
+                      onClick={startGame}
+                    >
+                      Start Game
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
 
-                <Button
-                  className="bg-ocean-dark hover:bg-ocean-darker text-white text-lg px-8 py-6 h-auto"
-                  onClick={startGame}
-                >
-                  <RefreshCcw className="h-5 w-5 mr-2" /> Play Again
-                </Button>
-              </div>
-            ) : (
-              <div className="p-8 text-center">
-                <Fish className="h-16 w-16 text-ocean-dark mx-auto mb-4" />
-                <h2 className="text-2xl font-bold text-ocean-dark mb-4">
-                  Ready to Test Your Quick ID Skills?
-                </h2>
-                <p className="text-gray-700 mb-6">
-                  Identify sharks, kelp, and dolphins as quickly as possible!
-                </p>
-                <Button
-                  className="bg-ocean-dark hover:bg-ocean-darker text-white text-lg px-8 py-6 h-auto"
-                  onClick={startGame}
-                >
-                  Start Game
-                </Button>
+            {/* Sidebar - Controls and Score - Only show during active gameplay */}
+            {gameStarted && (
+              <div className="w-80 bg-white rounded-xl p-4 shadow-md flex flex-col justify-between">
+                <div className="flex flex-col gap-4">
+                  {/* Current Score */}
+                  <div className="bg-blue-50 p-4 rounded-lg">
+                    <div className="flex justify-between items-center mb-2">
+                      <h3 className="font-bold text-ocean-dark">Current Score</h3>
+                      <div className="text-3xl font-bold text-ocean-dark">
+                        {score}
+                      </div>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <div>
+                        <span className="text-gray-700">Correct:</span>
+                        <span className="font-bold text-green-600 ml-1">
+                          {totalAttempts > 0
+                            ? Math.round((correctAnswersCount / totalAttempts) * 100)
+                            : 0}
+                          %
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-gray-700">Attempts:</span>
+                        <span className="font-bold ml-1">{totalAttempts}</span>
+                      </div>
+                    </div>
+                    <div className="mt-2 pt-2 border-t border-gray-200">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-700">Best Score:</span>
+                        <span className="font-bold text-ocean-dark">
+                          {bestScore > 0 ? bestScore : "--"}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Answer buttons */}
+                  <div className="flex flex-col gap-3">
+                    <p className="text-sm text-gray-700 text-center">
+                      Click the correct identification for the image.
+                    </p>
+                    <div className="flex flex-col gap-3">
+                      <Button
+                        className="h-16 text-lg bg-blue-500 hover:bg-blue-600 text-white"
+                        onClick={() => handleAnswer("shark")}
+                      >
+                        Shark
+                      </Button>
+                      <Button
+                        className="h-16 text-lg bg-green-500 hover:bg-green-600 text-white"
+                        onClick={() => handleAnswer("kelp")}
+                      >
+                        Kelp
+                      </Button>
+                      <Button
+                        className="h-16 text-lg bg-purple-500 hover:bg-purple-600 text-white"
+                        onClick={() => handleAnswer("dolphin")}
+                      >
+                        Dolphin
+                      </Button>
+                    </div>
+                    <p className="text-sm text-gray-700 text-center">
+                      The faster you answer, the more points you get!
+                    </p>
+                  </div>
+                </div>
               </div>
             )}
           </div>
-
-          {/* Score card (only visible during gameplay) */}
-          {gameStarted && (
-            <div className="bg-white rounded-xl p-4 shadow-md">
-              <div className="flex justify-between items-center">
-                <h3 className="font-bold text-ocean-dark">Current Score</h3>
-                <div className="text-3xl font-bold text-ocean-dark">
-                  {score}{" "}
-                  <span className="text-sm font-normal text-gray-600">
-                    points
-                  </span>
-                </div>
-              </div>
-              <div className="flex justify-between mt-2">
-                <div>
-                  <span className="text-gray-700">Correct:</span>
-                  <span className="font-bold text-green-600 ml-1">
-                    {totalAttempts > 0
-                      ? Math.round((correctAnswersCount / totalAttempts) * 100)
-                      : 0}
-                    %
-                  </span>
-                </div>
-                <div>
-                  <span className="text-gray-700">Attempts:</span>
-                  <span className="font-bold ml-1">{totalAttempts}</span>
-                </div>
-              </div>
-              <div className="mt-2 pt-2 border-t border-gray-200">
-                <div className="flex justify-between">
-                  <span className="text-gray-700">Best Score:</span>
-                  <span className="font-bold text-ocean-dark">
-                    {bestScore > 0 ? bestScore : "--"}
-                  </span>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
 
-      {/* CSS for animation */}
-      <style>{`
-        @keyframes shrink {
-          from { width: 100%; }
-          to { width: 0%; }
-        }
-      `}</style>
+        {/* CSS for animation */}
+        <style>{`
+          @keyframes shrink {
+            from { width: 100%; }
+            to { width: 0%; }
+          }
+        `}</style>
+      </div>
     </div>
   );
 };
