@@ -72,7 +72,6 @@ const QuickIDGamePage: React.FC = () => {
         <NavBar 
           pageType="quickId"
           setShowInstructions={setShowInstructions}
-          cumulativeScore={finalScore}
           bestScore={bestScore}
         />
       </div>

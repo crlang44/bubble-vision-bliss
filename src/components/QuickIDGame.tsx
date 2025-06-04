@@ -1,16 +1,11 @@
 import React, { useState, useEffect, useRef } from "react";
-import BubbleBackground from "../components/BubbleBackground";
 import { Button } from "@/components/ui/button";
 import {
   Fish,
   CheckCircle,
   RefreshCcw,
-  Trophy,
-  Clock,
-  AlertTriangle,
+  Trophy, AlertTriangle
 } from "lucide-react";
-import { routes } from "../routes";
-import { Skeleton } from "@/components/ui/skeleton";
 import Timer from "./Timer";
 
 // Import images
@@ -379,21 +374,12 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({
 
       <div className="space-y-4 mb-6">
 
-        <div className="bg-blue-50 p-3 rounded-lg">
-          <h3 className="font-bold text-ocean-dark mb-2">How to Play:</h3>
+        <div className="bg-blue-50 p-4 rounded-lg">
           <ul className="list-disc pl-5 text-gray-700 space-y-2">
-            <li>
-              Click the correct button (shark, kelp, or dolphin) for each image
-            </li>
-            <li>
-              Earn up to 10 points for each correct answer - the faster you
-              answer, the more points you get!
-            </li>
-            <li>Correct answers show a green checkmark</li>
-            <li>Wrong answers show a red X</li>
-            <li>No response in time counts as incorrect</li>
-            <li>The game starts slow and gets progressively faster</li>
-            <li>The game lasts for 45 seconds</li>
+            <li>Click the correct button for each image</li>
+            <li>Choose: Shark, Kelp, or Dolphin</li>
+            <li>45 seconds total - game gets faster!</li>
+            <li>Faster answers = more points</li>
           </ul>
         </div>
       </div>

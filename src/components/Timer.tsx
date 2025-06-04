@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { AlertCircle, Clock } from 'lucide-react';
-import { Progress } from "@/components/ui/progress";
+import { Clock } from 'lucide-react';
 
 interface TimerProps {
   duration: number; // in seconds
