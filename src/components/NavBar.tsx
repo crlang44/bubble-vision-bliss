@@ -22,7 +22,7 @@ const NavBar: React.FC<NavBarProps> = ({
   const otherPageTitle = isAnnotationPage ? 'Quick ID' : 'Ocean Annotation';
   
   return (
-    <nav className="w-full mb-6" role="navigation" aria-label="Main navigation">
+    <nav className="w-full mb-4" role="navigation" aria-label="Main navigation">
       <div className="flex justify-between items-center px-4 py-3">
         {/* Logo and Title Section */}
         <div className="flex items-center gap-3">
