@@ -2,6 +2,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Annotation, AnnotationType, Coordinate, generateId, TargetAnnotation, labelColors } from '../utils/annotationUtils';
 import { toast } from 'sonner';
 import { useIsTouch, useIsAndroidTablet } from '../hooks/use-mobile';
+import { Eye, EyeOff, X } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface CanvasProps {
   imageUrl: string;
@@ -16,6 +18,14 @@ interface CanvasProps {
   originalWidth?: number; // Original image width from COCO dataset
   originalHeight?: number; // Original image height from COCO dataset
   disabled?: boolean; // New prop to disable drawing interactions
+  availableLabels: string[]; // New prop for available labels
+  onLabelChange: (label: string) => void; // New prop for label change
+}
+
+// Extend Annotation type for local use
+interface CanvasAnnotation extends Annotation {
+  _deleteButtonPosition?: Coordinate;
+  _displayCoordinates?: Coordinate[];
 }
 
 const Canvas: React.FC<CanvasProps> = ({
@@ -30,7 +40,9 @@ const Canvas: React.FC<CanvasProps> = ({
   onToggleGroundTruth,
   originalWidth,
   originalHeight,
-  disabled = false // Default to not disabled
+  disabled = false, // Default to not disabled
+  availableLabels,
+  onLabelChange
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -52,6 +64,31 @@ const Canvas: React.FC<CanvasProps> = ({
 
   // Store previous canvas size for rescaling
   const prevCanvasSizeRef = useRef<{ width: number; height: number }>({ width: 0, height: 0 });
+
+  // Add constants for label and delete button size
+  const LABEL_HEIGHT = 16;
+  const BASE_DELETE_BTN_SIZE = 20; // Fixed size in pixels
+
+  // Add cursor style and hovered annotation state
+  const [cursorStyle, setCursorStyle] = useState<'crosshair' | 'pointer' | 'nwse-resize' | 'nesw-resize' | 'move'>('crosshair');
+  const [hoveredAnnotationId, setHoveredAnnotationId] = useState<string | null>(null);
+  const [resizingAnnotation, setResizingAnnotation] = useState<{
+    id: string;
+    handle: 'nw' | 'ne' | 'sw' | 'se';
+    startCoords: { x: number; y: number };
+  } | null>(null);
+  const [hoveredResizeHandle, setHoveredResizeHandle] = useState<{
+    id: string;
+    handle: 'nw' | 'ne' | 'sw' | 'se';
+  } | null>(null);
+  const [movingAnnotation, setMovingAnnotation] = useState<{
+    id: string;
+    startCoords: { x: number; y: number };
+    originalCoords: Coordinate[];
+  } | null>(null);
+  const [showLabelPopup, setShowLabelPopup] = useState(false);
+  const [popupPosition, setPopupPosition] = useState({ x: 0, y: 0 });
+  const [tempAnnotation, setTempAnnotation] = useState<Annotation | null>(null);
 
   // Update local state when prop changes
   useEffect(() => {
@@ -147,12 +184,12 @@ const Canvas: React.FC<CanvasProps> = ({
       const containerWidth = container.clientWidth;
       const containerHeight = container.clientHeight;
       
-      // Calculate scale to fill the container completely
+      // Calculate scale to fit the image fully inside the container (object-fit: contain)
       const scaleX = containerWidth / img.width;
       const scaleY = containerHeight / img.height;
-      const newScale = Math.max(scaleX, scaleY); // Use max to ensure full coverage
+      const newScale = Math.min(scaleX, scaleY); // Use min to ensure full image is visible
       
-      // Calculate new dimensions to fill container
+      // Calculate new dimensions to fit container
       const newWidth = img.width * newScale;
       const newHeight = img.height * newScale;
       
@@ -192,7 +229,7 @@ const Canvas: React.FC<CanvasProps> = ({
       const containerHeight = container.clientHeight;
       const scaleX = containerWidth / img.width;
       const scaleY = containerHeight / img.height;
-      const newScale = Math.max(scaleX, scaleY);
+      const newScale = Math.min(scaleX, scaleY); // Use min to ensure full image is visible
       const newWidth = img.width * newScale;
       const newHeight = img.height * newScale;
 
@@ -309,97 +346,384 @@ const Canvas: React.FC<CanvasProps> = ({
     }
   };
 
-  // Modified drawAnnotation method to handle target annotations
+  // Utility to normalize rectangle coordinates
+  const getNormalizedRect = (start, end) => {
+    const left = Math.min(start.x, end.x);
+    const right = Math.max(start.x, end.x);
+    const top = Math.min(start.y, end.y);
+    const bottom = Math.max(start.y, end.y);
+    return { left, right, top, bottom };
+  };
+
+  // Add function to get resize handle positions
+  const getResizeHandlePositions = (annotation: Annotation) => {
+    if (!annotation._displayCoordinates || annotation._displayCoordinates.length < 2) return null;
+    const [start, end] = annotation._displayCoordinates;
+    const { left, right, top, bottom } = getNormalizedRect(start, end);
+    return {
+      nw: { x: left, y: top },
+      ne: { x: right, y: top },
+      sw: { x: left, y: bottom },
+      se: { x: right, y: bottom }
+    };
+  };
+
+  // Add function to check if point is in resize handle
+  const isPointInResizeHandle = (point: { x: number; y: number }, handlePos: { x: number; y: number }) => {
+    const handleSize = 8;
+    return (
+      point.x >= handlePos.x - handleSize &&
+      point.x <= handlePos.x + handleSize &&
+      point.y >= handlePos.y - handleSize &&
+      point.y <= handlePos.y + handleSize
+    );
+  };
+
+  // Add function to check if a point is inside the delete button
+  const isPointInDeleteButton = (point: { x: number; y: number }, buttonPos: { x: number; y: number }) => {
+    const buttonSize = BASE_DELETE_BTN_SIZE;
+    return (
+      point.x >= buttonPos.x - buttonSize / 2 &&
+      point.x <= buttonPos.x + buttonSize / 2 &&
+      point.y >= buttonPos.y - buttonSize / 2 &&
+      point.y <= buttonPos.y + buttonSize / 2
+    );
+  };
+
+  // Update getDeleteButtonPosition to position the button at the corner
+  function getDeleteButtonPosition(displayCoords) {
+    if (!displayCoords || displayCoords.length < 2) return undefined;
+    const [start, end] = displayCoords;
+    const { right, top } = getNormalizedRect(start, end);
+    // Position at the top-right corner of the box
+    return { 
+      x: right, 
+      y: top 
+    };
+  }
+
+  // Update drawAnnotation to use normalized rect and overlay delete button
   const drawAnnotation = (ctx: CanvasRenderingContext2D, annotation: Annotation | TargetAnnotation, isTarget = false) => {
     const { type, coordinates, label } = annotation;
-    
     if (coordinates.length === 0) return;
-    
     ctx.strokeStyle = isTarget ? 'rgba(0, 255, 0, 0.7)' : (annotation as Annotation).color;
     ctx.fillStyle = isTarget ? 'rgba(0, 255, 0, 0.2)' : `${(annotation as Annotation).color}20`;
     ctx.lineWidth = 2;
-    ctx.setLineDash(isTarget ? [5, 5] : []); // Dashed lines for ground truth
-    
-    // Only handle rectangle case since that's all we support
+    ctx.setLineDash(isTarget ? [5, 5] : []);
     if (coordinates.length >= 2) {
       const [start, end] = coordinates;
-      const width = end.x - start.x;
-      const height = end.y - start.y;
-      
+      const { left, right, top, bottom } = getNormalizedRect(start, end);
+      const width = right - left;
+      const height = bottom - top;
       ctx.beginPath();
-      ctx.rect(start.x, start.y, width, height);
+      ctx.rect(left, top, width, height);
       ctx.fill();
       ctx.stroke();
-    }
-    
-    // Draw label if annotation is complete
-    if ((annotation as Annotation).isComplete || isTarget) {
-      ctx.font = '12px sans-serif';
-      ctx.fillStyle = '#ffffff';
-      ctx.strokeStyle = '#000000';
-      ctx.lineWidth = 0.5;
-      
-      const x = coordinates[0].x;
-      const y = coordinates[0].y - 5;
-      
-      // Draw label background
-      const labelWidth = ctx.measureText(label).width + 6;
-      ctx.fillStyle = isTarget ? 'rgba(0, 255, 0, 0.7)' : (annotation as Annotation).color;
-      ctx.fillRect(x - 3, y - 12, labelWidth, 16);
-      
-      // Draw label text
-      ctx.fillStyle = '#ffffff';
-      ctx.fillText(label, x, y);
+      // --- LABEL POSITIONING ---
+      if ((annotation as Annotation).isComplete || isTarget) {
+        ctx.font = '12px sans-serif';
+        ctx.fillStyle = '#ffffff';
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = 0.5;
+        const labelWidth = ctx.measureText(label).width + 6;
+        // Default: Top Left
+        let labelX = left;
+        let labelY = top - 5;
+        // If label would be cut off at the top, move to bottom right
+        if (labelY - LABEL_HEIGHT < 0) {
+          labelX = right - labelWidth + 3;
+          labelY = bottom + LABEL_HEIGHT - 5;
+        }
+        // Draw label background
+        ctx.fillStyle = isTarget ? 'rgba(0, 255, 0, 0.7)' : (annotation as Annotation).color;
+        ctx.fillRect(labelX - 3, labelY - 12, labelWidth, LABEL_HEIGHT);
+        // Draw label text
+        ctx.fillStyle = '#ffffff';
+        ctx.fillText(label, labelX, labelY);
+      }
     }
     ctx.setLineDash([]);
+    // Draw resize handles if it's a user annotation (not target) and not being drawn
+    if (!isTarget && (annotation as Annotation).isComplete && !isDrawing) {
+      const handlePositions = getResizeHandlePositions(annotation as Annotation);
+      if (handlePositions) {
+        ctx.fillStyle = '#ffffff';
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = 1;
+        for (const [handle, pos] of Object.entries(handlePositions)) {
+          ctx.beginPath();
+          ctx.arc(pos.x, pos.y, 4, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.stroke();
+        }
+      }
+    }
   };
 
-  // Combined function to handle both mouse and touch start events
+  // Update handlePointerDown to handle delete, resize, move, and draw
   const handlePointerDown = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
-    if (!canvasRef.current || disabled) return;
-    
-    e.preventDefault(); // Prevent default browser behavior
-    
+    e.preventDefault();
+    if (movingAnnotation || resizingAnnotation) return;
     let offsetX: number, offsetY: number;
-    
-    // Handle touch event
     if ('touches' in e) {
       const touch = e.touches[0];
-      const rect = canvasRef.current.getBoundingClientRect();
+      const rect = canvasRef.current?.getBoundingClientRect();
+      if (!rect) return;
       offsetX = touch.clientX - rect.left;
       offsetY = touch.clientY - rect.top;
-      
-      // Store touch start position and time for later use
-      touchStartRef.current = { x: offsetX, y: offsetY };
-      touchStartTimeRef.current = Date.now();
-      
-      // Log touch event for debugging
-      console.log('Touch start:', { x: offsetX, y: offsetY });
     } else {
-      // Handle mouse event
       const { offsetX: mouseX, offsetY: mouseY } = getCanvasCoordinates(e);
       offsetX = mouseX;
       offsetY = mouseY;
     }
-    
+    const point = { x: offsetX, y: offsetY };
+
+    // Check for label click
+    const clickedLabel = annotations.find(annotation => 
+      annotation.isComplete && 
+      isPointInLabel(point, annotation)
+    );
+
+    if (clickedLabel) {
+      // Show label popup for the clicked annotation
+      setTempAnnotation(clickedLabel);
+      
+      // Position the popup near the label
+      const containerRect = containerRef.current?.getBoundingClientRect();
+      if (!containerRect) return;
+
+      // Calculate popup position
+      const [start, end] = (clickedLabel as any)._displayCoordinates;
+      const { left, right, top } = getNormalizedRect(start, end);
+      
+      let popupX = left;
+      let popupY = top - 5;
+
+      // Adjust X position if popup would be clipped
+      const POPUP_WIDTH = 200;
+      if (popupX + POPUP_WIDTH/2 > containerRect.width) {
+        popupX = containerRect.width - POPUP_WIDTH/2;
+      }
+      if (popupX - POPUP_WIDTH/2 < 0) {
+        popupX = POPUP_WIDTH/2;
+      }
+
+      // Adjust Y position if popup would be clipped
+      const POPUP_HEIGHT = 300;
+      if (popupY - POPUP_HEIGHT < 0) {
+        popupY = top + POPUP_HEIGHT/2;
+      }
+
+      setPopupPosition({
+        x: popupX,
+        y: popupY
+      });
+      setShowLabelPopup(true);
+      return;
+    }
+
+    // Check for delete button
+    const clickedDelete = annotations.find(annotation => 
+      annotation.isComplete && 
+      (annotation as any)._deleteButtonPosition && 
+      isPointInDeleteButton(point, (annotation as any)._deleteButtonPosition)
+    );
+    if (clickedDelete) {
+      const updatedAnnotations = annotations.filter(a => a.id !== clickedDelete.id);
+      onAnnotationUpdate(updatedAnnotations);
+      return;
+    }
+
+    // Check for resize handle
+    for (const annotation of annotations) {
+      if (!annotation.isComplete) continue;
+      const handlePositions = getResizeHandlePositions(annotation);
+      if (!handlePositions) continue;
+      for (const [handle, pos] of Object.entries(handlePositions)) {
+        if (isPointInResizeHandle(point, pos)) {
+          handleResizeStart(e, annotation.id, handle as 'nw' | 'ne' | 'sw' | 'se');
+          return;
+        }
+      }
+    }
+    // Check for box center (for moving)
+    const centerAnnotation = annotations.find(annotation => isPointInBoxCenter(point, annotation));
+    if (centerAnnotation) {
+      setMovingAnnotation({
+        id: centerAnnotation.id,
+        startCoords: point,
+        originalCoords: centerAnnotation._displayCoordinates || centerAnnotation.coordinates
+      });
+      return;
+    }
+    // If we're not interacting with an existing annotation, start drawing
     setIsDrawing(true);
-    
-    // Create a new annotation with the label's color
-    const newAnnotation: Annotation = {
-      id: generateId(),
+    touchStartRef.current = { x: offsetX, y: offsetY };
+    setCurrentAnnotation({
+      id: Date.now().toString(),
       type: 'rectangle',
       coordinates: [{ x: offsetX, y: offsetY }],
       label: currentLabel || 'Unknown',
       color: labelColors[currentLabel] || annotationColors.rectangle,
       isComplete: false
-    };
+    });
+  };
+
+  // Update handleMouseMove to set cursorStyle for resize, move, and default
+  const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    const { offsetX, offsetY } = getCanvasCoordinates(e);
+    const point = { x: offsetX, y: offsetY };
+
+    // Check if mouse is over any label
+    const hoveredLabel = annotations.find(annotation => 
+      annotation.isComplete && 
+      isPointInLabel(point, annotation)
+    );
+    if (hoveredLabel) {
+      setCursorStyle('pointer');
+      return;
+    }
+
+    // Check if mouse is over any delete button
+    const hoveredAnnotation = annotations.find(annotation => 
+      annotation.isComplete && 
+      (annotation as any)._deleteButtonPosition && 
+      isPointInDeleteButton(point, (annotation as any)._deleteButtonPosition)
+    );
+    if (hoveredAnnotation) {
+      setHoveredAnnotationId(hoveredAnnotation.id);
+      setCursorStyle('pointer');
+      return;
+    }
+
+    // Check if mouse is over any resize handle
+    let foundResizeHandle = false;
+    for (const annotation of annotations) {
+      if (!annotation.isComplete) continue;
+      const handlePositions = getResizeHandlePositions(annotation);
+      if (!handlePositions) continue;
+      for (const [handle, pos] of Object.entries(handlePositions)) {
+        if (isPointInResizeHandle(point, pos)) {
+          setHoveredResizeHandle({ id: annotation.id, handle: handle as 'nw' | 'ne' | 'sw' | 'se' });
+          // Set appropriate cursor based on handle position
+          switch (handle) {
+            case 'nw':
+            case 'se':
+              setCursorStyle('nwse-resize');
+              break;
+            case 'ne':
+            case 'sw':
+              setCursorStyle('nesw-resize');
+              break;
+          }
+          foundResizeHandle = true;
+          break;
+        }
+      }
+      if (foundResizeHandle) break;
+    }
+
+    // Check if mouse is over any box
+    if (!foundResizeHandle) {
+      const boxAnnotation = annotations.find(annotation => isPointInBoxCenter(point, annotation));
+      if (boxAnnotation) {
+        setCursorStyle('move');
+        return;
+      }
+    }
     
-    setCurrentAnnotation(newAnnotation);
-    redrawCanvas();
+    setHoveredResizeHandle(null);
+    setCursorStyle('crosshair');
   };
 
   // Combined function to handle both mouse and touch move events
   const handlePointerMove = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+    if (movingAnnotation) {
+      if ('touches' in e) {
+        e.preventDefault();
+      }
+      let offsetX: number, offsetY: number;
+      if ('touches' in e) {
+        const touch = e.touches[0];
+        const rect = canvasRef.current?.getBoundingClientRect();
+        if (!rect) return;
+        offsetX = touch.clientX - rect.left;
+        offsetY = touch.clientY - rect.top;
+      } else {
+        const { offsetX: mouseX, offsetY: mouseY } = getCanvasCoordinates(e);
+        offsetX = mouseX;
+        offsetY = mouseY;
+      }
+      const annotation = annotations.find(a => a.id === movingAnnotation.id);
+      if (!annotation || !(annotation as any)._displayCoordinates) return;
+      const dx = offsetX - movingAnnotation.startCoords.x;
+      const dy = offsetY - movingAnnotation.startCoords.y;
+      const newCoords = movingAnnotation.originalCoords.map(coord => ({
+        x: coord.x + dx,
+        y: coord.y + dy
+      }));
+      const updatedAnnotation = {
+        ...annotation,
+        _displayCoordinates: newCoords,
+        coordinates: scaleToScoring(newCoords),
+        _deleteButtonPosition: getDeleteButtonPosition(newCoords)
+      };
+      const updatedAnnotations = annotations.map(a => 
+        a.id === annotation.id ? updatedAnnotation : a
+      );
+      onAnnotationUpdate(updatedAnnotations);
+      redrawCanvas();
+      return;
+    }
+    if (resizingAnnotation) {
+      if ('touches' in e) {
+        e.preventDefault();
+      }
+      let offsetX: number, offsetY: number;
+      if ('touches' in e) {
+        const touch = e.touches[0];
+        const rect = canvasRef.current?.getBoundingClientRect();
+        if (!rect) return;
+        offsetX = touch.clientX - rect.left;
+        offsetY = touch.clientY - rect.top;
+      } else {
+        const { offsetX: mouseX, offsetY: mouseY } = getCanvasCoordinates(e);
+        offsetX = mouseX;
+        offsetY = mouseY;
+      }
+      const annotation = annotations.find(a => a.id === resizingAnnotation.id);
+      if (!annotation || !(annotation as any)._displayCoordinates) return;
+      const [start, end] = (annotation as any)._displayCoordinates;
+      const newCoords = [...(annotation as any)._displayCoordinates];
+      switch (resizingAnnotation.handle) {
+        case 'nw':
+          newCoords[0] = { x: offsetX, y: offsetY };
+          break;
+        case 'ne':
+          newCoords[0] = { x: start.x, y: offsetY };
+          newCoords[1] = { x: offsetX, y: end.y };
+          break;
+        case 'sw':
+          newCoords[0] = { x: offsetX, y: start.y };
+          newCoords[1] = { x: end.x, y: offsetY };
+          break;
+        case 'se':
+          newCoords[1] = { x: offsetX, y: offsetY };
+          break;
+      }
+      const updatedAnnotation = {
+        ...annotation,
+        _displayCoordinates: newCoords,
+        coordinates: scaleToScoring(newCoords),
+        _deleteButtonPosition: getDeleteButtonPosition(newCoords)
+      };
+      const updatedAnnotations = annotations.map(a => 
+        a.id === annotation.id ? updatedAnnotation : a
+      );
+      onAnnotationUpdate(updatedAnnotations);
+      redrawCanvas();
+      return;
+    }
     if (!isDrawing || !currentAnnotation) return;
     
     e.preventDefault(); // Prevent default browser behavior
@@ -436,67 +760,105 @@ const Canvas: React.FC<CanvasProps> = ({
     redrawCanvas();
   };
 
-  // Combined function to handle both mouse and touch end events
+  // Update handlePointerUp to remove label popup
   const handlePointerUp = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
-    if (!isDrawing || !currentAnnotation) return;
-    
-    e.preventDefault(); // Prevent default browser behavior
-    
-    // For touch events, verify it's not just a tap (for Android tablets)
-    if ('changedTouches' in e && touchStartRef.current) {
+    if (movingAnnotation) {
+      setMovingAnnotation(null);
+      return;
+    }
+    if (resizingAnnotation) {
+      setResizingAnnotation(null);
+      return;
+    }
+    if (!isDrawing || !currentAnnotation || !touchStartRef.current) return;
+    e.preventDefault();
+    let endX: number, endY: number;
+    if ('changedTouches' in e) {
       const touch = e.changedTouches[0];
       const rect = canvasRef.current?.getBoundingClientRect();
       if (!rect) return;
-      
-      const offsetX = touch.clientX - rect.left;
-      const offsetY = touch.clientY - rect.top;
-      
-      // Log touch end for debugging
-      console.log('Touch end:', { 
-        x: offsetX, 
-        y: offsetY, 
-        duration: Date.now() - touchStartTimeRef.current 
-      });
-      
-      // Calculate the distance moved
-      const dx = offsetX - touchStartRef.current.x;
-      const dy = offsetY - touchStartRef.current.y;
-      const distance = Math.sqrt(dx * dx + dy * dy);
-      
-      // If the touch didn't move much, don't complete the annotation
-      if (distance < 10) {
-        setIsDrawing(false);
-        setCurrentAnnotation(null);
-        touchStartRef.current = null;
-        return;
-      }
+      endX = touch.clientX - rect.left;
+      endY = touch.clientY - rect.top;
+    } else {
+      const { offsetX: mouseX, offsetY: mouseY } = getCanvasCoordinates(e);
+      endX = mouseX;
+      endY = mouseY;
     }
-    
-    // Complete the rectangle
+    // Calculate the distance moved
+    const dx = endX - touchStartRef.current.x;
+    const dy = endY - touchStartRef.current.y;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    const MIN_DRAG_DISTANCE = 10;
+    if (distance < MIN_DRAG_DISTANCE) {
+      setIsDrawing(false);
+      setCurrentAnnotation(null);
+      touchStartRef.current = null;
+      return;
+    }
+
+    // Complete the annotation without showing popup
     const updatedAnnotation = { ...currentAnnotation, isComplete: true };
+    const displayCoords = updatedAnnotation.coordinates.length === 2 ? 
+      updatedAnnotation.coordinates : 
+      [updatedAnnotation.coordinates[0], { x: endX, y: endY }];
     
-    // We need to keep the display coordinates for rendering
-    const displayAnnotation = { ...updatedAnnotation };
-    
-    // Scale the annotation to original image coordinates for proper scoring
-    const scoringCoordinates = scaleToScoring(updatedAnnotation.coordinates);
-    const scoringAnnotation = {
+    const finalAnnotation = {
       ...updatedAnnotation,
-      coordinates: scoringCoordinates,
-      // Add a reference to the display coordinates for future rendering
-      _displayCoordinates: updatedAnnotation.coordinates
+      coordinates: displayCoords,
+      _displayCoordinates: displayCoords,
+      _deleteButtonPosition: getDeleteButtonPosition(displayCoords)
     };
-    
-    console.log('Canvas - Completing annotation:', {
-      display: displayAnnotation,
-      scoring: scoringAnnotation
-    });
+
+    // Scale the annotation to original image coordinates for proper scoring
+    const scoringCoordinates = scaleToScoring(finalAnnotation._displayCoordinates || finalAnnotation.coordinates);
+    const scoringAnnotation = {
+      ...finalAnnotation,
+      coordinates: scoringCoordinates
+    };
     
     onAnnotationComplete(scoringAnnotation);
     
     setIsDrawing(false);
     setCurrentAnnotation(null);
     touchStartRef.current = null;
+  };
+
+  // Add function to check if a point is inside a label
+  const isPointInLabel = (point: { x: number; y: number }, annotation: Annotation) => {
+    if (!annotation.isComplete || !(annotation as any)._displayCoordinates || (annotation as any)._displayCoordinates.length < 2) return false;
+    const [start, end] = (annotation as any)._displayCoordinates;
+    const { left, right, top, bottom } = getNormalizedRect(start, end);
+    
+    // Calculate label position
+    const labelX = left;
+    const labelY = top - 5;
+    const labelWidth = 100; // Approximate width of label
+    const labelHeight = LABEL_HEIGHT;
+    
+    // Check if point is within label bounds
+    return point.x >= labelX - 3 && 
+           point.x <= labelX + labelWidth + 3 && 
+           point.y >= labelY - 12 && 
+           point.y <= labelY + labelHeight - 12;
+  };
+
+  // Add handleLabelSelect function
+  const handleLabelSelect = (label: string) => {
+    if (!tempAnnotation) return;
+    
+    // Scale the annotation to original image coordinates for proper scoring
+    const scoringCoordinates = scaleToScoring(tempAnnotation._displayCoordinates || tempAnnotation.coordinates);
+    const scoringAnnotation = {
+      ...tempAnnotation,
+      label,
+      color: labelColors[label] || annotationColors.rectangle,
+      coordinates: scoringCoordinates
+    };
+    
+    onAnnotationComplete(scoringAnnotation);
+    onLabelChange(label); // Update the current label in parent
+    setShowLabelPopup(false);
+    setTempAnnotation(null);
   };
 
   // Handle pointer cancel/leave events for touch devices
@@ -527,6 +889,39 @@ const Canvas: React.FC<CanvasProps> = ({
       redrawCanvas();
     }
   }, [annotations, currentAnnotation, isImageLoaded, scaledTargetAnnotations, showGroundTruth]);
+
+  // Add isPointInBoxCenter function
+  const isPointInBoxCenter = (point: { x: number; y: number }, annotation: Annotation) => {
+    if (!annotation.isComplete || !(annotation as any)._displayCoordinates || (annotation as any)._displayCoordinates.length < 2) return false;
+    const [start, end] = (annotation as any)._displayCoordinates;
+    const left = Math.min(start.x, end.x);
+    const right = Math.max(start.x, end.x);
+    const top = Math.min(start.y, end.y);
+    const bottom = Math.max(start.y, end.y);
+    return point.x >= left && point.x <= right && point.y >= top && point.y <= bottom;
+  };
+
+  // Add handleResizeStart function
+  const handleResizeStart = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>, annotationId: string, handle: 'nw' | 'ne' | 'sw' | 'se') => {
+    e.preventDefault();
+    let offsetX: number, offsetY: number;
+    if ('touches' in e) {
+      const touch = e.touches[0];
+      const rect = canvasRef.current?.getBoundingClientRect();
+      if (!rect) return;
+      offsetX = touch.clientX - rect.left;
+      offsetY = touch.clientY - rect.top;
+    } else {
+      const { offsetX: mouseX, offsetY: mouseY } = getCanvasCoordinates(e);
+      offsetX = mouseX;
+      offsetY = mouseY;
+    }
+    setResizingAnnotation({
+      id: annotationId,
+      handle,
+      startCoords: { x: offsetX, y: offsetY }
+    });
+  };
 
   return (
     <div 
@@ -560,12 +955,16 @@ const Canvas: React.FC<CanvasProps> = ({
           display: isImageLoaded ? 'block' : 'none',
           opacity: isImageLoaded ? 1 : 0,
           transition: 'opacity 0.2s ease-in-out',
-          objectFit: 'fill'
+          objectFit: 'fill',
+          cursor: cursorStyle
         }}
         onMouseDown={handlePointerDown}
-        onMouseMove={handlePointerMove}
+        onMouseMove={(e) => {
+          handlePointerMove(e);
+          handleMouseMove(e);
+        }}
         onMouseUp={handlePointerUp}
-        onMouseLeave={handlePointerUp}
+        onMouseLeave={handlePointerCancel}
         onTouchStart={handlePointerDown}
         onTouchMove={handlePointerMove}
         onTouchEnd={handlePointerUp}
@@ -575,11 +974,80 @@ const Canvas: React.FC<CanvasProps> = ({
       {!isImageLoaded && (
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="animate-pulse flex items-center">
-            <div className="w-4 h-4 bg-ocean-medium rounded-full mr-2 animate-bounce"></div>
+            <div className="w-4 h-4 bg-ocean-medium rounded-full mr-2"></div>
             Loading image...
           </div>
         </div>
       )}
+
+      {/* Label Selection Popup */}
+      {showLabelPopup && tempAnnotation && (
+        <div 
+          className="absolute z-50 bg-white rounded-lg shadow-lg p-2 border border-gray-200"
+          style={{
+            left: `${popupPosition.x}px`,
+            top: `${popupPosition.y}px`,
+            transform: 'translate(-50%, -100%)',
+            marginTop: '-8px',
+            maxWidth: '200px',
+            maxHeight: '300px',
+            overflowY: 'auto'
+          }}
+        >
+          <div className="flex flex-col gap-1">
+            {availableLabels.map((label) => (
+              <Button
+                key={label}
+                variant="outline"
+                size="sm"
+                onClick={() => handleLabelSelect(label)}
+                className="text-xs whitespace-nowrap"
+                style={{
+                  borderColor: labelColors[label],
+                  color: labelColors[label]
+                }}
+              >
+                {label}
+              </Button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Add overlay delete button rendering */}
+      <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 2 }}>
+        {annotations.map(annotation => {
+          // Always use up-to-date display coordinates for delete button position
+          const displayCoords = annotation._displayCoordinates || scaleToDisplay(annotation.coordinates);
+          const delBtn = getDeleteButtonPosition(displayCoords);
+          if (!delBtn) return null;
+          const { x, y } = delBtn;
+          const isHovered = hoveredAnnotationId === annotation.id;
+          return (
+            <button
+              key={`delete-${annotation.id}`}
+              className={`absolute bg-white rounded-full shadow-lg flex items-center justify-center transition-all duration-200 pointer-events-auto border border-gray-300 cursor-pointer z-50 ${isHovered ? 'scale-110 bg-red-50 ring-2 ring-red-200' : 'hover:bg-red-50'}`}
+              style={{
+                left: `${x}px`,
+                top: `${y}px`,
+                transform: 'translate(-50%, -50%)',
+                width: `${BASE_DELETE_BTN_SIZE}px`,
+                height: `${BASE_DELETE_BTN_SIZE}px`,
+                position: 'absolute',
+                zIndex: 50
+              }}
+              onClick={(e) => {
+                e.stopPropagation();
+                const updatedAnnotations = annotations.filter(a => a.id !== annotation.id);
+                onAnnotationUpdate(updatedAnnotations);
+              }}
+              aria-label="Delete annotation"
+            >
+              <X className="w-4 h-4 text-red-600" />
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 };

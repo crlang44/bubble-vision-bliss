@@ -1,3 +1,4 @@
+import * as React from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -5,20 +6,43 @@ import {
   DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogTitle
+  DialogTitle,
+  DialogPortal,
+  DialogOverlay
 } from '@/components/ui/dialog';
+import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { useIsTablet } from '@/hooks/use-mobile';
 import { CheckCircle, Fish, RefreshCcw, Trophy, Zap, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import BubbleBackground from '../components/BubbleBackground';
 import Canvas from '../components/Canvas';
-import Instructions from '../components/Instructions';
-import NavBar from '../components/NavBar';
 import ScoreBoard from '../components/ScoreBoard';
 import Timer from '../components/Timer';
 import { OceanImage, getProgressiveImageSet, getAllLabelsFromImageSet } from '../data/oceanImages';
 import { routes } from '../routes';
 import { Annotation, AnnotationType, calculateScore, labelColors } from '../utils/annotationUtils';
+import GameLayout from '../components/GameLayout';
+import { cn } from '@/lib/utils';
+
+// Custom DialogContent without close button
+const GameCompletionDialogContent = React.forwardRef<
+  React.ElementRef<typeof DialogPrimitive.Content>,
+  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
+>(({ className, children, ...props }, ref) => (
+  <DialogPortal>
+    <DialogOverlay />
+    <DialogPrimitive.Content
+      ref={ref}
+      className={cn(
+        "fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg",
+        className
+      )}
+      {...props}
+    >
+      {children}
+    </DialogPrimitive.Content>
+  </DialogPortal>
+));
+GameCompletionDialogContent.displayName = "GameCompletionDialogContent";
 
 const OceanAnnotationGamePage = () => {
   const isTablet = useIsTablet();
@@ -30,13 +54,13 @@ const OceanAnnotationGamePage = () => {
     return localStorage.getItem('hasSeenInstructions') === 'true';
   });
   const [selectedTool, setSelectedTool] = useState<AnnotationType>('rectangle');
-  const [currentLabel, setCurrentLabel] = useState('Whale');
+  const [currentLabel, setCurrentLabel] = useState('Great White Shark');
   const [annotations, setAnnotations] = useState<Annotation[]>([]);
   const [selectedImage, setSelectedImage] = useState<OceanImage | null>(null);
   const [timeBonus, setTimeBonus] = useState(15);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
   const [imageSubmitted, setImageSubmitted] = useState(false);
-  const [availableLabels, setAvailableLabels] = useState<string[]>(['Whale', 'Fish']);
+  const [availableLabels, setAvailableLabels] = useState<string[]>(['Kelp', 'Great White Shark']);
   const [showGroundTruth, setShowGroundTruth] = useState(false);
   const [currentRound, setCurrentRound] = useState(1);
   const [currentImages, setCurrentImages] = useState<OceanImage[]>([]);
@@ -117,38 +141,23 @@ const OceanAnnotationGamePage = () => {
   };
 
   const handleAnnotationComplete = (annotation: Annotation) => {
-    const newAnnotations = [...annotations, annotation];
-    setAnnotations(newAnnotations);
+    // Check if this is an update to an existing annotation
+    const existingIndex = annotations.findIndex(a => a.id === annotation.id);
+    
+    if (existingIndex !== -1) {
+      // Update existing annotation
+      const newAnnotations = [...annotations];
+      newAnnotations[existingIndex] = annotation;
+      setAnnotations(newAnnotations);
+    } else {
+      // Add new annotation
+      const newAnnotations = [...annotations, annotation];
+      setAnnotations(newAnnotations);
 
-    // No longer start timer on first annotation
-
-    // Show first annotation tip if it's the first annotation for this session
-    if (newAnnotations.length === 1 && !hasShownFirstAnnotationTip) {
-      // Use a timeout to show the tip after the annotation is complete
-      // setTimeout(() => {
-      //   toast.info(
-      //     <div className="border border-blue-100 rounded-lg bg-blue-50/50 p-4">
-      //       <h3 className="text-lg font-semibold text-ocean-medium mb-3">Precision Matters!</h3>
-      //       <AnnotationScoreVisual className="mb-2" />
-      //       <p className="text-sm tablet-text-base text-blue-700 mt-3">
-      //         Draw tight boundaries around objects to maximize your score, but remember to complete all your annotations before time runs out!
-      //       </p>
-      //     </div>,
-      //     {
-      //       duration: 6000,
-      //       position: 'top-center',
-      //       style: {
-      //         width: '500px',
-      //         maxWidth: '90vw',
-      //         margin: '0 auto'
-      //       }
-      //     }
-      //   );
-
-      //   // Mark that we've shown the tip for this session only
-      //   setHasShownFirstAnnotationTip(true);
-      //   // Removed localStorage save
-      // }, 500);
+      // Show first annotation tip if it's the first annotation for this session
+      if (newAnnotations.length === 1 && !hasShownFirstAnnotationTip) {
+        setHasShownFirstAnnotationTip(true);
+      }
     }
   };
 
@@ -313,229 +322,220 @@ const OceanAnnotationGamePage = () => {
   }, [isTimerRunning]);
 
   return (
-    <div className="min-h-screen bg-ocean-gradient relative">
-      <div className="container mx-auto px-4 pt-4 relative z-50">
-        <NavBar
-          pageType="annotation"
-          bestScore={bestScore}
-          setShowInstructions={setShowInstructions}
-        />
-      </div>
+    <GameLayout
+      pageType="annotation"
+      bestScore={bestScore}
+      setShowInstructions={setShowInstructions}
+    >
+      {/* Instructions Dialog */}
+      <Dialog
+        open={showInstructions}
+        onOpenChange={(open) => {
+          if (!open) {
+            console.log("Closing instructions");
+            setShowInstructions(false);
+            setHasSeenInstructions(true);
+            localStorage.setItem('hasSeenInstructions', 'true');
+            setIsTimerRunning(false);
+          }
+        }}
+      >
+        <DialogContent className="bg-white max-w-lg w-full shadow-xl">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold text-ocean-dark flex items-center gap-2">
+              <Fish className="h-8 w-8" />
+              Ocean Explorer Challenge
+            </DialogTitle>
+            <DialogDescription className="text-gray-700">
+              Become an ocean scientist! 🐋
+            </DialogDescription>
+          </DialogHeader>
 
-      <BubbleBackground bubbleCount={30} />
+          <div className="bg-blue-50 p-4 rounded-lg">
+            <ul className="list-disc pl-5 text-gray-700 space-y-2">
+              <li>🎯 Find and draw boxes around ocean creatures</li>
+              <li>🏷️ Pick the right name for each creature</li>
+              <li>⏰ Race against the clock!</li>
+              <li>⭐ Get bonus points for speed and accuracy</li>
+            </ul>
+          </div>
 
-      <div className="container mx-auto py-6 px-4 relative z-10">
+          <DialogFooter>
+            <Button
+              className="w-full bg-ocean-dark hover:bg-ocean-darker text-white text-lg py-6"
+              onClick={() => {
+                console.log("Closing instructions");
+                setShowInstructions(false);
+                setHasSeenInstructions(true);
+                localStorage.setItem('hasSeenInstructions', 'true');
+                setIsTimerRunning(false);
+              }}
+            >
+              Let's Explore! 🌊
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
-        {/* Instructions Dialog */}
-        <Dialog
-          open={showInstructions}
-          onOpenChange={(open) => {
-            if (!open) {
-              console.log("Closing instructions");
-              setShowInstructions(false);
-              setHasSeenInstructions(true);
-              localStorage.setItem('hasSeenInstructions', 'true');
-              // Don't start timer when closing instructions - wait for Start Game
-              setIsTimerRunning(false);
-            }
-          }}
-        >
-          <DialogContent className="bg-white max-w-lg w-full shadow-xl">
-            <DialogHeader>
-              <DialogTitle className="text-2xl font-bold text-ocean-dark">
-                Ocean Annotation
-              </DialogTitle>
-              <DialogDescription className="text-gray-700">
-                Learn how to play the annotation challenge
-              </DialogDescription>
-            </DialogHeader>
-
-            <div className="bg-blue-50 p-4 rounded-lg">
-              <ul className="list-disc pl-5 text-gray-700 space-y-2">
-                <li>Draw boxes around ocean creatures in each image</li>
-                <li>Choose the correct label for each creature</li>
-                <li>Submit before time runs out</li>
-                <li>Faster and more accurate = higher score!</li>
-              </ul>
-            </div>
-
-            <DialogFooter>
-              <Button
-                className="w-full bg-ocean-dark hover:bg-ocean-darker text-white"
-                onClick={() => {
-                  console.log("Closing instructions");
-                  setShowInstructions(false);
-                  setHasSeenInstructions(true);
-                  localStorage.setItem('hasSeenInstructions', 'true');
-                  // Don't start timer when closing instructions - wait for Start Game
-                  setIsTimerRunning(false);
-                }}
-              >
-                Let's Play!
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-
-        {/* Start Game screen */}
-        {!gameStarted && !showInstructions && (
-          <div className="flex justify-center">
-            <div className="w-full max-w-4xl relative aspect-[16/9] bg-white rounded-xl shadow-lg overflow-hidden flex items-center justify-center">
-              <div className="flex items-center justify-center h-full">
-                <div className="p-8 text-center">
-                  <Fish className="h-16 w-16 text-ocean-dark mx-auto mb-4" />
-                  <h2 className="text-2xl font-bold text-ocean-dark mb-4">
-                    Dive Into Ocean Annotation!
-                  </h2>
-                  <p className="text-gray-700 mb-6">
-                    Draw boxes around ocean creatures as quickly and accurately as possible!
-                  </p>
-                  <Button
-                    className="bg-ocean-dark hover:bg-ocean-darker text-white text-lg px-8 py-6 h-auto"
-                    onClick={() => {
-                      setGameStarted(true);
-                      setIsTimerRunning(true);
-                    }}
-                  >
-                    Start Game
-                  </Button>
-                </div>
+      {/* Start Game screen */}
+      {!gameStarted && !showInstructions && (
+        <div className="flex justify-center">
+          <div className="w-full max-w-4xl relative aspect-[16/9] bg-white rounded-xl shadow-lg overflow-hidden flex items-center justify-center">
+            <div className="flex items-center justify-center h-full">
+              <div className="p-8 text-center">
+                <h2 className="text-3xl font-bold text-ocean-dark mb-4">
+                  Ready to Explore the Ocean? 🌊
+                </h2>
+                <p className="text-gray-700 mb-6 text-lg">
+                  Draw boxes around amazing ocean creatures and become a marine scientist!
+                </p>
+                <Button
+                  className="bg-ocean-dark hover:bg-ocean-darker text-white text-xl px-8 py-6 h-auto animate-pulse"
+                  onClick={() => {
+                    setGameStarted(true);
+                    setIsTimerRunning(true);
+                  }}
+                >
+                  Start Adventure! 🚀
+                </Button>
               </div>
             </div>
           </div>
-        )}
+        </div>
+      )}
 
-        {/* Main annotation UI, only show if gameStarted */}
-        {gameStarted && (
-          <div className="flex justify-center">
-            <div className="w-full max-w-6xl space-y-4">
-              <div className="bg-white rounded-xl p-3 shadow-md">
-                <Timer
-                  key={timerResetKey}
-                  duration={TIMER_DURATION}
-                  onTimeUp={handleTimeUp}
-                  isRunning={isTimerRunning && !showInstructions}
-                  onTimerUpdate={handleTimerUpdate}
-                />
-              </div>
+      {/* Main annotation UI, only show if gameStarted */}
+      {gameStarted && !showInstructions && (
+        <div className="flex justify-center">
+          <div className="w-full max-w-6xl space-y-4">
+            <div className="bg-white rounded-xl p-3 shadow-md">
+              <Timer
+                key={timerResetKey}
+                duration={TIMER_DURATION}
+                onTimeUp={handleTimeUp}
+                isRunning={isTimerRunning && !showInstructions}
+                onTimerUpdate={handleTimerUpdate}
+              />
+            </div>
 
-              <div className="flex gap-4">
-                <div className="flex-1 relative aspect-[16/9] bg-white rounded-xl shadow-lg overflow-hidden flex items-center justify-center">
-                  {selectedImage ? (
-                    <Canvas
-                      imageUrl={selectedImage.imagePath}
-                      selectedTool={selectedTool}
-                      currentLabel={currentLabel}
-                      onAnnotationComplete={handleAnnotationComplete}
-                      annotations={annotations}
-                      onAnnotationUpdate={setAnnotations}
-                      targetAnnotations={selectedImage.targetAnnotations}
-                      showGroundTruth={showGroundTruth}
-                      onToggleGroundTruth={() => setShowGroundTruth(!showGroundTruth)}
-                      originalWidth={selectedImage.originalWidth}
-                      originalHeight={selectedImage.originalHeight}
-                      disabled={imageSubmitted}
-                    />
-                  ) : (
-                    <div className="flex items-center justify-center h-full">
-                      <p>Please select an image</p>
-                    </div>
-                  )}
-                </div>
-
-                <div className="w-80 bg-white rounded-xl p-4 shadow-md flex flex-col justify-between">
-                  {/* Annotation Tools or ScoreBoard */}
-                  {!imageSubmitted && selectedImage ? (
-                    <div className="flex flex-col gap-3">
-                      <p className="text-sm text-gray-700 text-center">
-                        Drag to draw boxes around objects in the image. <br />
-                      </p>
-                      <div className="flex flex-col gap-3">
-                        <div className="flex flex-wrap gap-2 justify-center">
-                          {availableLabels.map((label) => (
-                            <Button
-                              key={label}
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleLabelChange(label)}
-                              className={`text-xs ${currentLabel === label
-                                  ? `bg-${labelColors[label]?.slice(1)}/20 border-${labelColors[label]?.slice(1)}/30 text-${labelColors[label]?.slice(1)}`
-                                  : ''
-                                }`}
-                              style={{
-                                borderColor: currentLabel === label ? labelColors[label] : undefined,
-                                color: currentLabel === label ? labelColors[label] : undefined
-                              }}
-                            >
-                              {label}
-                            </Button>
-                          ))}
-                        </div>
-
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={handleClearAnnotations}
-                          className="text-gray-500 hover:text-red-500 flex items-center gap-2"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                          Clear All
-                        </Button>
-                      </div>
-                      <p className="text-sm text-gray-700 text-center">
-                        Make sure to select the correct type.
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="flex justify-center">
-                      <ScoreBoard
-                        userAnnotations={annotations}
-                        targetAnnotations={selectedImage?.targetAnnotations || []}
-                        timeBonus={timeBonus}
-                        isComplete={imageSubmitted}
-                        cumulativeScore={cumulativeScore}
-                        onScoreChange={handleScoreUpdate}
-                      />
-                    </div>
-                  )}
-                  
-                  {/* Submit/Next/Replay Buttons */}
-                  <div className="flex flex-col gap-2 mt-4">
-                    {!imageSubmitted ? (
-                      <Button
-                        onClick={handleSubmit}
-                        className="btn-coral flex items-center gap-1 justify-center"
-                        disabled={!selectedImage || annotations.length === 0}
-                      >
-                        <CheckCircle className="h-4 w-4" /> Submit
-                      </Button>
-                    ) : (
-                      <>
-                        <Button
-                          onClick={handleNewImage}
-                          className="btn-coral flex items-center gap-1 justify-center"
-                          disabled={isLastImage && allImagesAnnotated}
-                        >
-                          <Fish className="h-4 w-4" />
-                          {isLastImage && allImagesAnnotated ? 'All Images Complete!' : 'Next Image'}
-                        </Button>
-                        {isLastImage && allImagesAnnotated && (
-                          <Button
-                            onClick={handlePlayAgain}
-                            className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white flex items-center gap-1 justify-center"
-                          >
-                            <RefreshCcw className="h-4 w-4" /> Replay
-                          </Button>
-                        )}
-                      </>
-                    )}
+            <div className="flex gap-4">
+              <div className="flex-1 relative aspect-[16/9] bg-white rounded-xl shadow-lg overflow-hidden flex items-center justify-center">
+                {selectedImage ? (
+                  <Canvas
+                    imageUrl={selectedImage.imagePath}
+                    selectedTool={selectedTool}
+                    currentLabel={currentLabel}
+                    onAnnotationComplete={handleAnnotationComplete}
+                    annotations={annotations}
+                    onAnnotationUpdate={setAnnotations}
+                    targetAnnotations={selectedImage.targetAnnotations}
+                    showGroundTruth={showGroundTruth}
+                    onToggleGroundTruth={() => setShowGroundTruth(!showGroundTruth)}
+                    originalWidth={selectedImage.originalWidth}
+                    originalHeight={selectedImage.originalHeight}
+                    disabled={imageSubmitted}
+                    availableLabels={availableLabels}
+                    onLabelChange={handleLabelChange}
+                  />
+                ) : (
+                  <div className="flex items-center justify-center h-full">
+                    <p>Please select an image</p>
                   </div>
+                )}
+              </div>
+
+              <div className="w-80 bg-white rounded-xl p-4 shadow-md flex flex-col justify-between">
+                {/* Annotation Tools or ScoreBoard */}
+                {!imageSubmitted && selectedImage ? (
+                  <div className="flex flex-col gap-3">
+                    <p className="text-sm text-gray-700 text-center">
+                      Drag to draw boxes around objects in the image. <br />
+                    </p>
+                    <div className="flex flex-col gap-3">
+                      <div className="flex flex-wrap gap-2 justify-center">
+                        {availableLabels.map((label) => (
+                          <Button
+                            key={label}
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleLabelChange(label)}
+                            className={`text-xs ${currentLabel === label
+                                ? `bg-${labelColors[label]?.slice(1)}/20 border-${labelColors[label]?.slice(1)}/30 text-${labelColors[label]?.slice(1)}`
+                                : ''
+                              }`}
+                            style={{
+                              borderColor: currentLabel === label ? labelColors[label] : undefined,
+                              color: currentLabel === label ? labelColors[label] : undefined
+                            }}
+                          >
+                            {label}
+                          </Button>
+                        ))}
+                      </div>
+
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleClearAnnotations}
+                        className="text-gray-500 hover:text-red-500 flex items-center gap-2"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                        Clear All
+                      </Button>
+                    </div>
+                    <p className="text-sm text-gray-700 text-center">
+                      Make sure to select the correct type.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="flex justify-center">
+                    <ScoreBoard
+                      userAnnotations={annotations}
+                      targetAnnotations={selectedImage?.targetAnnotations || []}
+                      timeBonus={timeBonus}
+                      isComplete={imageSubmitted}
+                      cumulativeScore={cumulativeScore}
+                      onScoreChange={handleScoreUpdate}
+                    />
+                  </div>
+                )}
+                
+                {/* Submit/Next/Replay Buttons */}
+                <div className="flex flex-col gap-2 mt-4">
+                  {!imageSubmitted ? (
+                    <Button
+                      onClick={handleSubmit}
+                      className="btn-coral flex items-center gap-1 justify-center"
+                      disabled={!selectedImage || annotations.length === 0}
+                    >
+                      <CheckCircle className="h-4 w-4" /> Submit
+                    </Button>
+                  ) : (
+                    <>
+                      <Button
+                        onClick={handleNewImage}
+                        className="btn-coral flex items-center gap-1 justify-center"
+                        disabled={isLastImage && allImagesAnnotated}
+                      >
+                        <Fish className="h-4 w-4" />
+                        {isLastImage && allImagesAnnotated ? 'All Images Complete!' : 'Next Image'}
+                      </Button>
+                      {isLastImage && allImagesAnnotated && (
+                        <Button
+                          onClick={handlePlayAgain}
+                          className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white flex items-center gap-1 justify-center"
+                        >
+                          <RefreshCcw className="h-4 w-4" /> Replay
+                        </Button>
+                      )}
+                    </>
+                  )}
                 </div>
               </div>
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Game Completion Dialog */}
       <Dialog
@@ -544,11 +544,12 @@ const OceanAnnotationGamePage = () => {
           setShowCompletionDialog(open);
         }}
       >
-        <DialogContent
+        <GameCompletionDialogContent
           onInteractOutside={(e) => {
             e.preventDefault();
           }}
-          className="bg-gradient-to-b from-blue-50 to-white border-blue-200 max-w-md">
+          className="bg-gradient-to-b from-blue-50 to-white border-blue-200 max-w-md"
+        >
           <DialogHeader>
             <DialogTitle className="text-2xl text-center flex items-center justify-center gap-2">
               <Trophy className="text-yellow-500 h-6 w-6" />
@@ -557,9 +558,19 @@ const OceanAnnotationGamePage = () => {
             <DialogDescription className="text-center text-gray-700 mt-2">
               You've completed the ocean annotation challenge!
             </DialogDescription>
-          </DialogHeader>
 
+          </DialogHeader>
+          <div className="text-center">
+              {cumulativeScore >= 100 ? (
+                  <p className="text-green-600 font-medium">Amazing job! You're an annotation expert!</p>
+                ) : cumulativeScore >= 70 ? (
+                  <p className="text-blue-600 font-medium">Good work! Keep practicing to improve!</p>
+                ) : (
+                  <p className="text-amber-600 font-medium">Nice try! Practice makes perfect!</p>
+                )}
+          </div>
           <div className="py-4 flex flex-col items-center">
+            {/* Current score display */}
             <div className="bg-ocean-gradient p-6 rounded-lg shadow-inner w-full mb-4">
               <div className="text-center">
                 <div className="text-white/80 mb-1">Your score</div>
@@ -580,33 +591,27 @@ const OceanAnnotationGamePage = () => {
               </div>
             )}
 
-            {cumulativeScore >= 100 ? (
-              <p className="text-green-600 font-medium">Amazing job! You're an annotation expert!</p>
-            ) : cumulativeScore >= 70 ? (
-              <p className="text-blue-600 font-medium">Good work! Keep practicing to improve!</p>
-            ) : (
-              <p className="text-amber-600 font-medium">Nice try! Practice makes perfect!</p>
-            )}
           </div>
 
-          <DialogFooter className="flex flex-col gap-2 sm:flex-row">
+          <DialogFooter className="flex flex-col gap-2">
             <Button
-              className="w-full sm:w-auto"
+              className="w-full"
               variant="outline"
-              onClick={handlePlayAgain}
-            >
-              <RefreshCcw className="h-4 w-4 mr-2" /> Try Again
-            </Button>
-            <Button
-              className="w-full sm:w-auto bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white"
               onClick={handleGoToQuickIDGame}
             >
-              <Zap className="h-4 w-4 mr-2" /> Try Quick ID
+              <Zap className="h-4 w-4 mr-2" /> Play Quick ID
             </Button>
+            <Button
+              className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white"
+              onClick={handlePlayAgain}
+            >
+              <RefreshCcw className="h-4 w-4 mr-2" /> Play Again
+            </Button>
+           
           </DialogFooter>
-        </DialogContent>
+        </GameCompletionDialogContent>
       </Dialog>
-    </div>
+    </GameLayout>
   );
 };
 

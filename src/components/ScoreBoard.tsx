@@ -159,15 +159,15 @@ const ScoreBoard: React.FC<ScoreBoardProps> = ({
   let feedbackIcon = null;
   if (finalScore >= 100) {
     feedbackMsg = "Amazing job! You're an annotation expert!";
-    feedbackColor = 'text-green-600';
+    feedbackColor = 'text-green-500';
     feedbackIcon = <Award className="w-6 h-6 text-green-500" />;
   } else if (finalScore >= 70) {
     feedbackMsg = 'Good work! Keep practicing to improve!';
-    feedbackColor = 'text-blue-600';
+    feedbackColor = 'text-blue-500';
     feedbackIcon = <Award className="w-6 h-6 text-blue-500" />;
   } else {
     feedbackMsg = 'Nice try! Practice makes perfect!';
-    feedbackColor = 'text-amber-600';
+    feedbackColor = 'text-amber-500';
     feedbackIcon = <Award className="w-6 h-6 text-amber-500" />;
   }
 

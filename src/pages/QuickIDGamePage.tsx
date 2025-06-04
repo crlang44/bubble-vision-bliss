@@ -1,7 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
 import QuickIDGame from "../components/QuickIDGame";
-import NavBar from "../components/NavBar";
-import BubbleBackground from "../components/BubbleBackground";
 import {
   Dialog,
   DialogContent,
@@ -13,12 +11,15 @@ import {
 import { Button } from "@/components/ui/button";
 import { Trophy, RefreshCcw, Zap } from "lucide-react";
 import { routes } from "../routes";
+import GameLayout from "../components/GameLayout";
 
 const QuickIDGamePage: React.FC = () => {
   const [showCompletionDialog, setShowCompletionDialog] = useState(false);
   const [finalScore, setFinalScore] = useState(0);
   const [allImagesAnnotated, setAllImagesAnnotated] = useState(false);
-  const [showInstructions, setShowInstructions] = useState(false);
+  const [showInstructions, setShowInstructions] = useState(() => {
+    return localStorage.getItem("hasSeenQuickIDInstructions") !== "true";
+  });
   const [bestScore, setBestScore] = useState(() => {
     const saved = localStorage.getItem("quickIdBestScore");
     return saved ? parseInt(saved, 10) : 0;
@@ -41,7 +42,7 @@ const QuickIDGamePage: React.FC = () => {
 
   const handleGameComplete = (score: number, accuracy: number, allComplete: boolean) => {
     setFinalScore(score);
-    setAllImagesAnnotated(allComplete); // Use allComplete here
+    setAllImagesAnnotated(allComplete);
     
     // Update best score if current score is higher
     if (score > bestScore) {
@@ -49,7 +50,6 @@ const QuickIDGamePage: React.FC = () => {
       localStorage.setItem("quickIdBestScore", score.toString());
     }
     
-    // The 'accuracy' parameter is available if needed in the future
     console.log(`Game complete! Score: ${score}, Accuracy: ${accuracy}%, All images seen: ${allComplete}`);
   };
 
@@ -66,25 +66,17 @@ const QuickIDGamePage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-ocean-gradient relative">
-      {/* NavBar Component - Moved to top level for better visibility */}
-      <div className="container mx-auto py-6 px-4 relative z-50">
-        <NavBar 
-          pageType="quickId"
-          setShowInstructions={setShowInstructions}
-          bestScore={bestScore}
-        />
-      </div>
-      
-      <BubbleBackground bubbleCount={30} />
-      <div className="container mx-auto py-6 px-4 relative z-10">
-        <QuickIDGame 
-          onGameComplete={handleGameComplete}
-          showInstructions={showInstructions}
-          setShowInstructions={setShowInstructions}
-          resetGameRef={resetGameRef}
-        />
-      </div>
+    <GameLayout
+      pageType="quickId"
+      bestScore={bestScore}
+      setShowInstructions={setShowInstructions}
+    >
+      <QuickIDGame 
+        onGameComplete={handleGameComplete}
+        showInstructions={showInstructions}
+        setShowInstructions={setShowInstructions}
+        resetGameRef={resetGameRef}
+      />
 
       {/* Game Completion Dialog */}
       <Dialog
@@ -144,7 +136,7 @@ const QuickIDGamePage: React.FC = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </GameLayout>
   );
 };
 
