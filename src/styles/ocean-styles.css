@@ -297,15 +297,17 @@ canvas.touch-canvas {
   @apply touch-none;
 }
 
-/* Music control styles */
+/* Music Control Ocean Theme */
 .music-control-ocean {
-  @apply fixed bottom-4 right-4 z-50;
+  background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(240,248,255,0.95) 100%);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
 .music-control-ocean button:hover {
-  @apply scale-105;
+  background-color: rgba(59, 130, 246, 0.1);
 }
 
 .music-control-ocean input[type="range"] {
-  @apply w-24;
+  accent-color: #3b82f6;
 }

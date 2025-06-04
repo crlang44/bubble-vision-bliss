@@ -2,18 +2,19 @@
  * Application routes configuration
  */
 export const routes = {
-    home: '/',
+    home: '/ocean-annotation',
+    oceanAnnotation: '/ocean-annotation',
     groundTruthEditor: '/ground-truth-editor',
-    quickIdGame: '/quick-id-game'
+    quickId: '/quick-id'
   };
   
   /**
    * Application route labels
    */
   export const routeLabels = {
-    [routes.home]: 'Ocean Annotation',
+    [routes.oceanAnnotation]: 'Ocean Annotation',
     [routes.groundTruthEditor]: 'Ground Truth Editor',
-    [routes.quickIdGame]: 'Quick ID Game'
+    [routes.quickId]: 'Quick ID'
   };
   
   /**

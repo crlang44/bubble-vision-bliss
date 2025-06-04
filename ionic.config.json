@@ -1,0 +1,7 @@
+{
+  "name": "ai-4-ocean",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "custom"
+}

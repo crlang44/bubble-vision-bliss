@@ -172,50 +172,57 @@ const ScoreBoard: React.FC<ScoreBoardProps> = ({
   }
 
   return (
-    <div>
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-stretch sm:justify-between divide-y sm:divide-y-0 sm:divide-x divide-gray-200">
-        {/* Total Score */}
-        <div className="flex-1 flex flex-col items-center justify-center pb-4 sm:pb-0 sm:pr-6">
-          <div className="flex items-center gap-2 mb-1">
-            <Award className="text-yellow-300 w-6 h-6" />
-            <span className="text-ocean-dark font-bold text-lg">Total Score</span>
+    <div className="w-full overflow-hidden">
+      <div className="flex flex-col gap-2"> 
+        <div className='flex flex-row'>
+          {/* Total Score */}
+          <div className="flex flex-col flex-1 items-center justify-center p-3 bg-gray-50 rounded-lg">
+            <div className="flex items-center gap-2 mb-2">
+              <Award className="text-yellow-300 w-6 h-6 flex-shrink-0" />
+              <span className="text-ocean-dark font-bold text-lg text-center">Total Score</span>
+            </div>
+            <span className={`text-1xl font-bold text-ocean-dark ${isAnimating ? 'animate-pulse' : ''}`}>{displayCumulativeScore}</span>
           </div>
-          <span className={`text-3xl font-bold text-ocean-dark ${isAnimating ? 'animate-pulse' : ''}`}>{displayCumulativeScore}</span>
         </div>
-        {/* Annotation Accuracy */}
-        <div className="flex-1 flex flex-col items-center justify-center py-4 sm:py-0 sm:px-6">
-          <div className="flex items-center gap-2 mb-1">
-            <Target className="w-4 h-4 text-ocean-medium" />
-            <span className="text-gray-700 font-medium">Accuracy</span>
+        <div className='flex flex-row mb-1'>
+          {/* Annotation Accuracy */}
+          <div className="flex flex-col flex-1/2 items-center justify-center p-3 bg-gray-50 rounded-lg">
+            <div className="flex items-center gap-2">
+              <Target className="w-5 h-5 text-ocean-medium flex-shrink-0" />
+              <span className="text-gray-700 font-medium text-lg">Accuracy</span>
+            </div>
+            <span className="text-1xl font-bold text-ocean-dark">{accuracy}%</span>
           </div>
-          <span className="text-2xl font-bold text-ocean-dark">{accuracy}%</span>
-        </div>
-        {/* Time Bonus */}
-        <div className="flex-1 flex flex-col items-center justify-center py-4 sm:py-0 sm:px-6">
-          <div className="flex items-center gap-2 mb-1">
-            <Clock className="w-4 h-4 text-ocean-medium" />
-            <span className="text-gray-700 font-medium">Time Bonus</span>
+          {/* Time Bonus */}
+          <div className="flex flex-col flex-1/2 ml-auto items-center justify-center p-3 bg-gray-50 rounded-lg">
+            <div className="flex items-center gap-2">
+              <Clock className="w-5 h-5 text-ocean-medium flex-shrink-0" />
+              <span className="text-gray-700 font-medium text-lg">Time Bonus</span>
+            </div>
+            <span className="text-1xl font-bold text-ocean-dark">+{actualTimeBonus} pts</span>
           </div>
-          <span className="text-2xl font-bold text-ocean-dark">+{actualTimeBonus} pts</span>
         </div>
         {/* Feedback Message */}
-        <div className="flex-1 flex flex-col items-center justify-center pt-4 sm:pt-0 sm:pl-6">
-          <div className={`flex items-center gap-2 mb-1 ${feedbackColor}`}>{feedbackIcon}<span className="font-semibold">{feedbackMsg}</span></div>
+        <div className="flex flex-col flex-1 items-center justify-center p-3 bg-gray-50 rounded-lg">
+          <div className={`flex items-center gap-2 mb-2 ${feedbackColor} text-center`}>
+            {feedbackIcon && <div className="flex-shrink-0">{feedbackIcon}</div>}
+            <span className="font-semibold text-lg break-words">{feedbackMsg}</span>
+          </div>
         </div>
       </div>
       {/* Annotation breakdown (optional, can be toggled or shown below) */}
-      <div className="mt-4">
-        <h4 className="text-sm font-medium text-gray-600 flex items-center gap-1 mb-2">
-          <Target className="w-4 h-4" /> Annotation Breakdown
+      <div className="mt-6 w-full overflow-hidden">
+        <h4 className="text-base font-medium text-gray-600 flex items-center gap-2 mb-3">
+          <Target className="w-5 h-5 flex-shrink-0" /> Annotation Breakdown
         </h4>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+        <div className={`grid gap-3 ${annotationScores.length === 1 ? 'grid-cols-1' : 'grid-cols-1 sm:grid-cols-2'}`}>
           {annotationScores.map((item, index) => (
-            <div key={index} className="flex justify-between items-center bg-gray-50 rounded px-2 py-1">
-              <div className="flex items-center gap-2">
-                <div className={`w-3 h-3 rounded-full ${item.found ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                <span className="text-sm">{item.label}</span>
+            <div key={index} className="flex flex-row justify-between items-center bg-white border border-gray-200 rounded-lg px-4 py-3 shadow-sm">
+              <div className="flex flex-1 items-center gap-3">
+                <div className={`w-4 h-4 rounded-full flex-shrink-0 ${item.found ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                <span className="text-base font-medium text-gray-700">{item.label}</span>
               </div>
-              <span className="font-medium">{item.score}%</span>
+              <span className="font-bold text-lg text-ocean-dark">{item.score}%</span>
             </div>
           ))}
         </div>

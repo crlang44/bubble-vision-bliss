@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { AlertCircle, Clock } from 'lucide-react';
-import { Progress } from "@/components/ui/progress";
+import { Clock } from 'lucide-react';
 
 interface TimerProps {
   duration: number; // in seconds
@@ -20,7 +19,22 @@ const Timer: React.FC<TimerProps> = ({ duration, onTimeUp, isRunning, onTimerUpd
     setTimeLeft(duration);
   }, [duration]);
   
-  // Set up the timer effect
+  // Use refs to avoid unnecessary interval recreation
+  const timerRef = React.useRef<{
+    timerId: number | null;
+    duration: number;
+    onTimeUp: () => void;
+    onTimerUpdate?: (timeLeft: number) => void;
+    isWarning: boolean;
+  }>({
+    timerId: null,
+    duration,
+    onTimeUp,
+    onTimerUpdate,
+    isWarning,
+  });
+  
+  // Keep ref values up to date
   useEffect(() => {
     // Clear any existing interval
     if (intervalId) {
@@ -30,8 +44,11 @@ const Timer: React.FC<TimerProps> = ({ duration, onTimeUp, isRunning, onTimerUpd
     
     // Only start if isRunning is true
     if (!isRunning) {
+      console.log('Timer stopped');
       return;
     }
+    
+    console.log('Timer starting/continuing');
     
     // Create a new interval
     const id = window.setInterval(() => {
@@ -60,13 +77,14 @@ const Timer: React.FC<TimerProps> = ({ duration, onTimeUp, isRunning, onTimerUpd
     // Store the interval ID
     setIntervalId(id);
     
-    // Clean up on unmount or when dependencies change
+    // Clean up on unmount
     return () => {
       if (id) {
+        console.log('Cleaning up timer interval');
         clearInterval(id);
       }
     };
-  }, [isRunning, onTimeUp, isWarning, onTimerUpdate, duration]);
+  }, [isRunning]);
   
   // Format time as seconds only
   const formatTime = (seconds: number): string => `${seconds} sec${seconds !== 1 ? 's' : ''}`;

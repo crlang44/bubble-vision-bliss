@@ -44,7 +44,7 @@ export interface OceanImage {
 const categoryMap: Record<number, string> = {
   1: 'Great White Shark',
   2: 'Kelp',
-  3: 'Human',
+  3: 'Swimmer',
   4: 'Surfer',
   5: 'Dolphin',
   6: 'Bat Ray',
@@ -164,6 +164,17 @@ export const getProgressiveImageSet = (round: number = 1, imagesPerRound: number
   
   // Combine images in order of difficulty (easy → medium → hard)
   return [...selectedEasy, ...selectedMedium, ...selectedHard];
+};
+
+// Utility function to get all unique labels from a set of images
+export const getAllLabelsFromImageSet = (images: OceanImage[]): string[] => {
+  const allLabels = new Set<string>();
+  images.forEach(image => {
+    image.targetAnnotations.forEach(annotation => {
+      allLabels.add(annotation.label);
+    });
+  });
+  return Array.from(allLabels).sort(); // Sort for consistent ordering
 };
 
 // Default fallback data in case the JSON loading fails
