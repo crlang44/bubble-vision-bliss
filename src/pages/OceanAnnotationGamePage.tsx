@@ -332,7 +332,6 @@ const OceanAnnotationGamePage = () => {
         open={showInstructions}
         onOpenChange={(open) => {
           if (!open) {
-            console.log("Closing instructions");
             setShowInstructions(false);
             setHasSeenInstructions(true);
             localStorage.setItem('hasSeenInstructions', 'true');
@@ -350,7 +349,6 @@ const OceanAnnotationGamePage = () => {
               Become an ocean scientist! 🐋
             </DialogDescription>
           </DialogHeader>
-
           <div className="bg-blue-50 p-4 rounded-lg">
             <ul className="list-disc pl-5 text-gray-700 space-y-2">
               <li>🎯 Find and draw boxes around ocean creatures</li>
@@ -359,12 +357,10 @@ const OceanAnnotationGamePage = () => {
               <li>⭐ Get bonus points for speed and accuracy</li>
             </ul>
           </div>
-
           <DialogFooter>
             <Button
               className="w-full bg-ocean-dark hover:bg-ocean-darker text-white text-lg py-6"
               onClick={() => {
-                console.log("Closing instructions");
                 setShowInstructions(false);
                 setHasSeenInstructions(true);
                 localStorage.setItem('hasSeenInstructions', 'true');
@@ -376,13 +372,13 @@ const OceanAnnotationGamePage = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      {/* Start Game screen */}
+      {/* Main Content */}
       {!gameStarted && !showInstructions && (
         <div className="flex justify-center">
           <div className="w-full max-w-4xl relative aspect-[16/9] bg-white rounded-xl shadow-lg overflow-hidden flex items-center justify-center">
             <div className="flex items-center justify-center h-full">
               <div className="p-8 text-center">
+                <Fish className="h-20 w-20 text-ocean-dark mx-auto mb-4" />
                 <h2 className="text-3xl font-bold text-ocean-dark mb-4">
                   Ready to Explore the Ocean? 🌊
                 </h2>
@@ -403,8 +399,6 @@ const OceanAnnotationGamePage = () => {
           </div>
         </div>
       )}
-
-      {/* Main annotation UI, only show if gameStarted */}
       {gameStarted && !showInstructions && (
         <div className="flex justify-center">
           <div className="w-full max-w-6xl space-y-4">
@@ -417,7 +411,6 @@ const OceanAnnotationGamePage = () => {
                 onTimerUpdate={handleTimerUpdate}
               />
             </div>
-
             <div className="flex gap-4">
               <div className="flex-1 relative aspect-[16/9] bg-white rounded-xl shadow-lg overflow-hidden flex items-center justify-center">
                 {selectedImage ? (
@@ -443,7 +436,6 @@ const OceanAnnotationGamePage = () => {
                   </div>
                 )}
               </div>
-
               <div className="w-80 bg-white rounded-xl p-4 shadow-md flex flex-col justify-between">
                 {/* Annotation Tools or ScoreBoard */}
                 {!imageSubmitted && selectedImage ? (
@@ -472,7 +464,6 @@ const OceanAnnotationGamePage = () => {
                           </Button>
                         ))}
                       </div>
-
                       <Button
                         variant="outline"
                         size="sm"
@@ -499,7 +490,6 @@ const OceanAnnotationGamePage = () => {
                     />
                   </div>
                 )}
-                
                 {/* Submit/Next/Replay Buttons */}
                 <div className="flex flex-col gap-2 mt-4">
                   {!imageSubmitted ? (
@@ -536,7 +526,6 @@ const OceanAnnotationGamePage = () => {
           </div>
         </div>
       )}
-
       {/* Game Completion Dialog */}
       <Dialog
         open={showCompletionDialog}
@@ -558,16 +547,15 @@ const OceanAnnotationGamePage = () => {
             <DialogDescription className="text-center text-gray-700 mt-2">
               You've completed the ocean annotation challenge!
             </DialogDescription>
-
           </DialogHeader>
           <div className="text-center">
-              {cumulativeScore >= 100 ? (
-                  <p className="text-green-600 font-medium">Amazing job! You're an annotation expert!</p>
-                ) : cumulativeScore >= 70 ? (
-                  <p className="text-blue-600 font-medium">Good work! Keep practicing to improve!</p>
-                ) : (
-                  <p className="text-amber-600 font-medium">Nice try! Practice makes perfect!</p>
-                )}
+            {cumulativeScore >= 100 ? (
+              <p className="text-green-600 font-medium">Amazing job! You're an annotation expert!</p>
+            ) : cumulativeScore >= 70 ? (
+              <p className="text-blue-600 font-medium">Good work! Keep practicing to improve!</p>
+            ) : (
+              <p className="text-amber-600 font-medium">Nice try! Practice makes perfect!</p>
+            )}
           </div>
           <div className="py-4 flex flex-col items-center">
             {/* Current score display */}
@@ -578,7 +566,6 @@ const OceanAnnotationGamePage = () => {
                 <div className="text-white/80 text-sm">Total points earned</div>
               </div>
             </div>
-
             {/* Best score display */}
             {bestScore > 0 && (
               <div className="bg-yellow-100 p-3 rounded-lg mb-4 w-full">
@@ -590,9 +577,7 @@ const OceanAnnotationGamePage = () => {
                 </div>
               </div>
             )}
-
           </div>
-
           <DialogFooter className="flex flex-col gap-2">
             <Button
               className="w-full"
@@ -607,7 +592,6 @@ const OceanAnnotationGamePage = () => {
             >
               <RefreshCcw className="h-4 w-4 mr-2" /> Play Again
             </Button>
-           
           </DialogFooter>
         </GameCompletionDialogContent>
       </Dialog>
