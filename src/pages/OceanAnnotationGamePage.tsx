@@ -455,18 +455,18 @@ const OceanAnnotationGamePage = () => {
                   {/* Annotation Tools or ScoreBoard */}
                   {!imageSubmitted && selectedImage ? (
                     <div className="flex flex-col gap-3">
-                      <p className="text-sm text-gray-700 text-center">
+                      <p className="text-base text-gray-700 text-center font-medium">
                         Drag to draw boxes around objects in the image. <br />
                       </p>
                       <div className="flex flex-col gap-3">
-                        <div className="flex flex-wrap gap-2 justify-center">
+                        <div className="flex flex-wrap gap-3 justify-center">
                           {availableLabels.map((label) => (
                             <Button
                               key={label}
                               variant="outline"
-                              size="sm"
+                              size="default"
                               onClick={() => handleLabelChange(label)}
-                              className={`text-xs ${currentLabel === label
+                              className={`text-base px-4 py-2 font-medium ${currentLabel === label
                                   ? `bg-${labelColors[label]?.slice(1)}/20 border-${labelColors[label]?.slice(1)}/30 text-${labelColors[label]?.slice(1)}`
                                   : ''
                                 }`}
@@ -482,15 +482,15 @@ const OceanAnnotationGamePage = () => {
 
                         <Button
                           variant="outline"
-                          size="sm"
+                          size="default"
                           onClick={handleClearAnnotations}
-                          className="text-gray-500 hover:text-red-500 flex items-center gap-2"
+                          className="text-base text-gray-500 hover:text-red-500 flex items-center gap-2 px-4 py-2"
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <Trash2 className="h-5 w-5" />
                           Clear All
                         </Button>
                       </div>
-                      <p className="text-sm text-gray-700 text-center">
+                      <p className="text-base text-gray-700 text-center font-medium">
                         Make sure to select the correct type.
                       </p>
                     </div>
