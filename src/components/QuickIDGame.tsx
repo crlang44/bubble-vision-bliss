@@ -1,10 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import {
-  Fish,
   CheckCircle,
   RefreshCcw,
-  Trophy, AlertTriangle
+  Trophy, AlertTriangle, Zap
 } from "lucide-react";
 import Timer from "./Timer";
 
@@ -86,9 +85,12 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({
   const [score, setScore] = useState(0);
   const [totalAttempts, setTotalAttempts] = useState(0);
   const [correctAnswersCount, setCorrectAnswersCount] = useState(0);
-  const [timePerImage, setTimePerImage] = useState(5000); // Start with 5 seconds per image
+  const [timePerImage, setTimePerImage] = useState(5000); // Start with 5 seconds
+  const [remainingImageTime, setRemainingImageTime] = useState(5000); // Track remaining time
   const [timeRemaining, setTimeRemaining] = useState(45); // Total game time in seconds
   const [currentImageStartTime, setCurrentImageStartTime] = useState(0); // Track when current image started
+  const [isPaused, setIsPaused] = useState(false);
+  const pauseStartTimeRef = useRef<number | null>(null);
   
   // Use external state if provided, otherwise use local state
   const [internalShowInstructions, setInternalShowInstructions] = useState(() => {
@@ -147,10 +149,29 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({
 
   // Handle image timer when image index changes or game starts
   useEffect(() => {
-    if (gameStarted && !gameOver) {
-      setImageTimer(timePerImage);
+    if (gameStarted && !gameOver && !showInstructions) {
+      if (isPaused) {
+        // Resume from paused state
+        const pauseDuration = pauseStartTimeRef.current ? Date.now() - pauseStartTimeRef.current : 0;
+        const newRemainingTime = Math.max(0, remainingImageTime - pauseDuration);
+        setImageTimer(newRemainingTime);
+        setIsPaused(false);
+        pauseStartTimeRef.current = null;
+      } else {
+        // Start new timer
+        setImageTimer(timePerImage);
+        setRemainingImageTime(timePerImage);
+      }
+    } else if (showInstructions && gameStarted && !gameOver) {
+      // Pause the timer
+      if (imageTimerRef.current) {
+        clearTimeout(imageTimerRef.current);
+        imageTimerRef.current = null;
+      }
+      setIsPaused(true);
+      pauseStartTimeRef.current = Date.now();
     }
-  }, [currentImageIndex, gameStarted]); // Trigger when image changes or game starts
+  }, [currentImageIndex, gameStarted, showInstructions, timePerImage, isPaused, remainingImageTime]);
 
   // Reset loading state when current image changes
   useEffect(() => {
@@ -209,8 +230,8 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({
       imageTimerRef.current = null;
     }
 
-    // Only set a new timer if the game is still active
-    if (gameStarted && !gameOver) {
+    // Only set a new timer if the game is still active and instructions are not shown
+    if (gameStarted && !gameOver && !showInstructions) {
       // Increment animation key to force restart of animation
       setAnimationKey((prev) => prev + 1);
 
@@ -368,27 +389,33 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({
   // Instructions component
   const Instructions = ({ onClose }: { onClose: () => void }) => (
     <div className="bg-white rounded-xl p-6 max-w-lg w-full shadow-xl">
-      <h2 className="text-2xl font-bold text-ocean-dark mb-4">
-        Quick ID
+      <h2 className="text-2xl font-bold text-ocean-dark mb-4 flex items-center gap-2">
+        <Zap className="h-8 w-8" />
+        Quick ID Challenge
       </h2>
 
       <div className="space-y-4 mb-6">
-
         <div className="bg-blue-50 p-4 rounded-lg">
           <ul className="list-disc pl-5 text-gray-700 space-y-2">
-            <li>Click the correct button for each image</li>
-            <li>Choose: Shark, Kelp, or Dolphin</li>
-            <li>45 seconds total - game gets faster!</li>
-            <li>Faster answers = more points</li>
+            <li>🔍 Spot the ocean creature in each picture</li>
+            <li>🐋 Choose: Shark, Kelp, or Dolphin</li>
+            <li>⏰ 45 seconds to test your knowledge!</li>
+            <li>⚡ Quick answers = more points!</li>
           </ul>
         </div>
       </div>
 
       <Button
-        className="w-full bg-ocean-dark hover:bg-ocean-darker text-white"
-        onClick={onClose}
+        className="w-full bg-ocean-dark hover:bg-ocean-darker text-white text-lg py-6"
+        onClick={() => {
+          onClose();
+          // Resume both timers when instructions are closed
+          if (gameStarted && !gameOver) {
+            setImageTimer(timePerImage);
+          }
+        }}
       >
-        Let's Play!
+        Let's Race! 🏃‍♂️
       </Button>
     </div>
   );
@@ -396,7 +423,6 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({
   return (
     <div>
       <div className="container mx-auto py-0 px-4 relative z-10">
-
         {/* Instructions Modal */}
         {showInstructions && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
@@ -419,7 +445,7 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({
               <Timer
                 duration={45}
                 onTimeUp={() => endGame()}
-                isRunning={gameStarted && !gameOver}
+                isRunning={gameStarted && !gameOver && !showInstructions}
                 onTimerUpdate={(timeLeft) => setTimeRemaining(timeLeft)}
                 label="Time Remaining:"
               />
@@ -481,9 +507,7 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({
                         className="h-full bg-ocean-dark"
                         style={{
                           width: "100%",
-                          animation: `shrink ${
-                            timePerImage / 1000
-                          }s linear forwards`,
+                          animation: showInstructions ? 'none' : `shrink ${remainingImageTime / 1000}s linear forwards`,
                         }}
                       ></div>
                     </div>
@@ -548,18 +572,17 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({
               ) : (
                 <div className="flex items-center justify-center h-full">
                   <div className="p-8 text-center">
-                    <Fish className="h-16 w-16 text-ocean-dark mx-auto mb-4" />
-                    <h2 className="text-2xl font-bold text-ocean-dark mb-4">
-                      Ready to Test Your Quick ID Skills?
+                    <h2 className="text-3xl font-bold text-ocean-dark mb-4">
+                      Test Your Ocean Knowledge! 🌊
                     </h2>
-                    <p className="text-gray-700 mb-6">
-                      Identify sharks, kelp, and dolphins as quickly as possible!
+                    <p className="text-gray-700 mb-6 text-lg">
+                      How fast can you identify sharks, kelp, and dolphins?
                     </p>
                     <Button
-                      className="bg-ocean-dark hover:bg-ocean-darker text-white text-lg px-8 py-6 h-auto"
+                      className="bg-ocean-dark hover:bg-ocean-darker text-white text-xl px-8 py-6 h-auto animate-pulse"
                       onClick={startGame}
                     >
-                      Start Game
+                      Start Challenge! 🚀
                     </Button>
                   </div>
                 </div>
@@ -570,6 +593,36 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({
             {gameStarted && (
               <div className="w-80 bg-white rounded-xl p-4 shadow-md flex flex-col justify-between">
                 <div className="flex flex-col gap-4">
+                  {/* Answer buttons */}
+                  <div className="flex flex-col gap-3">
+                    <p className="text-sm text-gray-700 text-center">
+                      Choose the label for the image.
+                    </p>
+                    <div className="flex flex-col gap-3">
+                      <Button
+                        className="h-16 text-lg bg-blue-500 hover:bg-blue-600 text-white"
+                        onClick={() => handleAnswer("shark")}
+                      >
+                        Shark
+                      </Button>
+                      <Button
+                        className="h-16 text-lg bg-green-500 hover:bg-green-600 text-white"
+                        onClick={() => handleAnswer("kelp")}
+                      >
+                        Kelp
+                      </Button>
+                      <Button
+                        className="h-16 text-lg bg-purple-500 hover:bg-purple-600 text-white"
+                        onClick={() => handleAnswer("dolphin")}
+                      >
+                        Dolphin
+                      </Button>
+                    </div>
+                    <br />
+                    <p className="text-sm text-gray-700 text-center">
+                      Answer faster for more points!
+                    </p>
+                  </div>
                   {/* Current Score */}
                   <div className="bg-blue-50 p-4 rounded-lg">
                     <div className="flex justify-between items-center mb-2">
@@ -601,36 +654,6 @@ const QuickIDGame: React.FC<QuickIDGameProps> = ({
                         </span>
                       </div>
                     </div>
-                  </div>
-                  
-                  {/* Answer buttons */}
-                  <div className="flex flex-col gap-3">
-                    <p className="text-sm text-gray-700 text-center">
-                      Click the correct identification for the image.
-                    </p>
-                    <div className="flex flex-col gap-3">
-                      <Button
-                        className="h-16 text-lg bg-blue-500 hover:bg-blue-600 text-white"
-                        onClick={() => handleAnswer("shark")}
-                      >
-                        Shark
-                      </Button>
-                      <Button
-                        className="h-16 text-lg bg-green-500 hover:bg-green-600 text-white"
-                        onClick={() => handleAnswer("kelp")}
-                      >
-                        Kelp
-                      </Button>
-                      <Button
-                        className="h-16 text-lg bg-purple-500 hover:bg-purple-600 text-white"
-                        onClick={() => handleAnswer("dolphin")}
-                      >
-                        Dolphin
-                      </Button>
-                    </div>
-                    <p className="text-sm text-gray-700 text-center">
-                      The faster you answer, the more points you get!
-                    </p>
                   </div>
                 </div>
               </div>

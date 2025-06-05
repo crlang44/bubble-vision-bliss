@@ -12,10 +12,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 const GroundTruthEditor = () => {
   const [selectedTool, setSelectedTool] = useState<AnnotationType>('rectangle');
-  const [currentLabel, setCurrentLabel] = useState('Whale');
+  const [currentLabel, setCurrentLabel] = useState('Great White Shark');
   const [annotations, setAnnotations] = useState<Annotation[]>([]);
   const [selectedImage, setSelectedImage] = useState<OceanImage | null>(null);
-  const [availableLabels, setAvailableLabels] = useState<string[]>(['Whale', 'Fish']);
+  const [availableLabels, setAvailableLabels] = useState<string[]>(['Great White Shark', 'Kelp']);
   const [customLabel, setCustomLabel] = useState('');
   const [showGroundTruth, setShowGroundTruth] = useState(true);
   const [score, setScore] = useState(0);
@@ -71,7 +71,7 @@ const GroundTruthEditor = () => {
   
   const getColorForType = (type: AnnotationType): string => {
     const colors = {
-      rectangle: '#FF719A',
+      bounding_box: '#FF719A',
       polygon: '#6E59A5',
       point: '#0EA5E9'
     };
@@ -323,6 +323,8 @@ export const oceanImages: OceanImage[] = ${JSON.stringify(updatedOceanImages, nu
                       onToggleGroundTruth={() => setShowGroundTruth(!showGroundTruth)}
                       originalWidth={selectedImage.originalWidth}
                       originalHeight={selectedImage.originalHeight}
+                      availableLabels={availableLabels}
+                      onLabelChange={handleLabelChange}
                     />
                   ) : (
                     <div className="flex items-center justify-center h-full">
@@ -388,7 +390,7 @@ export const oceanImages: OceanImage[] = ${JSON.stringify(updatedOceanImages, nu
               <CardContent>
                 <ul className="text-sm space-y-2 list-disc pl-4">
                   <li>Select an image from the left panel</li>
-                  <li>Choose an annotation tool (rectangle, polygon, or point)</li>
+                  <li>Choose an annotation tool (bounding box, polygon, or point)</li>
                   <li>Select or create a label for the annotation</li>
                   <li>Draw on the image to create annotations</li>
                   <li>Click "Save Ground Truth" when finished</li>

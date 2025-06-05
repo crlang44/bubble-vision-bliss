@@ -8,7 +8,8 @@ export interface Annotation {
   label: string;
   color: string;
   isComplete: boolean;
-  _displayCoordinates?: Coordinate[]; // Added for tracking display coordinates
+  _displayCoordinates?: Coordinate[];
+  _deleteButtonPosition?: Coordinate;
 }
 
 export interface TargetAnnotation {
@@ -38,7 +39,7 @@ export const calculateRectOverlap = (rect1: Coordinate[], rect2: Coordinate[]): 
   };
   
   // Check for obvious mismatches first - if rectangles are too far apart
-  const maxDistance = 300; // Maximum distance to consider any possibility of a match
+  const maxDistance = 400; // Increased from 300 to 400 for more leniency
   const centerDist = Math.sqrt(
     Math.pow(((r1.left + r1.right) / 2) - ((r2.left + r2.right) / 2), 2) +
     Math.pow(((r1.top + r1.bottom) / 2) - ((r2.top + r2.bottom) / 2), 2)
@@ -62,19 +63,19 @@ export const calculateRectOverlap = (rect1: Coordinate[], rect2: Coordinate[]): 
   
   // More lenient scoring - apply a boost to the score
   // This gives partial credit even for imperfect overlaps
-  const leniencyBoost = 0.3; // Boost factor (30% boost)
+  const leniencyBoost = 0.5; // Increased from 0.3 to 0.5 (50% boost)
   let boostedScore = regularIoU * (1 + leniencyBoost);
   
   // Apply a minimum score if there's any overlap at all
-  if (regularIoU > 0 && boostedScore < 0.2) {
-    boostedScore = 0.2; // Minimum 20% score for any overlap
+  if (regularIoU > 0 && boostedScore < 0.3) { // Increased from 0.2 to 0.3
+    boostedScore = 0.3; // Minimum 30% score for any overlap
   }
   
   // Apply a proximity bonus for rectangles that are close but don't overlap
   if (regularIoU === 0) {
-    // Check if rectangles are close (within 20% of the average size)
+    // Check if rectangles are close (within 30% of the average size, increased from 20%)
     const avgSize = (Math.sqrt(area1) + Math.sqrt(area2)) / 2;
-    const proximity = 0.2 * avgSize;
+    const proximity = 0.3 * avgSize; // Increased from 0.2 to 0.3
     
     // Calculate distances between rectangles on each axis
     const xDistance = Math.max(0, Math.max(r1.left, r2.left) - Math.min(r1.right, r2.right));
@@ -82,13 +83,13 @@ export const calculateRectOverlap = (rect1: Coordinate[], rect2: Coordinate[]): 
     
     // If rectangles are close enough, assign a small score
     if (xDistance < proximity && yDistance < proximity) {
-      boostedScore = 0.1; // 10% score for close proximity
+      boostedScore = 0.2; // Increased from 0.1 to 0.2 (20% score for close proximity)
     }
     
     // Give partial credit for annotations in the general area
     // This helps with large images where precision is harder
     if (centerDist < maxDistance / 2) {
-      boostedScore = Math.max(boostedScore, 0.3); // At least 30% for being in right area
+      boostedScore = Math.max(boostedScore, 0.4); // Increased from 0.3 to 0.4 (40% for being in right area)
     }
   }
   
@@ -134,8 +135,12 @@ export const generateId = (): string => {
 export const labelColors: { [key: string]: string } = {
   'Kelp': '#22c55e', // Green
   'Great White Shark': '#3b82f6', // Blue
-  'Whale': '#8b5cf6', // Purple
-  'Fish': '#f59e0b', // Amber
   'Dolphin': '#ec4899', // Pink
-  'Coral': '#ef4444', // Red
+  'Swimmer': '#f59e0b', // Amber
+  'Surfer': '#ef4444', // Red
+  'Bat Ray': '#8b5cf6', // Purple
+  'Bird': '#f59e0b', // Amber
+  'Boat': '#ef4444', // Red
+  'Seal': '#8b5cf6', // Purple
+  'Kayaker': '#f59e0b', // Amber
 };

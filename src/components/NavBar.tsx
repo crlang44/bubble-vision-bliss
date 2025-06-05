@@ -40,22 +40,8 @@ const NavBar: React.FC<NavBarProps> = ({
               Ocean Explorer Challenge
             </span>
           </div>
-        </div>
-        
-        {/* Score and Actions Section */}
-        <div className="flex items-center gap-2 sm:gap-3">
-          {/* Score Display */}
-          {bestScore > 0 && (
-            <div className="bg-gradient-to-r from-amber-400 to-yellow-500 text-amber-900 px-3 rounded-lg text-sm font-bold flex items-center gap-1.5 shadow-md h-9">
-              <Trophy className="h-4 w-4 text-amber-800" />
-              <span className="hidden sm:inline">Best:</span>
-              <span>{bestScore}</span>
-            </div>
-          )}
-          
-          {/* Action Buttons */}
-          <div className="flex items-center gap-2">
-            <Button
+
+          <Button
               variant="secondary"
               size="sm"
               onClick={() => setShowInstructions(true)}
@@ -66,7 +52,22 @@ const NavBar: React.FC<NavBarProps> = ({
               <span className="hidden sm:inline">How to Play</span>
               <span className="sm:hidden">Help</span>
             </Button>
-            
+          {/* Score Display */}
+          {bestScore > 0 && (
+            <div className="h-9 min-w-[80px] sm:min-w-[120px] px-3 flex items-center justify-center bg-gradient-to-r from-amber-400 to-yellow-500 text-amber-900 rounded-lg text-base font-medium gap-1.5 shadow-md">
+              <Trophy className="h-4 w-4 text-amber-800" />
+              <span className="hidden sm:inline">Best:</span>
+              <span>{bestScore}</span>
+            </div>
+          )}
+        </div>
+        
+        {/* Score and Actions Section */}
+        <div className="flex items-center gap-2 sm:gap-3">
+          
+          
+          {/* Action Buttons */}
+          <div className="flex items-center gap-2">
             <Button
               variant="default"
               size="sm"
